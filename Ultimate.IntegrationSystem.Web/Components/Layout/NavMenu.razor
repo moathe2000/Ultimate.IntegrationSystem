@@ -2,7 +2,25 @@
 @using Microsoft.Extensions.Localization
 @inject IStringLocalizer<SharedResources> L
 
-<MudNavMenu>
-    <MudNavLink Href="" Icon="@Icons.Material.Filled.Home">@L["Home"]</MudNavLink>
-    <MudNavLink Href="/employees" Icon="@Icons.Material.Filled.People">@L["EmployeesTitle"]</MudNavLink>
+
+<MudNavMenu Dense="true">
+    <MudNavLink Href="/" Icon="@Icons.Material.Filled.Home">
+        @L["Home"]
+    </MudNavLink>
+
+    <MudNavGroup Title="@L["Employees"]" Icon="@Icons.Material.Filled.People">
+        <MudNavLink Href="/employees">@L["ViewEmployees"]</MudNavLink>
+    </MudNavGroup>
+
+    <MudNavGroup Title="@L["OrganizationalPlan"]" Icon="@Icons.Material.Filled.Assessment">
+        <MudNavLink Href="/plan">@L["ViewPlan"]</MudNavLink>
+    </MudNavGroup>
+
+    <MudNavGroup Title="@L["Services"]" Icon="@Icons.Material.Filled.Apps">
+        <MudNavLink Href="/services">@L["ViewServices"]</MudNavLink>
+    </MudNavGroup>
+
+    <!-- روابط إضافية حسب الصورة -->
+    <MudNavLink Href="/candidates" Icon="@Icons.Material.Filled.PeopleOutline">@L["Candidates"]</MudNavLink>
+    <MudNavLink Href="/exit" Icon="@Icons.Material.Filled.ExitToApp">@L["Logout"]</MudNavLink>
 </MudNavMenu>
