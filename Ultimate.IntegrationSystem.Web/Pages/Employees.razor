@@ -20,9 +20,10 @@
     <MudGrid Class="my-3">
         <MudItem xs="12" sm="6">
             <MudSelect T="string" @bind-Value="SelectedStatus" Label="@L["StatusLabel"]">
-                <MudSelectItem Value="">الكل</MudSelectItem>
-                <MudSelectItem Value="نشط">نشط</MudSelectItem>
-                <MudSelectItem Value="غير نشط">غير نشط</MudSelectItem>
+                <MudSelectItem Value="@L["All"]"></MudSelectItem>
+                <MudSelectItem Value="@L["Active"]"></MudSelectItem>
+                <MudSelectItem Value="@L["Inactive"]"></MudSelectItem>
+
             </MudSelect>
         </MudItem>
         <MudItem xs="12" sm="6">
@@ -33,12 +34,12 @@
 
     <MudTable Items="FilteredEmployees" Hover="true" Bordered="true" Striped="true">
         <HeaderContent>
-            <MudTh>رقم</MudTh>
-            <MudTh>الاسم</MudTh>
-            <MudTh>الوظيفة</MudTh>
-            <MudTh>القسم</MudTh>
-            <MudTh>الفرع</MudTh>
-            <MudTh>التاريخ</MudTh>
+            <MudTh>@L["Number"]</MudTh>
+            <MudTh>@L["Name"]</MudTh>
+            <MudTh>@L["JobTitle"]</MudTh>
+            <MudTh>@L["Department"]</MudTh>
+            <MudTh>@L["Branch"]</MudTh>
+            <MudTh>@L["JoinDate"]</MudTh>
         </HeaderContent>
         <RowTemplate>
             <MudTd>@context.EmployeeNumber</MudTd>
@@ -53,13 +54,13 @@
 
 @code {
     private string SearchTerm = "";
-    private string SelectedStatus = "";
+    private string SelectedStatus = "All";
 
     private List<Employee> AllEmployees;
     private List<Employee> FilteredEmployees => AllEmployees
         .Where(e =>
             (string.IsNullOrWhiteSpace(SearchTerm) || e.Name.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase)) &&
-            (string.IsNullOrWhiteSpace(SelectedStatus) || e.Status == SelectedStatus)
+            (SelectedStatus == "All" || e.Status == SelectedStatus)
         ).ToList();
 
     protected override void OnInitialized()
