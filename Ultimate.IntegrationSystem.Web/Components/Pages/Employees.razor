@@ -1,0 +1,73 @@
+﻿@page "/Employees"
+@inject EmployeeService EmployeeService
+@using MudBlazor
+
+
+<MudPaper Class="pa-4">
+    <MudStack Row="true" Justify="space-between" AlignItems="center" Class="mb-4">
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.PersonAdd">موظف جديد</MudButton>
+        <MudStack Row="true" Spacing="2">
+            <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Send">دعوة الموظفين</MudButton>
+            <MudIconButton Icon="@Icons.Material.Filled.Refresh" Color="Color.Default" />
+        </MudStack>
+    </MudStack>
+
+    <MudStack Row="true" AlignItems="center" Class="mb-4" Spacing="3">
+        <MudSelect T="string" Label="حالة الموظف" @bind-Value="SelectedStatus" Dense="true">
+            <MudSelectItem Value="">الكل</MudSelectItem>
+            <MudSelectItem Value="نشط">نشط</MudSelectItem>
+            <MudSelectItem Value="غير نشط">غير نشط</MudSelectItem>
+        </MudSelect>
+
+        <MudTextField T="string" @bind-Value="SearchTerm" Label="الاسم، الوظيفة، الرقم" Adornment="Adornment.Start"
+                      AdornmentIcon="@Icons.Material.Filled.Search" Dense="true" />
+    </MudStack>
+
+    <MudTable Items="PagedEmployees" Hover="true" Striped="true" Dense="true">
+        <HeaderContent>
+            <MudTh>رقم الموظف</MudTh>
+            <MudTh>اسم الموظف</MudTh>
+            <MudTh>المسمى الوظيفي</MudTh>
+            <MudTh>القسم</MudTh>
+            <MudTh>الفرع / الموقع</MudTh>
+            <MudTh>تاريخ الانضمام</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd>@context.EmployeeNumber</MudTd>
+            <MudTd>@context.Name</MudTd>
+            <MudTd>@context.JobTitle</MudTd>
+            <MudTd>@context.Department</MudTd>
+            <MudTd>@context.Branch</MudTd>
+            <MudTd>@context.JoinDate.ToString("dd-MM-yyyy")</MudTd>
+        </RowTemplate>
+    </MudTable>
+
+    <MudTablePager PageSizeOptions="new int[] {10}" PageSize="PageSize"
+                   PageIndex="CurrentPage" RowsPerPageString="لكل صفحة"
+                   @onchange="OnPageChanged" />
+</MudPaper>
+
+@code {
+    private List<Employee> AllEmployees = new();
+    private List<Employee> PagedEmployees => FilteredEmployees.Skip(CurrentPage * PageSize).Take(PageSize).ToList();
+    private List<Employee> FilteredEmployees => AllEmployees
+        .Where(e =>
+            (string.IsNullOrWhiteSpace(SearchTerm) || e.Name.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) || e.JobTitle.Contains(SearchTerm)) &&
+            (string.IsNullOrWhiteSpace(SelectedStatus) || e.Status == SelectedStatus)
+        ).ToList();
+
+    private string SearchTerm = "";
+    private string SelectedStatus = "";
+    private int CurrentPage = 0;
+    private int PageSize = 10;
+
+    protected override void OnInitialized()
+    {
+        AllEmployees = EmployeeService.GetAllEmployees();
+    }
+
+    private void OnPageChanged(int index)
+    {
+        CurrentPage = index;
+    }
+}
