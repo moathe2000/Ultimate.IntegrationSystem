@@ -1,36 +1,44 @@
-﻿@page "/Employees"
+﻿@page "/employees"
 @inject EmployeeService EmployeeService
+@inject IStringLocalizer<Employees> L
+@using Microsoft.Extensions.Localization
+@using Ultimate.IntegrationSystem.Web.Models
 @using MudBlazor
-
+@using Ultimate.IntegrationSystem.Web.Service
 
 <MudPaper Class="pa-4">
-    <MudStack Row="true" Justify="space-between" AlignItems="center" Class="mb-4">
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.PersonAdd">موظف جديد</MudButton>
-        <MudStack Row="true" Spacing="2">
-            <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Send">دعوة الموظفين</MudButton>
-            <MudIconButton Icon="@Icons.Material.Filled.Refresh" Color="Color.Default" />
-        </MudStack>
-    </MudStack>
+    <MudGrid>
+        <MudItem xs="6">
+            <MudText Typo="Typo.h5">@L["EmployeesTitle"]</MudText>
+        </MudItem>
+        <MudItem xs="6" Class="d-flex justify-end">
+            <MudButton Variant="Variant.Filled">@L["AddEmployee"]</MudButton>
+            <MudButton Variant="Variant.Outlined" Class="ml-2">@L["InviteEmployees"]</MudButton>
+        </MudItem>
+    </MudGrid>
 
-    <MudStack Row="true" AlignItems="center" Class="mb-4" Spacing="3">
-        <MudSelect T="string" Label="حالة الموظف" @bind-Value="SelectedStatus" Dense="true">
-            <MudSelectItem Value="">الكل</MudSelectItem>
-            <MudSelectItem Value="نشط">نشط</MudSelectItem>
-            <MudSelectItem Value="غير نشط">غير نشط</MudSelectItem>
-        </MudSelect>
+    <MudGrid Class="my-3">
+        <MudItem xs="12" sm="6">
+            <MudSelect T="string" @bind-Value="SelectedStatus" Label="@L["StatusLabel"]">
+                <MudSelectItem Value="">الكل</MudSelectItem>
+                <MudSelectItem Value="نشط">نشط</MudSelectItem>
+                <MudSelectItem Value="غير نشط">غير نشط</MudSelectItem>
+            </MudSelect>
+        </MudItem>
+        <MudItem xs="12" sm="6">
+            <MudTextField @bind-Value="SearchTerm" Label="@L["SearchHint"]"
+                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" />
+        </MudItem>
+    </MudGrid>
 
-        <MudTextField T="string" @bind-Value="SearchTerm" Label="الاسم، الوظيفة، الرقم" Adornment="Adornment.Start"
-                      AdornmentIcon="@Icons.Material.Filled.Search" Dense="true" />
-    </MudStack>
-
-    <MudTable Items="PagedEmployees" Hover="true" Striped="true" Dense="true">
+    <MudTable Items="FilteredEmployees" Hover="true" Bordered="true" Striped="true">
         <HeaderContent>
-            <MudTh>رقم الموظف</MudTh>
-            <MudTh>اسم الموظف</MudTh>
-            <MudTh>المسمى الوظيفي</MudTh>
+            <MudTh>رقم</MudTh>
+            <MudTh>الاسم</MudTh>
+            <MudTh>الوظيفة</MudTh>
             <MudTh>القسم</MudTh>
-            <MudTh>الفرع / الموقع</MudTh>
-            <MudTh>تاريخ الانضمام</MudTh>
+            <MudTh>الفرع</MudTh>
+            <MudTh>التاريخ</MudTh>
         </HeaderContent>
         <RowTemplate>
             <MudTd>@context.EmployeeNumber</MudTd>
@@ -38,36 +46,24 @@
             <MudTd>@context.JobTitle</MudTd>
             <MudTd>@context.Department</MudTd>
             <MudTd>@context.Branch</MudTd>
-            <MudTd>@context.JoinDate.ToString("dd-MM-yyyy")</MudTd>
+            <MudTd>@context.JoinDate.ToString("yyyy-MM-dd")</MudTd>
         </RowTemplate>
     </MudTable>
-
-    <MudTablePager PageSizeOptions="new int[] {10}" PageSize="PageSize"
-                   PageIndex="CurrentPage" RowsPerPageString="لكل صفحة"
-                   @onchange="OnPageChanged" />
 </MudPaper>
 
 @code {
-    private List<Employee> AllEmployees = new();
-    private List<Employee> PagedEmployees => FilteredEmployees.Skip(CurrentPage * PageSize).Take(PageSize).ToList();
-    private List<Employee> FilteredEmployees => AllEmployees
-        .Where(e =>
-            (string.IsNullOrWhiteSpace(SearchTerm) || e.Name.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) || e.JobTitle.Contains(SearchTerm)) &&
-            (string.IsNullOrWhiteSpace(SelectedStatus) || e.Status == SelectedStatus)
-        ).ToList();
-
     private string SearchTerm = "";
     private string SelectedStatus = "";
-    private int CurrentPage = 0;
-    private int PageSize = 10;
+
+    private List<Employee> AllEmployees;
+    private List<Employee> FilteredEmployees => AllEmployees
+        .Where(e =>
+            (string.IsNullOrWhiteSpace(SearchTerm) || e.Name.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase)) &&
+            (string.IsNullOrWhiteSpace(SelectedStatus) || e.Status == SelectedStatus)
+        ).ToList();
 
     protected override void OnInitialized()
     {
         AllEmployees = EmployeeService.GetAllEmployees();
-    }
-
-    private void OnPageChanged(int index)
-    {
-        CurrentPage = index;
     }
 }
