@@ -2,69 +2,17 @@
 @using Microsoft.Extensions.Localization
 @inject IStringLocalizer<SharedResources> L
 
-@code {
-    // حالة فتح/طيّ مجموعة الموظفين
-    private bool _employeesOpen;
-    private void ToggleEmployees() => _employeesOpen = !_employeesOpen;
-}
-
 <MudNavMenu Dense="true">
-
-    <!-- Home link -->
     <MudNavLink Href="/" Icon="@Icons.Material.Filled.Home" Match="NavLinkMatch.All">
         @L["Home"]
     </MudNavLink>
 
-    <!-- Employees NavGroup -->
-    <MudNavGroup Icon="@Icons.Material.Filled.People"
-                 Match="NavLinkMatch.Prefix"
-                 @bind-Expanded="_employeesOpen">
-
-        <!-- نستخدم TitleContent للتحكّم الكامل -->
-        <TitleContent>
-            <div class="d-flex align-center pa-2"
-                 style="cursor:pointer; user-select:none"
-                 @onclick="ToggleEmployees">
-                <MudIcon Icon="@Icons.Material.Filled.People" />
-                <MudText Class="ml-2">@L["Employees"]</MudText>
-                <MudSpacer />
-                <MudIcon Icon="@(_employeesOpen
-                                                   ? Icons.Material.Filled.ExpandLess
-                                                   : Icons.Material.Filled.ExpandMore)" />
-            </div>
-        </TitleContent>
-
-        <!-- ChildContent: الروابط الفرعيّة -->
-        <ChildContent>
-            <MudNavLink Href="/Employees"
-                        Icon="@Icons.Material.Filled.List"
-                        Match="NavLinkMatch.All">
-                @L["ViewEmployees"]
-            </MudNavLink>
-            <MudNavLink Href="/residents"
-                        Icon="@Icons.Material.Filled.PersonPin"
-                        Match="NavLinkMatch.All">
-                @L["Residents"]
-            </MudNavLink>
-            <MudNavLink Href="/insurance"
-                        Icon="@Icons.Material.Filled.MedicalServices"
-                        Match="NavLinkMatch.All">
-                @L["InsuranceAndPension"]
-            </MudNavLink>
-        </ChildContent>
-
+    <MudNavGroup Title="@L["Employees"]" Icon="@Icons.Material.Filled.People" Match="NavLinkMatch.Prefix" Expanded="true">
+        <MudNavLink Href="/employees" Icon="@Icons.Material.Filled.List">@L["ViewEmployees"]</MudNavLink>
+        <MudNavLink Href="/residents" Icon="@Icons.Material.Filled.Badge">@L["Residents"]</MudNavLink>
+        <MudNavLink Href="/insurance" Icon="@Icons.Material.Filled.HealthAndSafety">@L["InsuranceAndPension"]</MudNavLink>
     </MudNavGroup>
 
-    <!-- روابط جانبيّة أخرى -->
-    <MudNavLink Href="/organizationalplan"
-                Icon="@Icons.Material.Filled.Assessment"
-                Match="NavLinkMatch.All">
-        @L["OrganizationalPlan"]
-    </MudNavLink>
-    <MudNavLink Href="/logout"
-                Icon="@Icons.Material.Filled.ExitToApp"
-                Match="NavLinkMatch.All">
-        @L["Logout"]
-    </MudNavLink>
-
+    <MudNavLink Href="/organizationalplan" Icon="@Icons.Material.Filled.Assessment">@L["OrganizationalPlan"]</MudNavLink>
+    <MudNavLink Href="/logout" Icon="@Icons.Material.Filled.ExitToApp">@L["Logout"]</MudNavLink>
 </MudNavMenu>

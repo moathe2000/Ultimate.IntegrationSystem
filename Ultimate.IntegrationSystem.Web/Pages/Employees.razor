@@ -1,102 +1,168 @@
 ﻿@page "/employees"
-@inject EmployeeService EmployeeService
-@inject IStringLocalizer<Employees> L
-@using Microsoft.Extensions.Localization
 @using MudBlazor
+@using Microsoft.Extensions.Localization
 @using Ultimate.IntegrationSystem.Web.Models
 @using Ultimate.IntegrationSystem.Web.Service
+@inject EmployeeService EmployeeService
+@inject IStringLocalizer<Employees> L
+@inject IDialogService DialogService
+@inject NavigationManager Navigation
 
-<MudPaper Class="pa-4 mx-auto" Style="max-width:1200px">
-    <MudStack Direction="Row"
-              Justify="Justify.SpaceBetween"
-              AlignItems="AlignItems.Center">
-        <MudText Typo="Typo.h5">@L["EmployeesTitle"]</MudText>
-        <MudStack Direction="Row" Spacing="1">
-            <MudButton Color="Color.Primary"
-                       Variant="Variant.Filled"
-                       StartIcon="@Icons.Material.Filled.PersonAdd">
-                @L["AddEmployee"]
-            </MudButton>
-            <MudButton Color="Color.Secondary"
-                       Variant="Variant.Outlined"
-                       StartIcon="@Icons.Material.Filled.MailOutline">
-                @L["InviteEmployees"]
-            </MudButton>
-        </MudStack>
-    </MudStack>
+<MudGrid Class="mx-auto" Style="max-width:1200px">
+    <MudItem xs="12" md="9">
+        <MudPaper Elevation="0" Class="pa-4">
 
-    <MudGrid Class="mt-4" Gutter="3">
-        <MudItem xs="12" sm="6">
-            <MudTextField @bind-Value="searchTerm"
-                          Placeholder="@L["SearchHint"]"
-                          Adornment="Adornment.Start"
-                          AdornmentIcon="@Icons.Material.Filled.Search"
-                          FullWidth="true" />
-        </MudItem>
-        <MudItem xs="12" sm="6">
-            <MudStack Direction="Row" AlignItems="AlignItems.Center" Spacing="1">
-                <MudText>@L["StatusLabel"]</MudText>
+            <!-- العنوان + الأزرار -->
+            <MudStack Direction="Row" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                <MudText Typo="Typo.h5">@L["EmployeesTitle"]</MudText>
+                <MudStack Direction="Row" Spacing="1">
+                    <MudButton Color="Color.Primary"
+                               StartIcon="@Icons.Material.Filled.PersonAdd"
+                               OnClick="AddEmployee">
+                        @L["AddEmployee"]
+                    </MudButton>
+                    <MudButton Variant="Variant.Outlined"
+                               StartIcon="@Icons.Material.Filled.MailOutline"
+                               OnClick="InviteEmployees">
+                        @L["InviteEmployees"]
+                    </MudButton>
+                </MudStack>
+            </MudStack>
+
+            <MudDivider Class="my-3" />
+
+            <!-- بحث + حالة -->
+            <MudStack Direction="Row" AlignItems="AlignItems.Center" Spacing="2" Class="mb-2">
+                <MudTextField @bind-Value="searchTerm"
+                              @bind-Value:event="oninput"
+                              Immediate="true"
+                              Placeholder="@L["SearchHint"]"
+                              Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.Search"
+                              Class="mud-width-full" />
+
                 <MudSelect T="string"
+                           Label="@L["StatusLabel"]"
                            @bind-Value="selectedStatus"
                            Dense="true"
-                           Style="min-width:120px">
-                    <MudSelectItem T="string" >"hggh"</MudSelectItem>
-                    <MudSelectItem T="string" >"00585""</MudSelectItem>
-                    <MudSelectItem T="string" >"Inactive"</MudSelectItem>
+                           Style="min-width:160px">
+                    <MudSelectItem Value="@STATUS_ALL">@L["All"]</MudSelectItem>
+                    <MudSelectItem Value="@STATUS_ACTIVE">@L["Active"]</MudSelectItem>
+                    <MudSelectItem Value="@STATUS_INACTIVE">@L["Inactive"]</MudSelectItem>
                 </MudSelect>
-            </MudStack>
-        </MudItem>
-    </MudGrid>
 
-    <MudTable Items="filteredEmployees"
-              Hover="true"
-              Bordered="true"
-              Striped="true"
-              Class="mt-4">
-        <HeaderContent>
-            <MudTh DataLabel="@L["Number"]">@L["Number"]</MudTh>
-            <MudTh DataLabel="@L["Name"]">@L["Name"]</MudTh>
-            <MudTh DataLabel="@L["JobTitle"]">@L["JobTitle"]</MudTh>
-            <MudTh DataLabel="@L["Department"]">@L["Department"]</MudTh>
-            <MudTh DataLabel="@L["Branch"]">@L["Branch"]</MudTh>
-            <MudTh DataLabel="@L["JoinDate"]">@L["JoinDate"]</MudTh>
-        </HeaderContent>
-        <RowTemplate>
-            <MudTd DataLabel="@L["Number"]">@context.EmployeeNumber</MudTd>
-            <MudTd DataLabel="@L["Name"]">
-                <!-- عرض Avatar افتراضية بدلاً من PhotoUrl -->
-                <MudAvatar Icon="@Icons.Material.Filled.Person"
-                           Size="Size.Medium"
-                           Class="mr-2" />
-                @context.Name
-            </MudTd>
-            <MudTd DataLabel="@L["JobTitle"]">@context.JobTitle</MudTd>
-            <MudTd DataLabel="@L["Department"]">@context.Department</MudTd>
-            <MudTd DataLabel="@L["Branch"]">@context.Branch</MudTd>
-            <MudTd DataLabel="@L["JoinDate"]">
-                @context.JoinDate.ToString("yyyy-MM-dd")
-            </MudTd>
-        </RowTemplate>
-        <PagerContent>
-            <MudTablePager PageSizeOptions="new int[] { 5, 10, 20 }" />
-        </PagerContent>
-    </MudTable>
-</MudPaper>
+                <MudButton Variant="Variant.Text" OnClick="ClearFilters">@L["ClearAllFilters"]</MudButton>
+            </MudStack>
+
+            @if (HasAnyFilter)
+            {
+                <MudStack Direction="Row" Spacing="1" Class="mb-2">
+                    @if (!string.IsNullOrWhiteSpace(searchTerm))
+                    {
+                        <MudChip T="string"
+                                 Variant="Variant.Outlined"
+                                 Closeable="true"
+                                 OnClose="@( (MudChip<string> _) => ClearSearchChip() )">
+                            @L["Search"] : @searchTerm
+                        </MudChip>
+                    }
+
+                    @if (selectedStatus != STATUS_ALL)
+                    {
+                        <MudChip T="string"
+                                 Color="Color.Primary"
+                                 Variant="Variant.Outlined"
+                                 Closeable="true"
+                                 OnClose="@( (MudChip<string> _) => ResetStatusChip() )">
+                            @L["StatusLabel"] : @L[selectedStatus]
+                        </MudChip>
+                    }
+                </MudStack>
+            }
+
+
+            <!-- الجدول -->
+            <MudTable Items="FilteredEmployees"
+                      Dense="true"
+                      Hover="true"
+                      Bordered="true"
+                      Striped="true"
+                      FixedHeader="true"
+                      Height="480px">
+                <HeaderContent>
+                    <MudTh>@L["Number"]</MudTh>
+                    <MudTh>@L["Name"]</MudTh>
+                    <MudTh>@L["JobTitle"]</MudTh>
+                    <MudTh>@L["Department"]</MudTh>
+                    <MudTh>@L["Branch"]</MudTh>
+                    <MudTh>@L["JoinDate"]</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd>@context.EmployeeNumber</MudTd>
+                    <MudTd>
+                        <MudAvatar Icon="@Icons.Material.Filled.Person" Size="Size.Medium" Class="mr-2" />
+                        @context.Name
+                    </MudTd>
+                    <MudTd>@context.JobTitle</MudTd>
+                    <MudTd>@context.Department</MudTd>
+                    <MudTd>@context.Branch</MudTd>
+                    <MudTd>@context.JoinDate:yyyy-MM-dd</MudTd>
+                </RowTemplate>
+                <PagerContent>
+                    <MudTablePager PageSizeOptions="new int[] { 10, 20, 50 }" />
+                </PagerContent>
+            </MudTable>
+
+        </MudPaper>
+    </MudItem>
+</MudGrid>
 
 @code {
-    private string searchTerm = "";
-    private string selectedStatus = "All";
+    // ثوابت الحالة
+    private const string STATUS_ALL = "All";
+    private const string STATUS_ACTIVE = "Active";
+    private const string STATUS_INACTIVE = "Inactive";
 
-    private List<Employee> allEmployees;
-    private IEnumerable<Employee> filteredEmployees =>
-      allEmployees.Where(e =>
-        (string.IsNullOrWhiteSpace(searchTerm) ||
-         e.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) &&
-        (selectedStatus == "All" || e.Status == selectedStatus)
-      );
+    private string searchTerm = "";
+    private string selectedStatus = STATUS_ALL;
+    private List<Employee> allEmployees = new();
+
+    private IEnumerable<Employee> FilteredEmployees =>
+        allEmployees.Where(e =>
+            (string.IsNullOrWhiteSpace(searchTerm) ||
+             e.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) &&
+            (selectedStatus == STATUS_ALL || e.Status == selectedStatus));
+
+    private bool HasAnyFilter => !string.IsNullOrWhiteSpace(searchTerm) || selectedStatus != STATUS_ALL;
 
     protected override void OnInitialized()
     {
         allEmployees = EmployeeService.GetAllEmployees();
     }
+
+    private async Task AddEmployee()
+    {
+        var ok = await DialogService.ShowMessageBox(
+            L["AddEmployee"], L["DoYouWantToOpenAddForm"],
+            yesText: L["Yes"], cancelText: L["Cancel"]);
+        if (ok == true)
+            Navigation.NavigateTo("/employees/new");
+    }
+
+    private async Task InviteEmployees()
+    {
+        var ok = await DialogService.ShowMessageBox(
+            L["InviteEmployees"], L["DoYouWantToOpenInviteForm"],
+            yesText: L["Yes"], cancelText: L["Cancel"]);
+        if (ok == true)
+            Navigation.NavigateTo("/employees/invite");
+    }
+
+    private void ClearFilters()
+    {
+        searchTerm = string.Empty;
+        selectedStatus = STATUS_ALL;
+    }
+    private void ClearSearchChip() => searchTerm = string.Empty;
+    private void ResetStatusChip() => selectedStatus = STATUS_ALL;
 }
