@@ -6,9 +6,9 @@
 <MudThemeProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
-<MudPopoverProvider />    <!-- أضف هذا السطر -->
+<MudPopoverProvider />
 
-<Router AppAssembly="@typeof(Program).Assembly" >
+<Router AppAssembly="@typeof(Program).Assembly" PreferExactMatches="true">
     <Found Context="routeData">
         <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
         <FocusOnNavigate RouteData="@routeData" Selector="h1" />
