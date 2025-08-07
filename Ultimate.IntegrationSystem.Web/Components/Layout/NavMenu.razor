@@ -1,6 +1,6 @@
 ﻿@using MudBlazor
 @using Microsoft.Extensions.Localization
-@inject IStringLocalizer<SharedResources> _localizer
+@inject IStringLocalizer<SharedResources> L
 
 @code {
     // حالة فتح/طيّ مجموعة الموظفين
@@ -8,104 +8,63 @@
     private void ToggleEmployees() => _employeesOpen = !_employeesOpen;
 }
 
+<MudNavMenu Dense="true">
 
-<div>
-    <MudNavMenu>
-      
+    <!-- Home link -->
+    <MudNavLink Href="/" Icon="@Icons.Material.Filled.Home" Match="NavLinkMatch.All">
+        @L["Home"]
+    </MudNavLink>
 
-        <MudNavLink Href="/" Match="NavLinkMatch.All" Class="fontContent" Style="font-weight:200;font-size: 18px; color:#c8cacd">@_localizer["lbl_home"]</MudNavLink>
-        @*<MudNavLink Href="#" Match="NavLinkMatch.Prefix" Class="link-hover">@_localizer["lbl_services"]</MudNavLink>*@
-        @*<MudNavLink Href="#" Match="NavLinkMatch.Prefix" Class="fontContent" Style="font-weight:200;font-size: 18px;color:#343535">@_localizer["lbl_contactUs"]</MudNavLink>*@
+    <!-- Employees NavGroup -->
+    <MudNavGroup Icon="@Icons.Material.Filled.People"
+                 Match="NavLinkMatch.Prefix"
+                 @bind-Expanded="_employeesOpen">
 
-        <AuthorizeView Roles="Admin">
-            <Authorized>
-                <MudNavGroup Class="fontContent" Title="@_localizer["lbl_AdminManagement"]" Style="font-weight:200;font-size: 18px;color:#c8cacd" Expanded="false">
-                    <MudNavLink Href="/SubscriptionPeriods" Match="NavLinkMatch.Prefix" Style="font-weight:200;font-size: 18px;color:#c8cacd" Class="fontContent">@_localizer["lbl_SubscriptionPeriods"]</MudNavLink>
-                    <MudNavLink Href="/ViewSubscriptionPackages" Match="NavLinkMatch.Prefix" Style="font-weight:200;font-size: 18px;color:#c8cacd" Class="fontContent">@_localizer["lbl_SubscriptionPackages"]</MudNavLink>
-                    <MudNavLink Href="/notification methods" Match="NavLinkMatch.Prefix" Style="font-weight:200;font-size: 18px;color:#c8cacd" Class="fontContent">@_localizer["lbl_UsersManagement"]</MudNavLink>
-                    <MudNavLink Href="/SubscriptionOrders" Match="NavLinkMatch.Prefix" Style="font-weight:200;font-size: 18px;color:#c8cacd" Class="fontContent">@_localizer["lbl_SubscriptionOrders"]</MudNavLink>
-                    <MudNavLink Href="/Extended" Match="NavLinkMatch.Prefix" Style="font-weight:200;font-size: 18px;color:#c8cacd" Class="fontContent">@_localizer["lbl_ExtendSubscriptions"]</MudNavLink>
-                    <MudNavLink Href="/send notifications" Match="NavLinkMatch.Prefix" Style="font-weight:200;font-size: 18px;color:#c8cacd" Class="fontContent">@_localizer["lbl_AccountsManagement"]</MudNavLink>
-                    <MudNavLink Href="/AdminDassboard" Match="NavLinkMatch.Prefix" Style="font-weight:200;font-size: 18px;color:#c8cacd" Class="fontContent">@_localizer["lbl_Dashboard"]</MudNavLink>
-@*                     <MudNavLink Href="/PartnerSubscriptionOrders" Match="NavLinkMatch.Prefix" Style="font-weight:200;font-size: 18px;color:#c8cacd" Class="fontContent">@_localizer["Pl_ServiceProvider"]</MudNavLink>
- *@
-                    <MudNavGroup Class="fontContent" Title="@_localizer["Pl_ServiceProvider"]" Style="font-weight:200;font-size: 18px;color:#c8cacd" Expanded="false">
-                        <MudNavLink Href="/PartnerSubscriptionOrders" Match="NavLinkMatch.Prefix" Style="font-weight:200;font-size: 18px;color:#c8cacd" Class="fontContent">@_localizer["Pl_ServiceProvider"]</MudNavLink>
-                        <MudNavLink Href="/PartnerFinancialManagment" Match="NavLinkMatch.Prefix" Style="font-weight:200;font-size: 18px;color:#c8cacd" Class="fontContent">@_localizer["MoneyManagement"]</MudNavLink>
-                        <MudNavLink Href="/Transactions" Match="NavLinkMatch.Prefix" Style="font-weight:200;font-size: 18px;color:#c8cacd" Class="fontContent">@_localizer["Transactions"]</MudNavLink>
-                        <MudNavLink Href="/Services" Match="NavLinkMatch.Prefix" Style="font-weight:200;font-size: 18px;color:#c8cacd" Class="fontContent">@_localizer["services management"]</MudNavLink>
-                    </MudNavGroup>
+        <!-- نستخدم TitleContent للتحكّم الكامل -->
+        <TitleContent>
+            <div class="d-flex align-center pa-2"
+                 style="cursor:pointer; user-select:none"
+                 @onclick="ToggleEmployees">
+                <MudIcon Icon="@Icons.Material.Filled.People" />
+                <MudText Class="ml-2">@L["Employees"]</MudText>
+                <MudSpacer />
+                <MudIcon Icon="@(_employeesOpen
+                                                   ? Icons.Material.Filled.ExpandLess
+                                                   : Icons.Material.Filled.ExpandMore)" />
+            </div>
+        </TitleContent>
 
-                </MudNavGroup>
+        <!-- ChildContent: الروابط الفرعيّة -->
+        <ChildContent>
+            <MudNavLink Href="/Employees"
+                        Icon="@Icons.Material.Filled.List"
+                        Match="NavLinkMatch.All">
+                @L["ViewEmployees"]
+            </MudNavLink>
+            <MudNavLink Href="/residents"
+                        Icon="@Icons.Material.Filled.PersonPin"
+                        Match="NavLinkMatch.All">
+                @L["Residents"]
+            </MudNavLink>
+            <MudNavLink Href="/insurance"
+                        Icon="@Icons.Material.Filled.MedicalServices"
+                        Match="NavLinkMatch.All">
+                @L["InsuranceAndPension"]
+            </MudNavLink>
+        </ChildContent>
 
-                @*<MudNavLink Href="/AdminManagement" Match="NavLinkMatch.Prefix" Class="link-hover">@_localizer["lbl_AdminManagement"]</MudNavLink>*@
-                <MudNavLink Href="/accountmanagement" Match="NavLinkMatch.Prefix" Style="font-weight:200;font-size: 18px;color:#c8cacd" Class="fontContent">@_localizer["lbl_AccountManagement"]</MudNavLink>
+    </MudNavGroup>
 
-                <MudDivider Class="my-2" Light />
-                <MudNavLink OnClick="Logout" Match="NavLinkMatch.Prefix" Style="font-weight:200;font-size: 18px;color:#c8cacd" Class="fontContent">@_localizer["lbl_logout"]</MudNavLink>
-               
-            </Authorized>
-        </AuthorizeView>
-        <AuthorizeView Roles="partner"> 
-            <Authorized>
-                <MudNavLink Href="/PartnerManagement" Match="NavLinkMatch.Prefix" Style="font-weight:200;font-size: 18px;color:#c8cacd" Class="fontContent">@_localizer["lbl_AccountManagement"]</MudNavLink>
-            @*     <MudNavGroup Class="fontContent" Title="@_localizer["Pl_ServiceProvider"]" Style="font-weight:200;font-size: 18px;color:#c8cacd" Expanded="false">
-                    <MudNavLink Href="/BalanceTopU" Match="NavLinkMatch.Prefix" Style="font-weight:200;font-size: 18px;color:#c8cacd" Class="fontContent">@_localizer["AddMoney"]</MudNavLink>
-                    <MudNavLink Href="/PartnerTransactions" Match="NavLinkMatch.Prefix" Style="font-weight:200;font-size: 18px;color:#c8cacd" Class="fontContent">@_localizer["Transactions"]</MudNavLink>
-                </MudNavGroup> *@
-@*                 </MudNavGroup>
+    <!-- روابط جانبيّة أخرى -->
+    <MudNavLink Href="/organizationalplan"
+                Icon="@Icons.Material.Filled.Assessment"
+                Match="NavLinkMatch.All">
+        @L["OrganizationalPlan"]
+    </MudNavLink>
+    <MudNavLink Href="/logout"
+                Icon="@Icons.Material.Filled.ExitToApp"
+                Match="NavLinkMatch.All">
+        @L["Logout"]
+    </MudNavLink>
 
-@*                 <MudNavLink Href="/accountmanagement" Match="NavLinkMatch.Prefix" Style="font-weight:200;font-size: 18px;color:#c8cacd" Class="fontContent">@_localizer["lbl_AccountManagement"]</MudNavLink>
- *@
-                <MudDivider Class="my-2" Light />
-                <MudDivider Class="my-2" Light />
-                <MudNavLink OnClick="Logout" Match="NavLinkMatch.Prefix" Style="font-weight:200;font-size: 18px;color:#c8cacd" Class="fontContent">@_localizer["lbl_logout"]</MudNavLink>
-            </Authorized>
-
-             
- 
-        </AuthorizeView>
-
-        <AuthorizeView Roles="User">
-            <Authorized>
-                <MudNavGroup Class="fontContent" Title="@_localizer["lbl_AccountDetails"]" Style="font-weight:200;font-size: 18px;color:#c8cacd" Expanded="false">
-                    <MudNavLink Href="/subscriptionDetails" Match="NavLinkMatch.Prefix" Style="font-weight:200;font-size: 18px;color:#c8cacd" Class="fontContent">@_localizer["lbl_SubscriptionDetails"]</MudNavLink>
-                    <MudNavLink Href="/dashboard" Match="NavLinkMatch.Prefix" Style="font-weight:200;font-size: 18px;color:#c8cacd" Class="fontContent">@_localizer["lbl_Dashboard"]</MudNavLink>
-                    <MudNavLink Href="/accountmanagement" Match="NavLinkMatch.Prefix" Style="font-weight:200;font-size: 18px;color:#c8cacd" Class="fontContent">@_localizer["lbl_ChangePassword"]</MudNavLink>
-                    <MudNavLink Href="/confirm account" Match="NavLinkMatch.Prefix" Style="font-weight:200;font-size: 18px;color:#c8cacd" Class="fontContent">@_localizer["lbl_ConfirmAccount"]</MudNavLink>
-                    <MudNavLink Href="/clients" Match="NavLinkMatch.Prefix" Style="font-weight:200;font-size: 18px;color:#c8cacd" Class="fontContent">@_localizer["lbl_NumberManagement"]</MudNavLink>
-                </MudNavGroup>
-                <MudDivider Class="my-2" Light />
-                <MudNavLink OnClick="Logout" Match="NavLinkMatch.Prefix" Style="font-weight:200;font-size: 18px;color:#c8cacd" Class="fontContent">@_localizer["lbl_logout"]</MudNavLink>
-            </Authorized>
-        </AuthorizeView>
-
-        <AuthorizeView>
-            <NotAuthorized>
-                <MudDivider Class="my-2" Light />
-                <MudNavLink Href="/login" Match="NavLinkMatch.Prefix" Style="font-weight:200;font-size: 18px;color:#c8cacd" Class="fontContent">@_localizer["lbl_login"]</MudNavLink>
-                <MudNavLink Href="/register" Match="NavLinkMatch.Prefix" Style="font-weight:200;font-size: 18px;color:#c8cacd" Class="fontContent">@_localizer["lbl_register"]</MudNavLink>
-                <MudNavLink Href="/PartnerRegister" Match="NavLinkMatch.Prefix" Style="font-weight:200;font-size: 18px;color:#c8cacd" Class="fontContent">@_localizer["lbl_partner"]</MudNavLink>
-
-            </NotAuthorized>
-        </AuthorizeView>
-    </MudNavMenu>
-</div>
-
-@code {
-    ResponsGeneric<UsersModel> response;
-    int UserId;
-    public string email { set; get; } = string.Empty;
-
-
-
-    protected override async Task OnParametersSetAsync()
-    {
-        
-    }
-    private async Task Logout()
-    {
-        await _authService.Logout();
-        _navigationManager.NavigateTo("");
-    }
-}
+</MudNavMenu>
