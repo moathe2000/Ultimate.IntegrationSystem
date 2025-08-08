@@ -1,221 +1,292 @@
-﻿@page "/employees"
+﻿  @page "/employees"
 @using MudBlazor
 @using Microsoft.Extensions.Localization
-@using Microsoft.AspNetCore.Components.Web
 @using Ultimate.IntegrationSystem.Web.Models
-@using Ultimate.IntegrationSystem.Web.Service
 
+@using Microsoft.AspNetCore.Components.Web
+@using Ultimate.IntegrationSystem.Web.Service
+@inject IEmployeeService EmployeeService
 @inject IStringLocalizer<Employees> L
 @inject IDialogService DialogService
 @inject NavigationManager Navigation
 @inject ISnackbar Snackbar
-@inject IEmployeeService EmployeeService
+
+<MudThemeProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
 
 <style>
-  .employee-card { transition: all .3s ease; border-left: 4px solid var(--mud-palette-primary); }
-  .employee-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,.1); }
-  .stats-card { border-radius: 12px; overflow: hidden; }
-  .avatar-badge { position: absolute; bottom: 0; right: 0; width: 14px; height: 14px; border-radius: 50%; border: 2px solid white; }
-  .active-badge { background-color: var(--mud-palette-success); }
-  .inactive-badge { background-color: var(--mud-palette-error); }
+    .employee-card {
+        transition: all 0.3s ease;
+        border-left: 4px solid var(--mud-palette-primary);
+    }
+    .employee-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    .stats-card {
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    .avatar-badge {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        border: 2px solid white;
+    }
+    .active-badge {
+        background-color: var(--mud-palette-success);
+    }
+    .inactive-badge {
+        background-color: var(--mud-palette-error);
+    }
 </style>
 
-<MudContainer MaxWidth="MaxWidth.Large" Class="py-6">
-  <!-- بطاقات الإحصائيات -->
-  <MudGrid Class="mb-6">
-    <MudItem xs="12" sm="6" md="3">
-      <MudPaper Elevation="1" Class="stats-card" Style="background: linear-gradient(135deg, var(--mud-palette-primary), #4a6bff);">
-        <MudCardContent>
-          <MudText Class="white--text" Typo="Typo.body2">إجمالي الموظفين</MudText>
-          <MudText Class="white--text" Typo="Typo.h4">@totalEmployees</MudText>
-          <MudText Class="white--text" Typo="Typo.caption">+@newHiresCount هذا الشهر</MudText>
-        </MudCardContent>
-      </MudPaper>
-    </MudItem>
-  </MudGrid>
+<MudLayout>
+    <MudAppBar Elevation="4" Fixed="true" Color="Color.Primary">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" />
+        <MudSpacer />
+        <MudText Typo="Typo.h6" Class="white--text">@L["EmployeesTitle"]</MudText>
+        <MudSpacer />
+        <MudIconButton Icon="@Icons.Material.Filled.Notifications" Color="Color.Inherit" />
+        <MudAvatar Size="Size.Small" Color="Color.Secondary" Class="ml-3">
+            <MudText>AD</MudText>
+        </MudAvatar>
+    </MudAppBar>
 
-  <!-- شريط البحث والتصفية -->
-  <MudPaper Elevation="1" Class="pa-4 mb-4 rounded-lg">
-    <MudGrid Spacing="2" AlignItems="AlignItems.Center">
-      <MudItem xs="12" sm="6" md="4">
-        <MudTextField @bind-Value="searchTerm" Immediate="true" Variant="Variant.Outlined"
-                      Placeholder="ابحث بالاسم أو الرقم الوظيفي"
-                      Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" />
-      </MudItem>
+    <MudMainContent>
+        <MudContainer MaxWidth="MaxWidth.Large" Class="py-6">
+            <!-- بطاقات الإحصائيات -->
+            <MudGrid Class="mb-6">
+                <MudItem xs="12" sm="6" md="3">
+                    <MudPaper Elevation="1" Class="stats-card" Style="background: linear-gradient(135deg, var(--mud-palette-primary), #4a6bff);">
+                        <MudCardContent>
+                            <MudText Class="white--text" Typo="Typo.body2">إجمالي الموظفين</MudText>
+                            <MudText Class="white--text" Typo="Typo.h4">@totalEmployees</MudText>
+                            <MudText Class="white--text" Typo="Typo.caption">+@newHiresCount هذا الشهر</MudText>
+                        </MudCardContent>
+                    </MudPaper>
+                </MudItem>
+            </MudGrid>
 
-      <MudItem xs="12" sm="6" md="3">
-        <MudSelect T="bool?" @bind-Value="selectedStatus" Label="حالة الموظف" Variant="Variant.Outlined" Clearable="true">
-          <MudSelectItem Value="@((bool?)null)">الكل</MudSelectItem>
-          <MudSelectItem Value="true">نشط</MudSelectItem>
-          <MudSelectItem Value="false">غير نشط</MudSelectItem>
-        </MudSelect>
-      </MudItem>
+            <!-- شريط البحث والتصفية -->
+            <MudPaper Elevation="1" Class="pa-4 mb-4 rounded-lg">
+                <MudGrid Spacing="2" AlignItems="AlignItems.Center">
+                    <MudItem xs="12" sm="6" md="4">
+                        <MudTextField @bind-Value="searchTerm"
+                                    Immediate="true"
+                                    Variant="Variant.Outlined"
+                                    Placeholder="ابحث بالاسم أو الرقم الوظيفي"
+                                    Adornment="Adornment.Start"
+                                    AdornmentIcon="@Icons.Material.Filled.Search"/>
+                    </MudItem>
+                    
+                    <MudItem xs="12" sm="6" md="3">
+                        <MudSelect T="string" @bind-Value="selectedStatus"
+                                 Label="حالة الموظف"
+                                 Variant="Variant.Outlined">
+                            <MudSelectItem T="string" >الكل</MudSelectItem>
+                            <MudSelectItem T="string" >نشط</MudSelectItem>
+                            <MudSelectItem T="string" >غير نشط</MudSelectItem>
+                        </MudSelect>
+                    </MudItem>
+                    
+                    <MudItem xs="12" sm="6" md="3">
+                        <MudSelect T="string" @bind-Value="selectedDepartment"
+                                 Label="القسم"
+                                 Variant="Variant.Outlined">
+                            <MudSelectItem T="string" >جميع الأقسام</MudSelectItem>
+                            @foreach (var dept in departments)
+                            {
+                                <MudSelectItem T="string" Value="@dept">@dept</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+                    
+                    <MudItem xs="12" sm="6" md="2">
+                        <MudButton Variant="Variant.Outlined" 
+                                 Color="Color.Primary" 
+                                 OnClick="ClearFilters"
+                                 FullWidth="true"
+                                 StartIcon="@Icons.Material.Filled.Clear">
+                            إعادة الضبط
+                        </MudButton>
+                    </MudItem>
+                </MudGrid>
+            </MudPaper>
 
-      <MudItem xs="12" sm="6" md="3">
-        <MudSelect T="string" @bind-Value="selectedDepartment" Label="القسم" Variant="Variant.Outlined" Clearable="true">
-          <MudSelectItem Value="@((string)null)">جميع الأقسام</MudSelectItem>
-          @foreach (var dept in departments)
-          {
-            <MudSelectItem Value="@dept">@dept</MudSelectItem>
-          }
-        </MudSelect>
-      </MudItem>
-
-      <MudItem xs="12" sm="6" md="2">
-        <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="ClearFilters" FullWidth="true"
-                   StartIcon="@Icons.Material.Filled.Clear">
-          إعادة الضبط
-        </MudButton>
-      </MudItem>
-    </MudGrid>
-  </MudPaper>
-
-  <!-- عرض الموظفين -->
-  @if (filteredEmployees.Any())
-  {
-    <MudGrid Spacing="2">
-      @foreach (var employee in pagedEmployees)
-      {
-        <MudItem xs="12" sm="6" md="4" lg="3">
-          <MudCard Class="employee-card">
-            <MudCardContent>
-              <div class="d-flex align-center">
-                <div class="position-relative mr-3">
-                  <MudAvatar Size="Size.Large" Color="Color.Primary">
-                    <MudText>@GetInitials(employee.FullName)</MudText>
-                  </MudAvatar>
-                  <div class="avatar-badge @(employee.IsActive ? "active-badge" : "inactive-badge")"></div>
-                </div>
-                <div>
-                  <MudText Typo="Typo.subtitle1" Class="font-weight-bold">@employee.FullName</MudText>
-                  <MudText Typo="Typo.body2" Color="Color.Default">@employee.JobTitle</MudText>
-                </div>
-              </div>
-            </MudCardContent>
-
-            <MudCardActions>
-              <MudChip T="string" Variant="Variant.Outlined" Color="@(employee.IsActive ? Color.Success : Color.Error)">
-                @(employee.IsActive ? "نشط" : "غير نشط")
-              </MudChip>
-              <MudSpacer />
-              <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="@(() => EditEmployee(employee))" />
-              <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small" OnClick="@(() => ShowActionsMenu(employee))" />
-            </MudCardActions>
-          </MudCard>
-        </MudItem>
-      }
-    </MudGrid>
-
-    <MudPagination Count="@totalPages" Selected="@currentPage" SelectedChanged="OnPageChanged"
-                   BoundaryCount="1" Class="mt-4 justify-center" />
-  }
-  else
-  {
-    <MudPaper Elevation="0" class="d-flex flex-column align-center justify-center py-12">
-      <MudIcon Icon="@Icons.Material.Filled.PeopleOutline" Size="Size.Large" Class="mb-3" Color="Color.Secondary" />
-      <MudText Typo="Typo.h6" Class="mb-2">لا يوجد موظفين</MudText>
-      <MudText Class="mb-4" Color="Color.Default">لم يتم العثور على نتائج مطابقة</MudText>
-      <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="ClearFilters">
-        إعادة تعيين الفلاتر
-      </MudButton>
-    </MudPaper>
-  }
-</MudContainer>
+            <!-- عرض الموظفين -->
+            @if (filteredEmployees.Any())
+            {
+                <MudGrid Spacing="2">
+                    @foreach (var employee in pagedEmployees)
+                    {
+                        <MudItem xs="12" sm="6" md="4" lg="3">
+                            <MudCard Class="employee-card">
+                                <MudCardContent>
+                                    <div class="d-flex align-center">
+                                        <div class="position-relative mr-3">
+                                            <MudAvatar Size="Size.Large" Color="Color.Primary">
+                                                <MudText>@GetInitials(employee.FullName)</MudText>
+                                            </MudAvatar>
+                                            <div class="avatar-badge @(employee.IsActive ? "active-badge" : "inactive-badge")"></div>
+                                        </div>
+                                        <div>
+                                            <MudText Typo="Typo.subtitle1" Class="font-weight-bold">@employee.FullName</MudText>
+                                            <MudText Typo="Typo.body2" Color="Color.Default">@employee.JobTitle</MudText>
+                                        </div>
+                                    </div>
+                                </MudCardContent>
+                                
+                                <MudCardActions>
+                                    <MudChip T="string" Variant="Variant.Outlined" 
+                                            Color="@(employee.IsActive ? Color.Success : Color.Error)">
+                                        @(employee.IsActive ? "نشط" : "غير نشط")
+                                    </MudChip>
+                                    <MudSpacer />
+                                    <MudIconButton Icon="@Icons.Material.Filled.Edit" 
+                                                 Size="Size.Small"
+                                                 OnClick="@(() => EditEmployee(employee))"/>
+                                    <MudIconButton Icon="@Icons.Material.Filled.MoreVert"
+                                                 Size="Size.Small"
+                                                @*  OnClick="@(e => ShowActionsMenu(e, employee))" *@/>
+                                </MudCardActions>
+                            </MudCard>
+                        </MudItem>
+                    }
+                </MudGrid>
+                
+                <MudPagination Count="@totalPages"
+                             Selected="@currentPage"
+                             SelectedChanged="OnPageChanged"
+                             BoundaryCount="1"
+                             Class="mt-4 justify-center"/>
+            }
+            else
+            {
+                <MudPaper Elevation="0" Class="d-flex flex-column align-center justify-center py-12">
+                    <MudIcon Icon="@Icons.Material.Filled.PeopleOutline" Size="Size.Large" Class="mb-3" Color="Color.Secondary"/>
+                    <MudText Typo="Typo.h6" Class="mb-2">لا يوجد موظفين</MudText>
+                    <MudText Class="mb-4" Color="Color.Default">لم يتم العثور على نتائج مطابقة</MudText>
+                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="ClearFilters">
+                        إعادة تعيين الفلاتر
+                    </MudButton>
+                </MudPaper>
+            }
+        </MudContainer>
+    </MudMainContent>
+</MudLayout>
 
 @code {
-  private List<EmployeeDto> allEmployees = new();
-  private string searchTerm = string.Empty;
-  private bool? selectedStatus = null;
-  private string? selectedDepartment = null;
+    // بيانات الموظفين
+    private List<EmployeeDto> allEmployees = new();
+    private string searchTerm = "";
+    private string selectedStatus = "";
+    private string selectedDepartment = "";
+    private int currentPage = 1;
+    private int pageSize = 12;
+    
+    // الإحصائيات
+    private int totalEmployees = 0;
+    private int newHiresCount = 0;
+    private List<string> departments = new() { "المبيعات", "التسويق", "التطوير", "الموارد البشرية" };
 
-  private int currentPage = 1;
-  private int pageSize = 12;
+    private IEnumerable<EmployeeDto> filteredEmployees => allEmployees
+        .Where(e => string.IsNullOrEmpty(searchTerm) || 
+               e.FullName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+               e.EmployeeNumber.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+               e.JobTitle.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+        .Where(e => string.IsNullOrEmpty(selectedStatus) || 
+               e.IsActive == bool.Parse(selectedStatus))
+        .Where(e => string.IsNullOrEmpty(selectedDepartment) || 
+               e.Department == selectedDepartment);
 
-  private int totalEmployees = 0;
-  private int newHiresCount = 0;
+    private IEnumerable<EmployeeDto> pagedEmployees => filteredEmployees
+        .Skip((currentPage - 1) * pageSize)
+        .Take(pageSize);
 
-  private readonly List<string> departments =
-      new() { "المبيعات", "التسويق", "التطوير", "الموارد البشرية" };
+    private int totalPages => (int)Math.Ceiling((double)filteredEmployees.Count() / pageSize);
 
-  private IEnumerable<EmployeeDto> filteredEmployees => allEmployees
-      .Where(e =>
-          string.IsNullOrWhiteSpace(searchTerm) ||
-          (!string.IsNullOrEmpty(e.FullName) && e.FullName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) ||
-          (!string.IsNullOrEmpty(e.EmployeeNumber) && e.EmployeeNumber.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) ||
-          (!string.IsNullOrEmpty(e.JobTitle) && e.JobTitle.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)))
-      .Where(e => selectedStatus is null || e.IsActive == selectedStatus)
-      .Where(e => selectedDepartment is null || e.Department == selectedDepartment);
-
-  private IEnumerable<EmployeeDto> pagedEmployees => filteredEmployees
-      .Skip((currentPage - 1) * pageSize)
-      .Take(pageSize);
-
-  private int totalPages => Math.Max(1, (int)Math.Ceiling((double)filteredEmployees.Count() / pageSize));
-
-  protected override async Task OnInitializedAsync()
-  {
-      await LoadEmployees();
-      CalculateStats();
-  }
-
-  private async Task LoadEmployees()
-  {
-    try
+    protected override async Task OnInitializedAsync()
     {
-      allEmployees = await EmployeeService.GetAllEmployeesAsync();
-      totalEmployees = allEmployees.Count;
+        await LoadEmployees();
+        CalculateStats();
     }
-    catch (Exception ex)
+
+    private async Task LoadEmployees()
     {
-      Snackbar.Add($"خطأ في تحميل البيانات: {ex.Message}", Severity.Error);
+        try 
+        {
+            allEmployees = await EmployeeService.GetAllEmployeesAsync();
+            totalEmployees = allEmployees.Count;
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"خطأ في تحميل البيانات: {ex.Message}", Severity.Error);
+        }
     }
-  }
 
-  private void CalculateStats()
-  {
-    var monthAgo = DateTime.Now.AddMonths(-1);
-    newHiresCount = allEmployees.Count(e => e.HireDate >= monthAgo);
-  }
-
-  private string GetInitials(string name)
-  {
-    if (string.IsNullOrWhiteSpace(name)) return "??";
-    var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-    if (parts.Length == 1) return parts[0][0].ToString();
-    return $"{parts[0][0]}{parts[^1][0]}";
-  }
-
-  private void OnPageChanged(int page) => currentPage = page;
-
-  private async Task AddEmployee()
-  {
-    var options = new DialogOptions { CloseOnEscapeKey = true, FullWidth = true, MaxWidth = MaxWidth.Small };
-    var dialog = await DialogService.ShowAsync<AddEmployeeDialog>("إضافة موظف جديد", options);
-    var result = await dialog.Result;
-    if (!result.Canceled)
+    private void CalculateStats()
     {
-      await LoadEmployees();
-      Snackbar.Add("تمت إضافة الموظف بنجاح", Severity.Success);
+        newHiresCount = allEmployees.Count(e => e.HireDate >= DateTime.Now.AddMonths(-1));
     }
-  }
 
-  private void EditEmployee(EmployeeDto employee) => Navigation.NavigateTo($"/employees/edit/{employee.Id}");
+    private string GetInitials(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return "??";
+        var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 0) return "??";
+        if (parts.Length == 1) return parts[0][0].ToString();
+        return $"{parts[0][0]}{parts[^1][0]}";
+    }
 
-  private async Task ShowActionsMenu(EmployeeDto employee)
-  {
-    var options = new DialogOptions { CloseOnEscapeKey = true, Position = DialogPosition.TopRight };
-    var parameters = new DialogParameters { { "Employee", employee } };
-    var dialog = await DialogService.ShowAsync<EmployeeActionsMenu>("إجراءات الموظف", parameters, options);
-    var result = await dialog.Result;
-    if (!result.Canceled)
-      await LoadEmployees();
-  }
+    private void OnPageChanged(int page) => currentPage = page;
 
-  private void ClearFilters()
-  {
-    searchTerm = string.Empty;
-    selectedStatus = null;
-    selectedDepartment = null;
-    currentPage = 1;
-  }
+    private async Task AddEmployee()
+    {
+        var options = new DialogOptions { 
+            CloseOnEscapeKey = true,
+            FullWidth = true,
+            MaxWidth = MaxWidth.Small
+        };
+        
+        var dialog = await DialogService.ShowAsync<AddEmployeeDialog>("إضافة موظف جديد", options);
+        var result = await dialog.Result;
+        
+        if (!result.Canceled)
+        {
+            await LoadEmployees();
+            Snackbar.Add("تمت إضافة الموظف بنجاح", Severity.Success);
+        }
+    }
+
+    private void EditEmployee(EmployeeDto employee)
+    {
+        Navigation.NavigateTo($"/employees/edit/{employee.Id}");
+    }
+
+  
+
+
+
+
+    private async Task ShowActionsMenu(EmployeeDto employee)
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true, Position = DialogPosition.TopRight };
+        var parameters = new DialogParameters { { "Employee", employee } };
+        var dialog = await DialogService.ShowAsync<EmployeeActionsMenu>("إجراءات الموظف", parameters, options);
+        var result = await dialog.Result;
+        if (!result.Canceled)
+            await LoadEmployees();
+    }
+    private void ClearFilters()
+    {
+        searchTerm = "";
+        selectedStatus = "";
+        selectedDepartment = "";
+        currentPage = 1;
+    }
 }

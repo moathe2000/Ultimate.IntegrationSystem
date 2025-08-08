@@ -49,3 +49,11 @@ h1:focus {
 .darker-border-checkbox.form-check-input {
     border-color: #929292;
 }
+.bg-page {
+    background: #F6F7FB;
+    min-height: 100vh;
+}
+
+.p-6 {
+    padding: 1.5rem;
+}
