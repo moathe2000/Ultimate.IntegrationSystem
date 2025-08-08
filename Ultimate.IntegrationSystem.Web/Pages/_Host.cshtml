@@ -13,12 +13,13 @@
     <title>Ultimate Integration System</title>
 
     <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
-    <link href="css/bootstrap/bootstrap.min.css" rel="stylesheet" />
-    <link href="css/app.css" rel="stylesheet" />
+    <!-- حدّث المسارات هنا لتطابق wwwroot -->
+    <link href="bootstrap/bootstrap.min.css" rel="stylesheet" />
+    <link href="app.css" rel="stylesheet" />
 </head>
 <body>
     <app>
-        <component type="typeof(App)" render-mode="Server" />
+        <component type="typeof(App)" render-mode="ServerPrerendered" />
     </app>
 
     <script src="_content/MudBlazor/MudBlazor.min.js"></script>

@@ -28,6 +28,8 @@ builder.Services.Configure<RequestLocalizationOptions>(o =>
     o.SupportedCultures = cultures;
     o.SupportedUICultures = cultures;
 });
+builder.Services.AddServerSideBlazor()
+    .AddCircuitOptions(o => o.DetailedErrors = true);
 
 var app = builder.Build();
 
