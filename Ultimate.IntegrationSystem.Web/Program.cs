@@ -9,20 +9,17 @@ using Ultimate.IntegrationSystem.Web.Service;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. Œœ„… Razor Pages Ê Blazor Server
+// Razor Pages + Blazor Server
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 
-// 2. MudBlazor
+// MudBlazor
 builder.Services.AddMudServices();
 
-// 3. Œœ„« ﬂ «·Œ«’…
-builder.Services.AddScoped<EmployeeService>();
-//builder.Services.AddScoped<ILocalStorageService, LocalStorageService>();
-//bubuilder.Services.AddScoped<IAuthService, AuthService>();        // „À«·
-//ilder.Services.AddScoped<ISyncLocalStorageService, SyncLocalStorageService>();
+// Œœ„« ﬂ
+builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 
-// 4. Localization
+// Localization
 builder.Services.AddLocalization(o => o.ResourcesPath = "Resources/Localization");
 builder.Services.Configure<RequestLocalizationOptions>(o =>
 {
@@ -34,9 +31,8 @@ builder.Services.Configure<RequestLocalizationOptions>(o =>
 
 var app = builder.Build();
 
-// 5. Middleware
-app.UseRequestLocalization(app.Services
-    .GetRequiredService<IOptions<RequestLocalizationOptions>>().Value);
+// Middleware
+app.UseRequestLocalization(app.Services.GetRequiredService<IOptions<RequestLocalizationOptions>>().Value);
 
 if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler("/Error");
@@ -44,7 +40,7 @@ if (!app.Environment.IsDevelopment())
 app.UseStaticFiles();
 app.UseRouting();
 
-// 6. «·Œ—«∆ÿ
+// Endpoints
 app.MapRazorPages();
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");

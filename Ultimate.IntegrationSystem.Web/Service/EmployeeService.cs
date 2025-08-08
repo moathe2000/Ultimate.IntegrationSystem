@@ -2,8 +2,54 @@
 
 namespace Ultimate.IntegrationSystem.Web.Service
 {
-    public class EmployeeService
+
+
+    public class EmployeeService : IEmployeeService
     {
+        //        public async Task<List<EmployeeDto>> GetAllEmployeesAsync()
+        //        {
+        //            // تنفيذ جلب البيانات من المصدر (API, قاعدة البيانات, إلخ)
+        //            // هذا مثال للبيانات الوهمية للاختبار
+
+        //          //  await Task.Delay(100); // محاكاة اتصال بالخادم
+
+        //            return new List<EmployeeDto>
+        //        {
+        //            new EmployeeDto
+        //            {
+        //                Id = System.Guid.NewGuid(),
+        //                EmployeeNumber = "EMP001",
+        //                FullName = "أحمد محمد",
+        //                JobTitle = "مهندس برمجيات",
+        //                Department = "التطوير",
+        //                IsActive = true,
+        //                HireDate = System.DateTime.Now.AddMonths(-2)
+        //            },
+        //            new EmployeeDto
+        //            {
+        //                Id = System.Guid.NewGuid(),
+        //                EmployeeNumber = "EMP002",
+        //                FullName = "سارة عبد الله",
+        //                JobTitle = "مديرة تسويق",
+        //                Department = "التسويق",
+        //                IsActive = true,
+        //                HireDate = System.DateTime.Now.AddMonths(-3)
+        //            },
+        //            new EmployeeDto
+        //            {
+        //                Id = System.Guid.NewGuid(),
+        //                EmployeeNumber = "EMP003",
+        //                FullName = "خالد حسن",
+        //                JobTitle = "محاسب",
+        //                Department = "المالية",
+        //                IsActive = false,
+        //                HireDate = System.DateTime.Now.AddMonths(-12)
+        //            }
+        //        };
+        //        }
+        //    }
+        //}
+
         public List<Employee> GetAllEmployees() => new()
         {
             new Employee{ EmployeeNumber=1501, Name="أحمد العتيبي",     JobTitle="محلل أعمال",          Department="تطوير الأعمال",     Branch="الرياض",   JoinDate=new(2024,3,1),  Status="Active" },
@@ -61,5 +107,10 @@ namespace Ultimate.IntegrationSystem.Web.Service
             new Employee{ EmployeeNumber=1549, Name="عبدالإله الغنام",  JobTitle="مهندس أمن",           Department="الأمن السيبراني",    Branch="الرياض",   JoinDate=new(2022,7,7),   Status="Active" },
             new Employee{ EmployeeNumber=1550, Name="ليلى باحمدان",     JobTitle="منسقة فعاليات",       Department="التسويق",            Branch="جدة",      JoinDate=new(2024,3,22),  Status="Active" },
         };
+
+        public Task<List<EmployeeDto>> GetAllEmployeesAsync()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

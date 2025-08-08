@@ -1,0 +1,29 @@
+﻿@using MudBlazor
+@using Ultimate.IntegrationSystem.Web.Models
+
+<MudDialog>
+    <DialogContent>
+        <MudTextField Label="الاسم الكامل" @bind-Value="NewEmployee.FullName" />
+        <MudTextField Label="الوظيفة" @bind-Value="NewEmployee.JobTitle" />
+        <MudSelect T="string" Label="القسم" @bind-Value="NewEmployee.Department">
+            <MudSelectItem T="string">المبيعات</MudSelectItem>
+            <MudSelectItem T="string">التسويق</MudSelectItem>
+            <MudSelectItem T="string">التطوير</MudSelectItem>
+            <MudSelectItem T="string" >"الموارد البشرية"</MudSelectItem>
+        </MudSelect>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">إلغاء</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Save">حفظ</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter]
+    public EmployeeDto NewEmployee { get; set; } = new();
+
+    private void Cancel() => MudDialog.Cancel();
+    private void Save() => MudDialog.Close(NewEmployee);
+}

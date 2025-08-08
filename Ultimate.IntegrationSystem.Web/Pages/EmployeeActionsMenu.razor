@@ -1,5 +1,41 @@
-﻿<h3>EmployeeActionsMenu</h3>
+﻿
+
+@using MudBlazor
+@using Ultimate.IntegrationSystem.Web.Models
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<MudList T="string">
+    <MudListItem OnClick="ViewProfile" Icon="@Icons.Material.Filled.Person">عرض الملف الشخصي</MudListItem>
+    <MudListItem OnClick="EditEmployee" Icon="@Icons.Material.Filled.Edit">تعديل</MudListItem>
+    <MudListItem OnClick="ToggleStatus" Icon="@Icons.Material.Filled.Update">
+        @(Employee.IsActive ? "تعطيل الحساب" : "تفعيل الحساب")
+    </MudListItem>
+    <MudListItem OnClick="DeleteEmployee" Icon="@Icons.Material.Filled.Delete" Color="Color.Error">حذف</MudListItem>
+</MudList>
 
 @code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+    
+    [Parameter]
+    public EmployeeDto Employee { get; set; } = null!;
 
+    private void ViewProfile() => MudDialog.Close(DialogResult.Ok("view"));
+    private void EditEmployee() => MudDialog.Close(DialogResult.Ok("edit"));
+    private void ToggleStatus() => MudDialog.Close(DialogResult.Ok("toggle"));
+
+    private async Task DeleteEmployee()
+    {
+        var confirm = await DialogService.ShowMessageBox(
+            "تأكيد الحذف",
+            $"هل أنت متأكد من حذف الموظف {Employee.FullName}؟",
+            yesText: "حذف", cancelText: "إلغاء");
+        
+        if (confirm == true)
+        {
+            MudDialog.Close(DialogResult.Ok("delete"));
+            Snackbar.Add($"تم حذف الموظف {Employee.FullName}", Severity.Success);
+        }
+    }
 }
+
