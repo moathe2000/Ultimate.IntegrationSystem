@@ -6,20 +6,20 @@
 
 @code {
     private bool _drawerOpen = true;
-    private bool _isDark = false;
+    private bool _isDark = true;
 
     private readonly MudTheme LightTheme = new();
     private readonly MudTheme DarkTheme = new()
     {
-        PaletteDark = new PaletteDark()
+        PaletteLight = new PaletteLight()
     };
 }
 
 <MudLayout>
-    <MudDrawer Variant="DrawerVariant.Persistent"
+    <MudDrawer Variant="DrawerVariant.Mini" Dir="@(CultureInfo.CurrentUICulture.TextInfo.IsRightToLeft ? "rtl" : "rtl")"
                Open="@_drawerOpen"
-               Elevation="1"
-               ClipMode="DrawerClipMode.Never">
+               Elevation="5"
+               ClipMode="DrawerClipMode.Always">
         <NavMenu />
     </MudDrawer>
 
@@ -34,7 +34,7 @@
             <MudIconButton Icon="@(_isDark? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)"
                            Color="Color.Inherit"
                            OnClick="() => _isDark = !_isDark" />
-            <MudAvatar Size="Size.Medium" Class="ml-2">J</MudAvatar>
+            <MudAvatar Size="Size.Medium" Class="ml-2">M</MudAvatar>
         </MudAppBar>
 
         <!-- تغيير الثيم فعلياً -->

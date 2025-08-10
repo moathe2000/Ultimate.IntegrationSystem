@@ -1,18 +1,20 @@
 ﻿@using MudBlazor
 @using Microsoft.Extensions.Localization
+@using System.Globalization
 @inject IStringLocalizer<SharedResources> L
 
-<MudNavMenu Dense="true">
-    <MudNavLink Href="/" Icon="@Icons.Material.Filled.Home" Match="NavLinkMatch.All">
-        @L["Home"]
-    </MudNavLink>
 
-    <MudNavGroup Title="@L["Employees"]" Icon="@Icons.Material.Filled.People" Match="NavLinkMatch.Prefix" ExpandIconPlacement="End">
-        <MudNavLink Href="/employees" Icon="@Icons.Material.Filled.List">@L["ViewEmployees"]</MudNavLink>
-        <MudNavLink Href="/muqeemEmployees" Icon="@Icons.Material.Filled.Badge">@L["Residents"]</MudNavLink>
-        <MudNavLink Href="/insurance" Icon="@Icons.Material.Filled.HealthAndSafety">@L["InsuranceAndPension"]</MudNavLink>
-    </MudNavGroup>
+<div dir="@(CultureInfo.CurrentUICulture.TextInfo.IsRightToLeft ? "rtl" : "ltr")">
+    <MudNavMenu Dense="true">
+        <MudNavLink Href="/" Icon="@Icons.Material.Filled.Home" Match="NavLinkMatch.All">@L["Home"]</MudNavLink>
 
-    <MudNavLink Href="/organizationalplan" Icon="@Icons.Material.Filled.Assessment">@L["OrganizationalPlan"]</MudNavLink>
-    <MudNavLink Href="/logout" Icon="@Icons.Material.Filled.ExitToApp">@L["Logout"]</MudNavLink>
-</MudNavMenu>
+        <MudNavGroup Title="@L["Employees"]" Icon="@Icons.Material.Filled.People" Match="NavLinkMatch.Prefix" ExpandIconPlacement="End">
+            <MudNavLink Href="/employees" Icon="@Icons.Material.Filled.List">@L["ViewEmployees"]</MudNavLink>
+            <MudNavLink Href="/muqeemEmployees" Icon="@Icons.Material.Filled.Badge">@L["Residents"]</MudNavLink>
+            <MudNavLink Href="/insurance" Icon="@Icons.Material.Filled.HealthAndSafety">@L["InsuranceAndPension"]</MudNavLink>
+        </MudNavGroup>
+
+        <MudNavLink Href="/organizationalplan" Icon="@Icons.Material.Filled.Assessment">@L["OrganizationalPlan"]</MudNavLink>
+        <MudNavLink Href="/logout" Icon="@Icons.Material.Filled.ExitToApp">@L["Logout"]</MudNavLink>
+    </MudNavMenu>
+</div>

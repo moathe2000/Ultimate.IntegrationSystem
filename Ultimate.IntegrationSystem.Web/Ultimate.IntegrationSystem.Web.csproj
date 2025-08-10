@@ -1,57 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
-
 	<PropertyGroup>
 		<TargetFramework>net8.0</TargetFramework>
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
-		<!-- دعم اللغات المعتمدة -->
 		<SupportedCultures>ar-YE;en-US</SupportedCultures>
 	</PropertyGroup>
 
 	<ItemGroup>
 		<PackageReference Include="MudBlazor" Version="8.11.0" />
 	</ItemGroup>
-
-	<ItemGroup>
-		<Folder Include="Resources\Pages\" />
-	</ItemGroup>
-
-	<!-- الملف المحايد (Strings.resx) -->
-	<ItemGroup>
-		<Compile Update="Resources\Localization\Strings.Designer.cs">
-			<DesignTime>True</DesignTime>
-			<AutoGen>True</AutoGen>
-			<DependentUpon>Strings.resx</DependentUpon>
-		</Compile>
-		<EmbeddedResource Update="Resources\Localization\Strings.resx">
-			<Generator>PublicResXFileCodeGenerator</Generator>
-			<LastGenOutput>Strings.Designer.cs</LastGenOutput>
-		</EmbeddedResource>
-	</ItemGroup>
-
-	<!-- ✅ Add this section: ملفات RESX المخصَّصة للغات -->
-	<ItemGroup>
-		<!-- الترجمة للغة العربية (اليمن) -->
-		<Compile Update="Resources\Localization\Strings.ar-YE.Designer.cs">
-			<DesignTime>True</DesignTime>
-			<AutoGen>True</AutoGen>
-			<DependentUpon>Strings.ar-YE.resx</DependentUpon>
-		</Compile>
-		<EmbeddedResource Update="Resources\Localization\Strings.ar-YE.resx">
-			<Generator>PublicResXFileCodeGenerator</Generator>
-			<LastGenOutput>Strings.ar-YE.Designer.cs</LastGenOutput>
-		</EmbeddedResource>
-
-		<!-- الترجمة للغة الإنجليزية (الولايات المتحدة) -->
-		<Compile Update="Resources\Localization\Strings.en-US.Designer.cs">
-			<DesignTime>True</DesignTime>
-			<AutoGen>True</AutoGen>
-			<DependentUpon>Strings.en-US.resx</DependentUpon>
-		</Compile>
-		<EmbeddedResource Update="Resources\Localization\Strings.en-US.resx">
-			<Generator>PublicResXFileCodeGenerator</Generator>
-			<LastGenOutput>Strings.en-US.Designer.cs</LastGenOutput>
-		</EmbeddedResource>
-	</ItemGroup>
-
 </Project>
