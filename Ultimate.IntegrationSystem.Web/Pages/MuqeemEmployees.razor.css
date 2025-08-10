@@ -1,0 +1,150 @@
+﻿
+:root {
+    --emp-font-size-sm: 0.85rem;
+    --emp-font-size-md: 1rem;
+    --emp-font-size-lg: 1.15rem;
+    --emp-padding-sm: 8px;
+    --emp-padding-md: 12px;
+    --emp-padding-lg: 16px;
+}
+
+/* ===== Header (responsive) ===== */
+.emp-header {
+    padding: var(--emp-padding-md);
+    border-radius: 12px;
+    margin-bottom: 12px;
+}
+
+.emp-header-grid {
+    row-gap: 12px;
+}
+
+.emp-id-col {
+    display: flex;
+    justify-content: center;
+    padding-inline-end: 0;
+}
+
+.emp-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+}
+
+.emp-chips {
+    gap: 0.5rem;
+    justify-content: center;
+}
+
+    .emp-chips .mud-chip-root {
+        padding: 2px 10px;
+        font-size: var(--emp-font-size-sm);
+    }
+
+.emp-name {
+    font-size: 1.25rem;
+    text-align: center;
+}
+
+@@media (min-width: 600px) {
+    .emp-id-col {
+        padding-inline-end: 16px;
+    }
+
+    .emp-chips {
+        justify-content: flex-start;
+    }
+
+    .emp-name {
+        font-size: 1.5rem;
+        text-align: left;
+    }
+}
+
+@@media (min-width: 900px) {
+    .emp-id-col {
+        border-inline-end: 1px dashed var(--mud-palette-lines-default);
+    }
+}
+
+/* ===== Tabs as "pills" (responsive) ===== */
+.tabs-pills .mud-tabs-toolbar {
+    gap: 0.5rem;
+    justify-content: center;
+    overflow-x: auto;
+    padding-bottom: 8px;
+}
+
+.tabs-pills .mud-tab {
+    border: 1px solid rgba(0,0,0,.08);
+    border-radius: 9999px;
+    padding: 0.35rem 0.7rem;
+    font-size: var(--emp-font-size-sm);
+    min-width: auto;
+    white-space: nowrap;
+}
+
+    .tabs-pills .mud-tab.mud-tab-active {
+        background: #f4f6ff;
+        border-color: #cdd3ff;
+    }
+
+@@media (min-width: 600px) {
+    .tabs-pills .mud-tab {
+        padding: 0.35rem 0.9rem;
+        font-size: var(--emp-font-size-md);
+    }
+}
+
+/* ===== Tables (responsive) ===== */
+.responsive-table {
+    overflow-x: auto;
+}
+
+    .responsive-table .mud-table-container {
+        min-width: 600px;
+    }
+
+.table-toolbar {
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+    .table-toolbar .mud-select {
+        width: 90px;
+    }
+
+/* ===== Form Controls (responsive) ===== */
+.tight-toolbar .mud-input-root {
+    max-width: 100%;
+}
+
+.action-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+@@media (max-width: 600px) {
+    .action-buttons {
+        justify-content: center;
+    }
+
+        .action-buttons .mud-button {
+            flex-grow: 1;
+        }
+}
+
+/* ===== Small helpers ===== */
+.text-center-sm {
+    text-align: center;
+}
+
+@@media (min-width: 600px) {
+    .text-center-sm {
+        text-align: left;
+    }
+}
+
+

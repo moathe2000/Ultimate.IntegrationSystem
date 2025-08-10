@@ -3,49 +3,125 @@
 @using Ultimate.IntegrationSystem.Web.Models
 @inject ISnackbar Snackbar
 
-<MudContainer MaxWidth="MaxWidth.False" Class="pa-0">
+<style>
+    /* ===== Header (Hero) ===== */
+    .hero {
+        border-radius: 14px;
+        background: var(--mud-palette-surface);
+        border: 1px solid var(--mud-palette-lines-default);
+    }
+    .hero .name {
+        font-weight: 700;
+        letter-spacing: .2px;
+    }
+    .hero .title {
+        opacity: .75;
+    }
+    .chip-wrap {
+        gap: .5rem;
+        flex-wrap: wrap;
+    }
+    .chip-wrap .mud-chip {
+        border-radius: 999px;
+        font-weight: 500;
+    }
 
-    <!-- Header -->
-    <MudGrid Class="mt-4 mb-2">
-        <MudItem xs="12">
-            <MudText Typo="Typo.h5" Class="mb-4">إدارة مقيم</MudText>
-            <MudBreadcrumbs Separator=">">
-                <MudBreadcrumbItem Href="/employees">الموظفون</MudBreadcrumbItem>
-                <MudBreadcrumbItem Disabled="true">إدارة مقيم</MudBreadcrumbItem>
-            </MudBreadcrumbs>
-        </MudItem>
-    </MudGrid>
+    /* ===== Tabs ===== */
+    .muqeem-tabs .mud-tabs-toolbar {
+        border-bottom: 1px solid var(--mud-palette-lines-default);
+    }
+    .muqeem-tabs .mud-tab {
+        border-radius: 999px;
+        margin-inline: .25rem;
+        padding-inline: .75rem;
+    }
+    .muqeem-tabs .mud-tab.mud-tab-active {
+        background: var(--mud-palette-primary);
+        color: var(--mud-palette-primary-text);
+        font-weight: 700;
+    }
 
-    <!-- Tabs -->
-    <MudTabs Rounded="true"
-             RightToLeft="RightToLeft.Yes"
+    /* تباعد الفلاتر */
+    .filters .mud-grid-item { margin-bottom: .5rem; }
+</style>
+
+<MudContainer MaxWidth="MaxWidth.False" Class="pa-3">
+
+    <!-- ===== Header / Hero ===== -->
+    <MudPaper Class="hero pa-3 mb-3">
+        <MudStack Direction="Row" AlignItems="AlignItems.Center" Spacing="2">
+            <MudAvatar Color="Color.Primary" Size="Size.Large">
+                @GetInitials(Header_EmployeeName)
+            </MudAvatar>
+
+            <MudStack Spacing="0">
+                <MudText Typo="Typo.h6" Class="name">@Header_EmployeeName</MudText>
+                <MudText Typo="Typo.body2" Class="title">@Header_JobTitle</MudText>
+            </MudStack>
+
+            <MudSpacer />
+
+            <!-- معلومات سريعة -->
+            <MudStack Direction="Row" Class="chip-wrap">
+                <MudChip T="string" Variant="Variant.Outlined" Icon="@Icons.Material.Filled.Badge">
+                    إقامة: @Header_IqamaNumber
+                </MudChip>
+
+                <MudChip T="string" Variant="Variant.Outlined" Icon="@Icons.Material.Filled.CardTravel">
+                    جواز: @Header_PassportNumber
+                </MudChip>
+
+                <MudChip T="string" Variant="Variant.Outlined" Icon="@Icons.Material.Filled.QrCode2">
+                    حدود: @Header_BorderNumber
+                </MudChip>
+
+                <MudChip T="string" Variant="Variant.Outlined" Color="@PassportExpiryColor" Icon="@Icons.Material.Filled.Event">
+                    انتهاء الجواز: @Header_PassportExpiry?.ToString("dd-MM-yyyy")
+                </MudChip>
+
+                <MudChip T="string" Variant="Variant.Outlined" Icon="@Icons.Material.Filled.Phone">
+                    جوال العمل: @Header_WorkMobile
+                </MudChip>
+
+                <MudChip T="string" Variant="Variant.Outlined" Icon="@Icons.Material.Filled.Phone">
+                    هاتف العمل: @Header_WorkPhone
+                </MudChip>
+
+                <MudChip T="string" Variant="Variant.Outlined" Icon="@Icons.Material.Filled.Email">
+                    @Header_WorkEmail
+                </MudChip>
+            </MudStack>
+
+        </MudStack>
+    </MudPaper>
+
+    <!-- ===== Tabs ===== -->
+    <MudTabs Class="muqeem-tabs mb-3"
              @bind-ActivePanelIndex="_activeTab"
-             Class="mb-3">
+             Rounded="true"
+             Centered="true"
+             Grows="true"
+             KeepPanelsAlive="true"
+             RightToLeft="RightToLeft.Yes"
+             Elevation="0">
 
         <!-- Tab: الإقامات -->
-        <MudTabPanel Text="الإقامات">
-            <MudPaper Class="pa-4 mb-3" Elevation="1">
+        <MudTabPanel Text="الإقامات" Icon="@Icons.Material.Filled.Badge">
+            <MudPaper Class="pa-3 mb-2 filters" Elevation="0">
                 <MudGrid>
-                    <MudItem xs="12">
-                        <MudAlert Severity="Severity.Info" Dense="true" Variant="Variant.Outlined" Class="mb-3">
-                            تتعلق البيانات الموضّحة في هذه الصفحة بإصدار الإقامات.
-                        </MudAlert>
-                    </MudItem>
-
                     <MudItem xs="12" sm="6" lg="4">
                         <MudTextField @bind-Value="_searchResidencies"
-                                      Placeholder="بحث (رقم الإقامة، رقم/اسم الموظف، المهنة)..."
+                                      Placeholder="بحث (رقم الإقامة، رقم/اسم الموظف، المهنة)…"
+                                      Adornment="Adornment.Start"
                                       AdornmentIcon="@Icons.Material.Filled.Search"
                                       Variant="Variant.Outlined" Dense="true" />
                     </MudItem>
-
                     <MudItem xs="12" sm="6" lg="4">
                         <MudDateRangePicker Label="فترة الإصدار"
                                             Dense="true"
                                             @bind-DateRange="_residencyDateRange" />
                     </MudItem>
-
-                    <MudItem xs="12" lg="4" Class="d-flex align-end justify-end">
+                    <MudItem xs="12" lg="4" Class="d-flex justify-end align-center">
                         <MudButton Variant="Variant.Filled" Color="Color.Primary"
                                    StartIcon="@Icons.Material.Filled.Add"
                                    OnClick="AddNewResidence" Class="ml-2">
@@ -110,16 +186,13 @@
         </MudTabPanel>
 
         <!-- Tab: تأشيرة الخروج والعودة -->
-        <MudTabPanel Text="تأشيرة الخروج والعودة">
-            <MudPaper Class="pa-4 mb-3" Elevation="1">
-                <MudAlert Severity="Severity.Info" Dense="true" Variant="Variant.Outlined" Class="mb-3">
-                    تتعلق البيانات الموضّحة في هذه الصفحة بإصدار تأشيرة الخروج والعودة.
-                </MudAlert>
-
+        <MudTabPanel Text="الخروج والعودة" Icon="@Icons.Material.Filled.Flight">
+            <MudPaper Class="pa-3 mb-2 filters" Elevation="0">
                 <MudGrid>
                     <MudItem xs="12" sm="6" lg="4">
                         <MudTextField @bind-Value="_searchVisas"
-                                      Placeholder="بحث (المتخذ/الحالة)..."
+                                      Placeholder="بحث (المتخذ/الحالة)…"
+                                      Adornment="Adornment.Start"
                                       AdornmentIcon="@Icons.Material.Filled.Search"
                                       Variant="Variant.Outlined" Dense="true" />
                     </MudItem>
@@ -159,10 +232,8 @@
                         <MudTd>@context.PassportExpiry?.ToString("MMM dd, yyyy")</MudTd>
                         <MudTd>@context.IqamaExpiry?.ToString("MMM dd, yyyy")</MudTd>
                         <MudTd>
-                            @if (string.IsNullOrWhiteSpace(context.PdfPath))
-                            { <span>-</span> }
-                            else
-                            { <MudLink Href="@context.PdfPath" Target="_blank">عرض</MudLink> }
+                            @if (string.IsNullOrWhiteSpace(context.PdfPath)) { <span>-</span>; }
+                            else { <MudLink Href="@context.PdfPath" Target="_blank">عرض</MudLink>; }
                         </MudTd>
                         <MudTd>@context.ActionBy</MudTd>
                         <MudTd>@context.ActionTime?.ToString("MMM dd, yyyy hh:mm tt")</MudTd>
@@ -170,14 +241,11 @@
                             @switch (context.MuqeemStatus)
                             {
                                 case "تم إتمامها":
-                                    <MudChip T="string" Color="Color.Success" Variant="Variant.Filled" Label="true">تم إتمامها</MudChip>
-                                    break;
+                                    <MudChip T="string" Color="Color.Success" Variant="Variant.Filled" Label="true">تم إتمامها</MudChip>; break;
                                 case "تم رفضها":
-                                    <MudChip T="string" Color="Color.Error" Variant="Variant.Outlined" Label="true">تم رفضها</MudChip>
-                                    break;
+                                    <MudChip T="string" Color="Color.Error" Variant="Variant.Outlined" Label="true">تم رفضها</MudChip>; break;
                                 default:
-                                    <MudChip T="string" Color="Color.Info" Variant="Variant.Outlined" Label="true">بانتظار الرد</MudChip>
-                                    break;
+                                    <MudChip T="string" Color="Color.Info" Variant="Variant.Outlined" Label="true">بانتظار الرد</MudChip>; break;
                             }
                         </MudTd>
                         <MudTd>
@@ -202,17 +270,14 @@
             </MudPaper>
         </MudTabPanel>
 
-        <!-- Tab: تأشيرة الخروج النهائي -->
-        <MudTabPanel Text="تأشيرة الخروج النهائي">
-            <MudPaper Class="pa-4 mb-3" Elevation="1">
-                <MudAlert Severity="Severity.Info" Dense="true" Variant="Variant.Outlined" Class="mb-3">
-                    تتعلق البيانات الموضّحة في هذه الصفحة بإصدار وإلغاء تأشيرة الخروج النهائي.
-                </MudAlert>
-
+        <!-- Tab: الخروج النهائي -->
+        <MudTabPanel Text="الخروج النهائي" Icon="@Icons.Material.Filled.Logout">
+            <MudPaper Class="pa-3 mb-2 filters" Elevation="0">
                 <MudGrid>
                     <MudItem xs="12" sm="6" lg="4">
                         <MudTextField @bind-Value="_searchFinalExit"
-                                      Placeholder="بحث (اسم/رقم إقامة/المتخذ/الحالة)..."
+                                      Placeholder="بحث (اسم/رقم إقامة/المتخذ/الحالة)…"
+                                      Adornment="Adornment.Start"
                                       AdornmentIcon="@Icons.Material.Filled.Search"
                                       Variant="Variant.Outlined" Dense="true" />
                     </MudItem>
@@ -257,10 +322,8 @@
                         <MudTd>@context.PassportExpiry?.ToString("MMM dd, yyyy")</MudTd>
                         <MudTd>@context.IqamaExpiry?.ToString("MMM dd, yyyy")</MudTd>
                         <MudTd>
-                            @if (string.IsNullOrWhiteSpace(context.PdfPath) || context.PdfPath == "-")
-                            { <span>-</span> }
-                            else
-                            { <MudLink Href="@context.PdfPath" Target="_blank">عرض</MudLink> }
+                            @if (string.IsNullOrWhiteSpace(context.PdfPath) || context.PdfPath == "-") { <span>-</span>; }
+                            else { <MudLink Href="@context.PdfPath" Target="_blank">عرض</MudLink>; }
                         </MudTd>
                         <MudTd>@context.ActionBy</MudTd>
                         <MudTd>@context.ActionTime?.ToString("MMM dd, yyyy hh:mm tt")</MudTd>
@@ -268,14 +331,11 @@
                             @switch (context.Status)
                             {
                                 case "تم إتمامها":
-                                    <MudChip T="string" Color="Color.Success" Variant="Variant.Filled" Label="true">تم إتمامها</MudChip>
-                                    break;
+                                    <MudChip T="string" Color="Color.Success" Variant="Variant.Filled" Label="true">تم إتمامها</MudChip>; break;
                                 case "تم رفضها":
-                                    <MudChip T="string" Color="Color.Error" Variant="Variant.Outlined" Label="true">تم رفضها</MudChip>
-                                    break;
+                                    <MudChip T="string" Color="Color.Error" Variant="Variant.Outlined" Label="true">تم رفضها</MudChip>; break;
                                 default:
-                                    <MudChip T="string" Color="Color.Info" Variant="Variant.Outlined" Label="true">بانتظار الرد</MudChip>
-                                    break;
+                                    <MudChip T="string" Color="Color.Info" Variant="Variant.Outlined" Label="true">بانتظار الرد</MudChip>; break;
                             }
                         </MudTd>
                         <MudTd>
@@ -300,16 +360,13 @@
         </MudTabPanel>
 
         <!-- Tab: جواز السفر -->
-        <MudTabPanel Text="جواز السفر">
-            <MudPaper Class="pa-4 mb-3" Elevation="1">
-                <MudAlert Severity="Severity.Info" Dense="true" Variant="Variant.Outlined" Class="mb-3">
-                    تتعلق البيانات الموضّحة في هذه الصفحة بتمديد صلاحية وتجديد جوازات السفر.
-                </MudAlert>
-
+        <MudTabPanel Text="جواز السفر" Icon="@Icons.Material.Filled.CardTravel">
+            <MudPaper Class="pa-3 mb-2 filters" Elevation="0">
                 <MudGrid>
                     <MudItem xs="12" sm="6" lg="4">
                         <MudTextField @bind-Value="_searchPassports"
-                                      Placeholder="بحث (اسم/جواز/المتخذ/النوع/الحالة)..."
+                                      Placeholder="بحث (اسم/جواز/المتخذ/النوع/الحالة)…"
+                                      Adornment="Adornment.Start"
                                       AdornmentIcon="@Icons.Material.Filled.Search"
                                       Variant="Variant.Outlined" Dense="true" />
                     </MudItem>
@@ -356,10 +413,8 @@
                         <MudTd>@context.NewExpiry?.ToString("MMM dd, yyyy")</MudTd>
                         <MudTd>@context.RequestType</MudTd>
                         <MudTd>
-                            @if (string.IsNullOrWhiteSpace(context.PdfPath) || context.PdfPath == "-")
-                            { <span>-</span> }
-                            else
-                            { <MudLink Href="@context.PdfPath" Target="_blank">عرض</MudLink> }
+                            @if (string.IsNullOrWhiteSpace(context.PdfPath) || context.PdfPath == "-") { <span>-</span>; }
+                            else { <MudLink Href="@context.PdfPath" Target="_blank">عرض</MudLink>; }
                         </MudTd>
                         <MudTd>@context.ActionBy</MudTd>
                         <MudTd>@context.ActionTime?.ToString("MMM dd, yyyy hh:mm tt")</MudTd>
@@ -367,14 +422,11 @@
                             @switch (context.Status)
                             {
                                 case "تم إتمامها":
-                                    <MudChip T="string" Color="Color.Success" Variant="Variant.Filled" Label="true">تم إتمامها</MudChip>
-                                    break;
+                                    <MudChip T="string" Color="Color.Success" Variant="Variant.Filled" Label="true">تم إتمامها</MudChip>; break;
                                 case "تم رفضها":
-                                    <MudChip T="string" Color="Color.Error" Variant="Variant.Outlined" Label="true">تم رفضها</MudChip>
-                                    break;
+                                    <MudChip T="string" Color="Color.Error" Variant="Variant.Outlined" Label="true">تم رفضها</MudChip>; break;
                                 default:
-                                    <MudChip T="string" Color="Color.Info" Variant="Variant.Outlined" Label="true">بانتظار الرد</MudChip>
-                                    break;
+                                    <MudChip T="string" Color="Color.Info" Variant="Variant.Outlined" Label="true">بانتظار الرد</MudChip>; break;
                             }
                         </MudTd>
                         <MudTd>
@@ -402,7 +454,30 @@
 </MudContainer>
 
 @code {
-    private int _activeTab = 0;
+    private int _activeTab;
+
+    // ===== بيانات الهيدر (تقدر تربطها من API) =====
+    private string Header_EmployeeName = "أحمد صالح";
+    private string Header_JobTitle     = "محلل نظم";
+    private string Header_IqamaNumber  = "325329";
+    private string Header_PassportNumber = "P1234567";
+    private string Header_BorderNumber = "1234567890";
+    private DateTime? Header_PassportExpiry = new DateTime(2028, 7, 1);
+    private string Header_WorkMobile = "0550000000";
+    private string Header_WorkPhone  = "1234567-011";
+    private string Header_WorkEmail  = "ahmad.saleh@company.com";
+
+    private Color PassportExpiryColor =>
+        Header_PassportExpiry.HasValue && Header_PassportExpiry.Value.Date <= DateTime.Today
+            ? Color.Error
+            : Color.Success;
+
+    private string GetInitials(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return "؟";
+        var p = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        return p.Length == 1 ? p[0][0].ToString() : $"{p[0][0]}{p[^1][0]}";
+    }
 
     // ===== الإقامات =====
     private string _searchResidencies = string.Empty;
@@ -476,7 +551,7 @@
 
     protected override Task OnInitializedAsync()
     {
-        // بيانات تجريبية — استبدلها بالربط الحقيقي
+        // بيانات تجريبية (استبدلها بربطك الحقيقي)
         _residencies = new()
         {
             new ResidencyRow { IqamaNumber="325329", EmployeeNumber="05", EmployeeName="العنود الغامدي", ActionType="-", IqamaProfession="VP Of Marketing", IssueNumber="-", IssueDate=new DateTime(2022,9,1) },

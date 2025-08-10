@@ -16,9 +16,9 @@
 }
 
 <MudLayout>
-    <MudDrawer Variant="DrawerVariant.Mini" Dir="@(CultureInfo.CurrentUICulture.TextInfo.IsRightToLeft ? "rtl" : "rtl")"
+    <MudDrawer Variant="DrawerVariant.Persistent" Dir="@(CultureInfo.CurrentUICulture.TextInfo.IsRightToLeft ? "rtl" : "rtl")"
                Open="@_drawerOpen"
-               Elevation="5"
+               Elevation="1"
                ClipMode="DrawerClipMode.Always">
         <NavMenu />
     </MudDrawer>
