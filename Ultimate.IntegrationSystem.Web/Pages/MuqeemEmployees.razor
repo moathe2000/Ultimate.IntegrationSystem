@@ -49,8 +49,8 @@
 
     <!-- ===== Header / Hero ===== -->
     <MudPaper Class="hero pa-3 mb-3">
-        <MudStack Direction="Row" AlignItems="AlignItems.Center" Spacing="2">
-            <MudAvatar Color="Color.Primary" Size="Size.Large">
+        <MudStack Direction="Row" AlignItems="AlignItems.Center" Spacing="1">
+            <MudAvatar Color="Color.Primary" Size="Size.Medium">
                 @GetInitials(Header_EmployeeName)
             </MudAvatar>
 
@@ -62,12 +62,12 @@
             <MudSpacer />
 
             <!-- معلومات سريعة -->
-            <MudStack Direction="Row" Class="chip-wrap">
+            <MudStack  Class="chip-wrap">
                 <MudChip T="string" Variant="Variant.Outlined" Icon="@Icons.Material.Filled.Badge">
                     إقامة: @Header_IqamaNumber
                 </MudChip>
 
-                <MudChip T="string" Variant="Variant.Outlined" Icon="@Icons.Material.Filled.CardTravel">
+                <MudChip T="string" Variant="Variant.Outlined" Icon="@Icons.Material.Filled.CreditCard">
                     جواز: @Header_PassportNumber
                 </MudChip>
 
