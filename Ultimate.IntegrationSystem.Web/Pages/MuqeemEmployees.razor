@@ -1,6 +1,8 @@
 ﻿@page "/MuqeemEmployees"
 @using MudBlazor
+@using Ultimate.IntegrationSystem.Web.Pages.Integrations.muqeem.Dialoge  @* <-- عدّلها إذا اختلف الـnamespace *@
 @inject ISnackbar Snackbar
+@inject IDialogService DialogService
 
 <style>
     /* ===== Header (compact) ===== */
@@ -35,13 +37,10 @@
         }
 
     @@media (min-width:900px) {
-        .emp-id-col
-
-    {
-        border-inline-end: 1px dashed var(--mud-palette-lines-default);
-        padding-inline-end: 16px
-    }
-
+        .emp-id-col {
+            border-inline-end: 1px dashed var(--mud-palette-lines-default);
+            padding-inline-end: 16px
+        }
     }
 
     /* ===== Tabs as "pills" ===== */
@@ -171,7 +170,6 @@
                             }
                             else
                             {
-
                                 <MudLink Href="@context.PdfPath" Target="_blank">عرض</MudLink>
                             }
                         </MudTd>
@@ -258,7 +256,6 @@
                             }
                             else
                             {
-
                                 <MudLink Href="@context.PdfPath" Target="_blank">عرض</MudLink>
                             }
                         </MudTd>
@@ -328,6 +325,7 @@
 
                     <HeaderContent>
                         <MudTh>رقم الإقامة</MudTh>
+                        <MudTh>رقم الموظف</MudTh>
                         <MudTh>اسم الموظف</MudTh>
                         <MudTh>انتهاء الجواز</MudTh>
                         <MudTh>انتهاء الإقامة</MudTh>
@@ -340,6 +338,7 @@
 
                     <RowTemplate>
                         <MudTd>@context.IqamaNumber</MudTd>
+                        <MudTd>@context.EmployeeNumber</MudTd>
                         <MudTd>@context.EmployeeName</MudTd>
                         <MudTd>@context.PassportExpiry?.ToString("MMM dd, yyyy")</MudTd>
                         <MudTd>@context.IqamaExpiry?.ToString("MMM dd, yyyy")</MudTd>
@@ -350,7 +349,6 @@
                             }
                             else
                             {
-
                                 <MudLink Href="@context.PdfPath" Target="_blank">عرض</MudLink>
                             }
                         </MudTd>
@@ -571,40 +569,87 @@
     {
         // بيانات تجريبية — استبدلها بالربط الحقيقي
         _residencies = new()
-    {
-      new ResidencyRow { IqamaNumber="325329", EmployeeNumber="05", EmployeeName="العنود الغامدي", ActionType="-", IqamaProfession="VP Of Marketing", IssueNumber="-", IssueDate=new DateTime(2022,9,1) },
-      new ResidencyRow { IqamaNumber="444111", EmployeeNumber="07", EmployeeName="محمد سالم",     ActionType="-", IqamaProfession="Engineer",      IssueNumber="-", IssueDate=new DateTime(2022,9,10) }
-    };
+        {
+          new ResidencyRow { IqamaNumber="325329", EmployeeNumber="05", EmployeeName="العنود الغامدي", ActionType="-", IqamaProfession="VP Of Marketing", IssueNumber="-", IssueDate=new DateTime(2022,9,1) },
+          new ResidencyRow { IqamaNumber="444111", EmployeeNumber="07", EmployeeName="محمد سالم",     ActionType="-", IqamaProfession="Engineer",      IssueNumber="-", IssueDate=new DateTime(2022,9,10) }
+        };
 
         _exitReentry = new()
-    {
-      new ExitReentryRow { PassportExpiry=new DateTime(2025,1,1), IqamaExpiry=new DateTime(2025,12,13), PdfPath=null, ActionBy="مازن زيد", ActionTime=new DateTime(2023,9,15,15,25,0), MuqeemStatus="تم إتمامها" },
-      new ExitReentryRow { PassportExpiry=new DateTime(2025,1,1), IqamaExpiry=new DateTime(2025,12,13), PdfPath=null, ActionBy="مازن زيد", ActionTime=new DateTime(2023,9,15,15,24,0), MuqeemStatus="تم رفضها" },
-      new ExitReentryRow { PassportExpiry=null,                   IqamaExpiry=null,                    PdfPath="-",  ActionBy="مازن زيد", ActionTime=new DateTime(2023,9,14,17,10,0), MuqeemStatus="بانتظار الرد" }
-    };
+        {
+          new ExitReentryRow { PassportExpiry=new DateTime(2025,1,1), IqamaExpiry=new DateTime(2025,12,13), PdfPath=null, ActionBy="مازن زيد", ActionTime=new DateTime(2023,9,15,15,25,0), MuqeemStatus="تم إتمامها" },
+          new ExitReentryRow { PassportExpiry=new DateTime(2025,1,1), IqamaExpiry=new DateTime(2025,12,13), PdfPath=null, ActionBy="مازن زيد", ActionTime=new DateTime(2023,9,15,15,24,0), MuqeemStatus="تم رفضها" },
+          new ExitReentryRow { PassportExpiry=null,                   IqamaExpiry=null,                    PdfPath="-",  ActionBy="مازن زيد", ActionTime=new DateTime(2023,9,14,17,10,0), MuqeemStatus="بانتظار الرد" }
+        };
 
         _finalExitList = new()
-    {
-      new FinalExitRow { IqamaNumber="24567890", EmployeeName="أحمد علي", PassportExpiry=new DateTime(2026,5,1), IqamaExpiry=new DateTime(2025,3,20),
-                         PdfPath="-", ActionBy="منى سالم", ActionTime=new DateTime(2023,6,5,10,15,0), Status="بانتظار الرد" },
-      new FinalExitRow { IqamaNumber="98765432", EmployeeName="رنا محمد", PassportExpiry=new DateTime(2026,8,30), IqamaExpiry=new DateTime(2025,11,10),
-                         PdfPath=null, ActionBy="سامي ناصر", ActionTime=new DateTime(2023,6,7,9,0,0), Status="تم إتمامها" }
-    };
+        {
+          new FinalExitRow { IqamaNumber="24567890", EmployeeName="أحمد علي", PassportExpiry=new DateTime(2026,5,1), IqamaExpiry=new DateTime(2025,3,20),
+                             PdfPath="-", ActionBy="منى سالم", ActionTime=new DateTime(2023,6,5,10,15,0), Status="بانتظار الرد" },
+          new FinalExitRow { IqamaNumber="98765432", EmployeeName="رنا محمد", PassportExpiry=new DateTime(2026,8,30), IqamaExpiry=new DateTime(2025,11,10),
+                             PdfPath=null, ActionBy="سامي ناصر", ActionTime=new DateTime(2023,6,7,9,0,0), Status="تم إتمامها" }
+        };
 
         _passports = new()
-    {
-      new PassportRow { PassportNumber="P1234567", EmployeeName="ليان عبدالله", OldExpiry=new DateTime(2023,7,1), NewExpiry=new DateTime(2028,7,1),
-                        RequestType="تجديد", PdfPath="-", ActionBy="عمر خالد", ActionTime=new DateTime(2023,7,10,14,30,0), Status="تم إتمامها" },
-      new PassportRow { PassportNumber="P7654321", EmployeeName="مروان سعيد", OldExpiry=new DateTime(2024,12,31), NewExpiry=new DateTime(2026,12,31),
-                        RequestType="تمديد", PdfPath=null, ActionBy="نجلاء هيثم", ActionTime=new DateTime(2023,8,1,9,45,0), Status="تم رفضها" }
-    };
+        {
+          new PassportRow { PassportNumber="P1234567", EmployeeName="ليان عبدالله", OldExpiry=new DateTime(2023,7,1), NewExpiry=new DateTime(2028,7,1),
+                            RequestType="تجديد", PdfPath="-", ActionBy="عمر خالد", ActionTime=new DateTime(2023,7,10,14,30,0), Status="تم إتمامها" },
+          new PassportRow { PassportNumber="P7654321", EmployeeName="مروان سعيد", OldExpiry=new DateTime(2024,12,31), NewExpiry=new DateTime(2026,12,31),
+                            RequestType="تمديد", PdfPath=null, ActionBy="نجلاء هيثم", ActionTime=new DateTime(2023,8,1,9,45,0), Status="تم رفضها" }
+        };
 
         return Task.CompletedTask;
     }
 
     // ==== Actions ====
     private void AddNewResidence() => Snackbar.Add("فتح نموذج إضافة إقامة جديدة", Severity.Info);
-    private void IssueResidence() => Snackbar.Add("إصدار إقامة", Severity.Success);
+
+    private async Task IssueResidence()
+    {
+        // تحويل الهيدر إلى نموذج SimpleEmployee للحوار:
+        var emp = new IssueIqamaDialog.SimpleEmployee
+        {
+            Id = 0, // ضع المعرف الحقيقي إن توفر
+            FullName = Employee.FullName ?? string.Empty,
+            EmployeeNumber = "—", // ضع رقم الموظف الحقيقي إن توفر
+            IqamaNumber = string.IsNullOrWhiteSpace(Employee.IqamaNumber) ? null : Employee.IqamaNumber
+        };
+
+        var parameters = new DialogParameters
+        {
+            ["Employee"] = emp
+        };
+
+        var options = new DialogOptions
+        {
+            CloseOnEscapeKey = true,
+            Position = DialogPosition.TopRight, // أعلى يسار
+            FullWidth = false,
+            MaxWidth = MaxWidth.Small,
+
+
+          
+            CloseButton = false,
+          
+            NoHeader = true,
+           //osition = DialogPosition.TopLeft  // لا يوجد Right في v8 — استخدم CSS لو أردت Side Sheet
+        };
+       
+
+        var dialogRef = DialogService.Show<IssueIqamaDialog>(title: string.Empty, parameters, options);
+        var result = await dialogRef.Result;
+
+        if (!result.Canceled && result.Data is IssueIqamaDialog.IssueIqamaModel model)
+        {
+            // TODO: نداء API الحقيقي لـ "مقيم"
+            // await _muqeemApi.IssueIqamaAsync(model);
+            Snackbar.Add("تم إرسال طلب إصدار الإقامة بنجاح.", Severity.Success);
+        }
+        else
+        {
+            Snackbar.Add("تم إلغاء العملية.", Severity.Info);
+        }
+    }
+
     private void EditResidency(ResidencyRow r) => Snackbar.Add($"تعديل إقامة رقم {r.IqamaNumber}", Severity.Info);
     private void DeleteResidency(ResidencyRow r) => Snackbar.Add($"حذف إقامة رقم {r.IqamaNumber}", Severity.Warning);
 
@@ -659,6 +704,7 @@
     private class FinalExitRow
     {
         public string IqamaNumber { get; set; } = "";
+        public string EmployeeNumber { get; set; } = "";
         public string EmployeeName { get; set; } = "";
         public DateTime? PassportExpiry { get; set; }
         public DateTime? IqamaExpiry { get; set; }

@@ -2,17 +2,17 @@
 @using Microsoft.AspNetCore.Components.Routing
 @using Ultimate.IntegrationSystem.Web.Components.Layout
 
-
+<MudThemeProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
 <MudPopoverProvider />
 
 <Router AppAssembly="@typeof(App).Assembly" PreferExactMatches="true">
     <Found Context="routeData">
-        <RouteView RouteData="@routeData" DefaultLayout="@typeof(Ultimate.IntegrationSystem.Web.Components.Layout.MainLayout)" />
+        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
     </Found>
     <NotFound>
-        <LayoutView Layout="@typeof(Ultimate.IntegrationSystem.Web.Components.Layout.MainLayout)">
+        <LayoutView Layout="@typeof(MainLayout)">
             <p>عذراً، لا توجد صفحة هنا.</p>
         </LayoutView>
     </NotFound>

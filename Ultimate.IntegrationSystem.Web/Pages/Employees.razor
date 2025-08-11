@@ -133,7 +133,7 @@
             <MudPaper Class="kpi pa-4" Elevation="0" Style="--c1:#00B09B;--c2:#96C93D">
                 <div class="kpi-icon"><MudIcon Icon="@Icons.Material.Filled.Verified" /></div>
                 <div>
-                    <MudText Class="kpi-title" Typo="Typo.body2">نشطون</MudText>
+                    <MudText Class="kpi-title" Typo="Typo.body2">فعال</MudText>
                     <MudText Class="kpi-value" Typo="Typo.h4">@activeCount</MudText>
                 </div>
             </MudPaper>
@@ -143,7 +143,7 @@
             <MudPaper Class="kpi pa-4" Elevation="0" Style="--c1:#EB5757;--c2:#FF8A65">
                 <div class="kpi-icon"><MudIcon Icon="@Icons.Material.Filled.Block" /></div>
                 <div>
-                    <MudText Class="kpi-title" Typo="Typo.body2">غير نشطين</MudText>
+                    <MudText Class="kpi-title" Typo="Typo.body2">غير  فعال</MudText>
                     <MudText Class="kpi-value" Typo="Typo.h4">@inactiveCount</MudText>
                 </div>
             </MudPaper>
@@ -188,8 +188,8 @@
                            Label="حالة الموظف" Variant="Variant.Outlined"
                            Clearable="true" Dense="true">
                     <MudSelectItem T="bool?" Value="@((bool?)null)">الكل</MudSelectItem>
-                    <MudSelectItem T="bool?" Value="true">نشط</MudSelectItem>
-                    <MudSelectItem T="bool?" Value="false">غير نشط</MudSelectItem>
+                    <MudSelectItem T="bool?" Value="true">فعال</MudSelectItem>
+                    <MudSelectItem T="bool?" Value="false">موقف</MudSelectItem>
                 </MudSelect>
             </MudItem>
 
@@ -274,7 +274,7 @@
                                      Color="@(row.IsActive ? Color.Success : Color.Error)"
                                      Variant="Variant.Filled"
                                      Size="Size.Small">
-                                @(row.IsActive ? "نشط" : "غير نشط")
+                                @(row.IsActive ? "فعال" : " موقف")
                             </MudChip>
                         </MudTd>
                         <MudTd>
@@ -321,7 +321,7 @@
                                 <MudChip T="string" Variant="Variant.Outlined"
                                          Color="@(e.IsActive? Color.Success : Color.Error)"
                                          Size="Size.Small">
-                                    @(e.IsActive ? "نشط" : "غير نشط")
+                                    @(e.IsActive ? "فعال" : "موقف ")
                                 </MudChip>
                                 <MudSpacer />
                                

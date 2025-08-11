@@ -1,0 +1,160 @@
+﻿@using System
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Components
+@using MudBlazor
+
+<MudSlideTransition Visible="true" Direction="Direction.Left">
+    <MudPaper Class="pa-3 inline-panel" Elevation="2">
+        <div class="sheet-header">
+            <MudIconButton Icon="@Icons.Material.Filled.ArrowBackIosNew" OnClick="@Cancel" />
+            <MudText Typo="Typo.h6" Class="ml-2">عملية مقيم جديدة</MudText>
+            <MudSpacer />
+            <MudIconButton Icon="@Icons.Material.Filled.Close" OnClick="@Cancel" />
+        </div>
+
+        <MudPaper Class="pa-3 mb-3">
+            <div class="d-flex align-center">
+                <MudAvatar Size="Size.Medium" Color="Color.Primary">@Initials</MudAvatar>
+                <div class="ml-3">
+                    <MudText Typo="Typo.subtitle2">@EmployeeTitle</MudText>
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">@EmployeeCaption</MudText>
+                </div>
+                <MudSpacer />
+                <MudTooltip Text="عرض ملف الموظف">
+                    <MudIconButton Icon="@Icons.Material.Outlined.OpenInNew"
+                                   Disabled="@IsEmployeeNull"
+                                   OnClick="@OpenEmployeeProfile" />
+                </MudTooltip>
+            </div>
+        </MudPaper>
+
+        <MudDivider Class="mb-3" />
+
+        <MudForm @ref="form" Model="@Model">
+            <MudGrid Class="px-2">
+                <MudItem xs="12">
+                    <MudSelect T="string" @bind-Value="Model.Service" Label="الخدمة" Dense="true" Required="true">
+                        <MudSelectItem T="string">إصدار إقامة</MudSelectItem>
+                        <MudSelectItem T="string">تجديد إقامة</MudSelectItem>
+                        <MudSelectItem T="string">بدل تالف/فاقد</MudSelectItem>
+                    </MudSelect>
+                </MudItem>
+
+                <MudItem xs="12" sm="6">
+                    <MudTextField T="string" @bind-Value="Model.IqamaNumber"
+                                  Label="رقم الإقامة" Dense="true" Required="true" />
+                </MudItem>
+
+                <MudItem xs="12" sm="6">
+                    <MudTextField T="string" @bind-Value="Model.PassportNumber" Label="رقم الجواز" Dense="true" />
+                </MudItem>
+
+                <MudItem xs="12" sm="6">
+                    <MudTextField T="string" @bind-Value="Model.Profession" Label="المهنة على الإقامة" Dense="true" />
+                </MudItem>
+
+                <MudItem xs="12" sm="6">
+                    <MudDatePicker T="DateTime?" @bind-Value="Model.IqamaExpiry" Label="تاريخ انتهاء الإقامة" Dense="true" />
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudTextField T="string" @bind-Value="Model.Notes" Label="ملاحظات" Lines="2" />
+                </MudItem>
+            </MudGrid>
+
+            <MudDivider Class="my-3" />
+
+            <div class="d-flex justify-end gap-2 pb-3 px-2">
+                <MudButton Variant="Variant.Outlined" OnClick="@Cancel">إغلاق</MudButton>
+                <MudButton Color="Color.Primary" StartIcon="@Icons.Material.Filled.Send"
+                           OnClick="@Submit" Disabled="@submitting">
+                    @if (submitting)
+                    {
+                        <MudProgressCircular Indeterminate="true" Size="Size.Small" Class="mr-2" />
+                    }
+                    إرسال إلى مقيم
+                </MudButton>
+            </div>
+        </MudForm>
+    </MudPaper>
+</MudSlideTransition>
+
+@code {
+    // مدخلات من الأب
+    [Parameter] public int? EmployeeId { get; set; }
+    [Parameter] public string? EmployeeName { get; set; }
+    [Parameter] public string? EmployeeNumber { get; set; }
+    [Parameter] public string? IqamaNumber { get; set; }
+
+    // أحداث للأب
+    [Parameter] public EventCallback OnCancel { get; set; }
+    [Parameter] public EventCallback<IssueIqamaModel> OnSubmit { get; set; }
+
+    [Inject] NavigationManager Nav { get; set; } = default!;
+
+    public IssueIqamaModel Model { get; private set; } = new();
+
+    private MudForm? form;
+    private bool submitting;
+
+    protected override void OnInitialized()
+    {
+        Model.EmployeeId = EmployeeId;
+        Model.EmployeeName = EmployeeName;
+        Model.EmployeeNumber = EmployeeNumber;
+        Model.IqamaNumber = IqamaNumber;
+    }
+
+    private bool IsEmployeeNull => Model.EmployeeId is null;
+    private string Initials => GetInitials(Model.EmployeeName ?? "؟");
+    private string EmployeeTitle => string.IsNullOrWhiteSpace(Model.EmployeeName) ? "اختر موظفًا" : Model.EmployeeName!;
+    private string EmployeeCaption
+    {
+        get
+        {
+            var num = string.IsNullOrWhiteSpace(Model.EmployeeNumber) ? "-" : Model.EmployeeNumber!;
+            return Model.IqamaNumber is null ? num : $"{num} - {Model.IqamaNumber}";
+        }
+    }
+
+    private async Task Submit()
+    {
+        await form!.Validate();
+        if (!form.IsValid) return;
+        submitting = true;
+        try
+        {
+            await OnSubmit.InvokeAsync(Model);
+        }
+        finally { submitting = false; }
+    }
+
+    private Task Cancel() => OnCancel.InvokeAsync();
+
+    private void OpenEmployeeProfile()
+    {
+        if (Model.EmployeeId is not null)
+            Nav.NavigateTo($"/employees/{Model.EmployeeId}");
+    }
+
+    private static string GetInitials(string name)
+    {
+        var p = (name ?? "").Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        return p.Length switch { 0 => "؟", 1 => p[0][0].ToString(), _ => $"{p[0][0]}{p[^1][0]}" };
+    }
+
+    // نموذج مبسّط
+    public sealed class IssueIqamaModel
+    {
+        public int? EmployeeId { get; set; }
+        public string? EmployeeName { get; set; }
+        public string? EmployeeNumber { get; set; }
+
+        [Required] public string Service { get; set; } = "إصدار إقامة";
+        [Required] public string? IqamaNumber { get; set; }
+        public string? PassportNumber { get; set; }
+        public string? Profession { get; set; }
+        public DateTime? IqamaExpiry { get; set; }
+        public string? Notes { get; set; }
+    }
+}

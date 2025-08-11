@@ -68,3 +68,32 @@ html, body {
 html, body, .mud-typography {
     font-family: "Cairo", "Inter", "Segoe UI", Tahoma, sans-serif;
 }
+.mud-dialog {
+    position: fixed !important;
+    top: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    left: auto !important;
+    transform: none !important; /* ãåã: ÅáÛÇÁ ÊãÑßÒ Mud ÇáÇİÊÑÇÖí */
+    width: 420px;
+    max-width: 90vw !important;
+    height: 100vh !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    z-index: 1500 !important; /* İæŞ ÇáÊÚÊíã */
+}
+
+    .mud-dialog .mud-dialog-content {
+        height: 100%;
+        padding: 0;
+        overflow: auto; /* áÇ ÊÎİö ÇáãÍÊæì */
+    }
+
+/* áæ ßäÊ ÓÇÈŞğÇ ÊÓÊÎÏã side-sheet ÏÇÎá ÇáÍæÇÑ¡ ÚØøá ÊãæÖÚå */
+.side-sheet {
+    position: static; /* Ãæ ÇÍĞİ ÇáßÊáÉ ßáåÇ */
+    inset: auto;
+    height: auto;
+    width: auto;
+    z-index: auto;
+}
