@@ -278,13 +278,13 @@
                             </MudChip>
                         </MudTd>
                         <MudTd>
-                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="@(() => EditEmployee(row))" />
+                           
                             <MudMenu Dense="true">
                                 <ActivatorContent>
                                     <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small" />
                                 </ActivatorContent>
                                 <ChildContent>
-                                    <MudMenuItem OnClick="@(() => EditEmployee(row))">تعديل</MudMenuItem>
+                                    <MudMenuItem OnClick="@(() => EditEmployee(row))">مقيم</MudMenuItem>
                                     <MudMenuItem OnClick="@(() => NavigateToDetails(row))">تفاصيل</MudMenuItem>
                                 </ChildContent>
                             </MudMenu>
@@ -324,7 +324,7 @@
                                     @(e.IsActive ? "نشط" : "غير نشط")
                                 </MudChip>
                                 <MudSpacer />
-                                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="@(() => EditEmployee(e))" />
+                               
                                 <MudMenu Dense="true">
                                     <ActivatorContent>
                                         <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small" />

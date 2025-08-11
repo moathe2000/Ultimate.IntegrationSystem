@@ -1,0 +1,46 @@
+﻿@page "/integrations/muqeem/settings"
+@using MudBlazor
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="py-6">
+    <MudPaper Class="pa-4" Elevation="1">
+        <MudText Typo="Typo.h6" Class="mb-4">إعدادات Muqeem</MudText>
+
+        <MudForm @ref="_form" Model="@_model" Validated="OnValidated">
+            <MudTextField @bind-Value="_model.Username" Label="اسم المستخدم" Variant="Variant.Outlined" Required="true" />
+            <MudTextField @bind-Value="_model.Password" Label="كلمة المرور" Variant="Variant.Outlined" Required="true" InputType="InputType.Password" />
+            <MudTextField @bind-Value="_model.ClientId" Label="Client Id" Variant="Variant.Outlined" Required="true" />
+            <MudTextField @bind-Value="_model.ClientSecret" Label="Client Secret" Variant="Variant.Outlined" Required="true" />
+
+            <MudStack Row="true" Spacing="2" Class="mt-4">
+                <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Submit">حفظ</MudButton>
+                <MudButton Color="Color.Default" Variant="Variant.Outlined" Href="/">رجوع</MudButton>
+            </MudStack>
+        </MudForm>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private MudForm? _form;
+    private readonly MuqeemSettingsModel _model = new();
+
+    private Task Submit() => _form!.Validate();
+
+    private Task OnValidated()
+    {
+        // TODO: خزّن الإعدادات وجرّب التحقق (Auth) من Muqeem
+        Snackbar.Add("تم حفظ إعدادات Muqeem", Severity.Success);
+        Navigation.NavigateTo("/");
+        return Task.CompletedTask;
+    }
+
+    public class MuqeemSettingsModel
+    {
+        public string Username { get; set; } = "";
+        public string Password { get; set; } = "";
+        public string ClientId { get; set; } = "";
+        public string ClientSecret { get; set; } = "";
+    }
+
+    [Inject] ISnackbar Snackbar { get; set; } = default!;
+    [Inject] NavigationManager Navigation { get; set; } = default!;
+}

@@ -1,20 +1,17 @@
 ﻿@using MudBlazor
-@using Microsoft.Extensions.Localization
-@using System.Globalization
-@inject IStringLocalizer<SharedResources> L
 
 
-<div dir="@(CultureInfo.CurrentUICulture.TextInfo.IsRightToLeft ? "rtl" : "ltr")">
+<div dir="rtl">
     <MudNavMenu Dense="true">
-        <MudNavLink Href="/" Icon="@Icons.Material.Filled.Home" Match="NavLinkMatch.All">@L["Home"]</MudNavLink>
+        <MudNavLink Href="/" Icon="@Icons.Material.Filled.Home" Match="NavLinkMatch.All">الصفحة الرئيسية</MudNavLink>
 
-        <MudNavGroup Title="@L["Employees"]" Icon="@Icons.Material.Filled.People" Match="NavLinkMatch.Prefix" ExpandIconPlacement="End">
-            <MudNavLink Href="/employees" Icon="@Icons.Material.Filled.List">@L["ViewEmployees"]</MudNavLink>
-            <MudNavLink Href="/muqeemEmployees" Icon="@Icons.Material.Filled.Badge">@L["Residents"]</MudNavLink>
-            <MudNavLink Href="/insurance" Icon="@Icons.Material.Filled.HealthAndSafety">@L["InsuranceAndPension"]</MudNavLink>
+        <MudNavGroup Title="الموظفون" Icon="@Icons.Material.Filled.People" ExpandIconPlacement="End">
+            <MudNavLink Href="/employees" Icon="@Icons.Material.Filled.List"> الموظفين</MudNavLink>
+            <MudNavLink Href="/muqeemEmployees" Icon="@Icons.Material.Filled.Badge">مقيم</MudNavLink>
+            <MudNavLink Href="/insurance" Icon="@Icons.Material.Filled.HealthAndSafety">التأمين والتقاعد</MudNavLink>
         </MudNavGroup>
 
-        <MudNavLink Href="/organizationalplan" Icon="@Icons.Material.Filled.Assessment">@L["OrganizationalPlan"]</MudNavLink>
-        <MudNavLink Href="/logout" Icon="@Icons.Material.Filled.ExitToApp">@L["Logout"]</MudNavLink>
+      
+        <MudNavLink Href="/logout" Icon="@Icons.Material.Filled.ExitToApp">تسجيل الخروج</MudNavLink>
     </MudNavMenu>
 </div>

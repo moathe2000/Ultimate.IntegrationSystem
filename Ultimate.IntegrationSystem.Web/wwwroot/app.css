@@ -64,3 +64,7 @@ html, body {
 .p-4 {
     padding: 1rem;
 }
+/* Œÿ «› —«÷Ì ·ﬂ· «·‰’Ê’ */
+html, body, .mud-typography {
+    font-family: "Cairo", "Inter", "Segoe UI", Tahoma, sans-serif;
+}

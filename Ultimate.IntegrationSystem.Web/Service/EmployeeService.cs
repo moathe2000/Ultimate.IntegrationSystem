@@ -8,9 +8,9 @@ namespace Ultimate.IntegrationSystem.Web.Service
     {
         private static readonly List<EmployeeDto> _employees = new()
         {
-            new EmployeeDto { Id=Guid.NewGuid(), FullName="أحمد صالح", EmployeeNumber="EMP-001", JobTitle="مطور واجهات", Department="التطوير", IsActive=true,  HireDate=DateTime.Now.AddDays(-10)},
-            new EmployeeDto { Id=Guid.NewGuid(), FullName="سارة علي",  EmployeeNumber="EMP-002", JobTitle="موارد بشرية", Department="الموارد البشرية", IsActive=true, HireDate=DateTime.Now.AddDays(-25)},
-            new EmployeeDto { Id=Guid.NewGuid(), FullName="محمد عادل", EmployeeNumber="EMP-003", JobTitle="مسؤول مبيعات", Department="المبيعات", IsActive=false, HireDate=DateTime.Now.AddMonths(-3)},
+            new EmployeeDto { Id=Guid.NewGuid(), FullName="أحمد محمد ناجي  ل صالح", EmployeeNumber="EMP-001", JobTitle="مطور واجهات", Department="التطوير", IsActive=true,  HireDate=DateTime.Now.AddDays(-10)},
+            new EmployeeDto { Id=Guid.NewGuid(), FullName="سارة البب علي",  EmployeeNumber="EMP-002", JobTitle="موارد بشرية", Department="الموارد البشرية", IsActive=true, HireDate=DateTime.Now.AddDays(-25)},
+            new EmployeeDto { Id=Guid.NewGuid(), FullName="محمدففف 555 عادل", EmployeeNumber="EMP-003", JobTitle="مسؤول مبيعات", Department="المبيعات", IsActive=false, HireDate=DateTime.Now.AddMonths(-3)},
              new EmployeeDto { Id=Guid.NewGuid(), FullName="محمد عادل", EmployeeNumber="EMP-004", JobTitle="مسؤول مبيعات", Department="المبيعات", IsActive=false, HireDate=DateTime.Now.AddMonths(-3)},
           new EmployeeDto { Id=Guid.NewGuid(), FullName="محمد عادل", EmployeeNumber="EMP-005", JobTitle="مسؤول مبيعات", Department="المبيعات", IsActive=false, HireDate=DateTime.Now.AddMonths(-3)},
             new EmployeeDto { Id=Guid.NewGuid(), FullName="محمد عادل4", EmployeeNumber="EMP-006", JobTitle="مسؤول مبيعات", Department="المبيعات", IsActive=false, HireDate=DateTime.Now.AddMonths(-3)},

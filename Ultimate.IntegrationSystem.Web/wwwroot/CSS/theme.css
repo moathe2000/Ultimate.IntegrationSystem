@@ -1,0 +1,72 @@
+﻿:root {
+    /* الألوان الأساسية */
+    --bosta-primary: #6C63FF; /* بنفسجي الترويسة */
+    --bosta-secondary: #7C4DFF; /* بنفسجي أفتح */
+    --bosta-bg: #F7F5FF; /* خلفية السايدبار */
+    --bosta-text: #2b2b2b;
+    --bosta-muted: #777;
+    --bosta-border: #E6E2FF;
+}
+
+/* الترويسة */
+.bosta-appbar {
+    background: var(--bosta-primary) !important;
+    color: #fff !important;
+}
+
+/* السايدبار */
+.bosta-drawer {
+    background: var(--bosta-bg) !important;
+    border-inline-end: 1px solid var(--bosta-border);
+}
+
+/* عنوان القوائم الجانبية */
+.mud-navmenu {
+    padding-block: .5rem;
+}
+
+    .mud-navmenu .mud-nav-link {
+        color: var(--bosta-text) !important;
+        border-radius: 10px;
+        margin: 4px 8px;
+        padding-block: 10px;
+        transition: .15s ease;
+    }
+
+        /* أيقونة + نص الرابط */
+        .mud-navmenu .mud-nav-link .mud-nav-link-text {
+            font-weight: 500;
+        }
+
+        .mud-navmenu .mud-nav-link .mud-nav-link-icon {
+            color: var(--bosta-muted) !important;
+        }
+
+        /* Hover */
+        .mud-navmenu .mud-nav-link:hover {
+            background: #eee8ff;
+        }
+
+        /* الرابط الفعّال */
+        .mud-navmenu .mud-nav-link.active,
+        .mud-navmenu .mud-nav-link.mud-nav-link-active {
+            background: #e9e5ff !important;
+            color: var(--bosta-primary) !important;
+            box-shadow: inset 0 0 0 2px var(--bosta-primary);
+        }
+
+            .mud-navmenu .mud-nav-link.active .mud-nav-link-icon,
+            .mud-navmenu .mud-nav-link.mud-nav-link-active .mud-nav-link-icon {
+                color: var(--bosta-primary) !important;
+            }
+
+/* أزرار داخل الكروت أو الحاويات إن حبيت */
+.mud-button.mud-button-outlined-primary {
+    border-color: var(--bosta-primary) !important;
+    color: var(--bosta-primary) !important;
+}
+
+.mud-button.mud-button-filled-primary {
+    background: var(--bosta-primary) !important;
+    color: #fff !important;
+}

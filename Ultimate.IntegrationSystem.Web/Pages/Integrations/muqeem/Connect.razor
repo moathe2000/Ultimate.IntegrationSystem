@@ -1,0 +1,230 @@
+﻿@page "/integrations/muqeem/connect"
+@using System.ComponentModel.DataAnnotations
+@using MudBlazor
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="py-6">
+    <MudPaper Class="pa-5" Elevation="1">
+        <MudStack Spacing="2">
+            <MudText Typo="Typo.h5">ربط منصة مقيم</MudText>
+            <MudText Color="Color.Secondary">
+                أدخل بيانات الاعتماد ونقطة النهاية، ثم اختبر الاتصال قبل الحفظ.
+            </MudText>
+
+            <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Dense="true">
+                تلميح: في بيئة الاختبار اختر <b>Sandbox</b> وضع رابط الـ API التجريبي. في الإنتاج اختر <b>Production</b>.
+            </MudAlert>
+
+            <MudForm @ref="_form" Model="@_model" Validated="OnValidated">
+                <MudGrid Spacing="2">
+                    <MudItem xs="12" sm="6">
+                        <MudRadioGroup T="MuqeemEnvironment" @bind-SelectedOption="_model.Environment">
+                            <MudRadio T="MuqeemEnvironment" Option="MuqeemEnvironment.Sandbox">Sandbox</MudRadio>
+                            <MudRadio T="MuqeemEnvironment" Option="MuqeemEnvironment.Production">Production</MudRadio>
+                        </MudRadioGroup>
+                    </MudItem>
+
+                    <MudItem xs="12" sm="6">
+                        <MudTextField @bind-Value="_model.BaseUrl"
+                                      Label="Base URL"
+                                      Variant="Variant.Outlined"
+                                      Required="true"
+                                      Placeholder="https://api.muqeem.sa"
+                                      Adornment="Adornment.Start"
+                                      AdornmentIcon="@Icons.Material.Filled.Link" />
+                    </MudItem>
+
+                    <MudItem xs="12" sm="6">
+                        <MudTextField @bind-Value="_model.Username"
+                                      Label="اسم المستخدم"
+                                      Variant="Variant.Outlined"
+                                      Required="true"
+                                      Adornment="Adornment.Start"
+                                      AdornmentIcon="@Icons.Material.Filled.Person" />
+                    </MudItem>
+
+                    <MudItem xs="12" sm="6">
+                        <MudTextField @bind-Value="_model.Password"
+                                      Label="كلمة المرور"
+                                      Variant="Variant.Outlined"
+                                      Required="true"
+                                      InputType="@(_showPwd? InputType.Text: InputType.Password)"
+                                      Adornment="Adornment.End"
+                                      AdornmentIcon="@(_showPwd? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility)"
+                                      AdornmentAriaLabel="toggle password"
+                                      OnAdornmentClick="@(() => _showPwd = !_showPwd)" />
+                    </MudItem>
+
+                    <MudItem xs="12" sm="6">
+                        <MudTextField @bind-Value="_model.ClientId"
+                                      Label="Client Id"
+                                      Variant="Variant.Outlined"
+                                      Required="true"
+                                      Adornment="Adornment.Start"
+                                      AdornmentIcon="@Icons.Material.Filled.VpnKey" />
+                    </MudItem>
+
+                    <MudItem xs="12" sm="6">
+                        <MudTextField @bind-Value="_model.ClientSecret"
+                                      Label="Client Secret"
+                                      Variant="Variant.Outlined"
+                                      Required="true"
+                                      InputType="@(_showSecret? InputType.Text: InputType.Password)"
+                                      Adornment="Adornment.End"
+                                      AdornmentIcon="@(_showSecret? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility)"
+                                      OnAdornmentClick="@(() => _showSecret = !_showSecret)" />
+                    </MudItem>
+
+                    <MudItem xs="12">
+                        <MudSwitch T="bool" @bind-Checked="_model.Remember" Color="Color.Primary" Label="تذكّر هذه البيانات على الخادم" />
+                    </MudItem>
+                </MudGrid>
+
+                <MudDivider Class="my-4" />
+
+                <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center">
+                    <MudButton Color="Color.Info"
+                               Variant="Variant.Outlined"
+                               StartIcon="@Icons.Material.Filled.Bolt"
+                               OnClick="TestConnection"
+                               Disabled="@_busy">
+                        @( _testing ? "جاري الاختبار..." : "اختبار الاتصال" )
+                    </MudButton>
+
+                    <MudButton Color="Color.Primary"
+                               Variant="Variant.Filled"
+                               StartIcon="@Icons.Material.Filled.Save"
+                               OnClick="Submit"
+                               Disabled="@_busy">
+                        @( _busy ? "جاري الحفظ..." : "حفظ & ربط" )
+                    </MudButton>
+
+                    <MudButton Color="Color.Default"
+                               Variant="Variant.Outlined"
+                               StartIcon="@Icons.Material.Filled.ArrowBack"
+                               Href="/">
+                        رجوع
+                    </MudButton>
+
+                    <MudSpacer />
+
+                    @if (_lastTest.HasValue)
+                    {
+                        <MudChip T="string"
+                                 Color="@(_lastTest.Value ? Color.Success : Color.Error)"
+                                 Variant="Variant.Filled"
+                                 StartIcon="@(_lastTest.Value? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.HighlightOff)">
+                            @(_lastTest.Value ? "الاتصال ناجح" : "فشل الاتصال")
+                        </MudChip>
+                    }
+                </MudStack>
+            </MudForm>
+        </MudStack>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private MudForm? _form;
+    private readonly ConnectModel _model = new();
+    private bool _showPwd;
+    private bool _showSecret;
+    private bool _busy;
+    private bool _testing;
+    private bool? _lastTest;
+
+    [Inject] ISnackbar Snackbar { get; set; } = default!;
+    [Inject] NavigationManager Nav { get; set; } = default!;
+    //[Inject] IMuqeemAuthService Auth { get; set; } = default!; // عندما تضيف خدمة حقيقية
+
+    private async Task Submit()
+    {
+        await _form!.Validate();
+        if (!_form.IsValid)
+            return;
+
+        _busy = true;
+        try
+        {
+            var ok = await TryAuthenticateAsync(_model);
+            if (ok)
+            {
+                Snackbar.Add("تم الربط مع مقيم بنجاح", Severity.Success);
+                Nav.NavigateTo("/integrations/muqeem/settings");
+            }
+            else
+            {
+                Snackbar.Add("فشل الربط. تحقق من البيانات وحاول مجددًا.", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"خطأ غير متوقع: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private async Task TestConnection()
+    {
+        await _form!.Validate();
+        if (!_form.IsValid)
+            return;
+
+        _testing = true;
+        _lastTest = null;
+        try
+        {
+            var ok = await TryAuthenticateAsync(_model);
+            _lastTest = ok;
+            Snackbar.Add(ok ? "الاتصال ناجح" : "الاتصال فشل", ok ? Severity.Success : Severity.Error);
+        }
+        catch (Exception ex)
+        {
+            _lastTest = false;
+            Snackbar.Add($"فشل الاختبار: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _testing = false;
+        }
+    }
+
+    private Task OnValidated() => Task.CompletedTask;
+
+    // مؤقتًا: محاكاة مصادقة — استبدلها بمناداة خدمة حقيقية
+    private async Task<bool> TryAuthenticateAsync(ConnectModel m)
+    {
+        await Task.Delay(600);
+        return
+            !string.IsNullOrWhiteSpace(m.Username) &&
+            !string.IsNullOrWhiteSpace(m.Password) &&
+            !string.IsNullOrWhiteSpace(m.ClientId) &&
+            !string.IsNullOrWhiteSpace(m.ClientSecret) &&
+            Uri.TryCreate(m.BaseUrl, UriKind.Absolute, out _);
+    }
+
+    public enum MuqeemEnvironment { Sandbox, Production }
+
+    public sealed class ConnectModel
+    {
+        [Required] public MuqeemEnvironment Environment { get; set; } = MuqeemEnvironment.Sandbox;
+
+        [Required, Url, Display(Name = "Base URL")]
+        public string BaseUrl { get; set; } = "https://api.muqeem.sa";
+
+        [Required, Display(Name = "اسم المستخدم")]
+        public string Username { get; set; } = string.Empty;
+
+        [Required, Display(Name = "كلمة المرور")]
+        public string Password { get; set; } = string.Empty;
+
+        [Required, Display(Name = "Client Id")]
+        public string ClientId { get; set; } = string.Empty;
+
+        [Required, Display(Name = "Client Secret")]
+        public string ClientSecret { get; set; } = string.Empty;
+
+        public bool Remember { get; set; } = true;
+    }
+}

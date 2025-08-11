@@ -13,23 +13,27 @@ var builder = WebApplication.CreateBuilder(args);
 builder.WebHost.UseStaticWebAssets();
 
 builder.Services.AddRazorPages();
-builder.Services.AddServerSideBlazor()
-    .AddCircuitOptions(o => o.DetailedErrors = true);
+builder.Services.AddServerSideBlazor().AddCircuitOptions(o => o.DetailedErrors = true);
 
 builder.Services.AddMudServices();
-
 builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 
 builder.Services.AddLocalization(o => o.ResourcesPath = "Resources/Localization");
 builder.Services.Configure<RequestLocalizationOptions>(o =>
 {
-    var cultures = new[] { new CultureInfo("ar-YE"), new CultureInfo("en-US") };
+    var cultures = new[] { new CultureInfo("ar-YE"), new CultureInfo("ar"), new CultureInfo("en-US") };
     o.DefaultRequestCulture = new("ar-YE");
     o.SupportedCultures = cultures;
     o.SupportedUICultures = cultures;
+    o.RequestCultureProviders.Insert(0, new CookieRequestCultureProvider());
 });
 
 var app = builder.Build();
+
+// («Œ Ì«—Ì) Ì÷„‰ «·Àﬁ«›… «·«› —«÷Ì… ›Ì √Ì ”Ì«ﬁ Œ«—Ã HTTP
+var defaultCulture = new CultureInfo("ar-YE");
+CultureInfo.DefaultThreadCurrentCulture = defaultCulture;
+CultureInfo.DefaultThreadCurrentUICulture = defaultCulture;
 
 app.UseRequestLocalization(app.Services.GetRequiredService<IOptions<RequestLocalizationOptions>>().Value);
 

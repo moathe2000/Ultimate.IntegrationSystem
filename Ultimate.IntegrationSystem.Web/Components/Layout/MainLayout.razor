@@ -1,35 +1,58 @@
 ﻿@using MudBlazor
-@using Microsoft.Extensions.Localization
 @using System.Globalization
-@inject IStringLocalizer<SharedResources> L
 @inherits LayoutComponentBase
 
 @code {
     private bool _drawerOpen = true;
     private bool _isDark = true;
 
-    private readonly MudTheme LightTheme = new();
+    // MudBlazor 8.x: استخدم PaletteLight/PaletteDark كـ "قيم" وليس new Palette()
+    private readonly MudTheme LightTheme = new()
+    {
+        PaletteLight = new PaletteLight
+        {
+            Primary = "#6C63FF",
+            Secondary = "#673AB7"
+        }
+    };
+
     private readonly MudTheme DarkTheme = new()
     {
-        PaletteLight = new PaletteLight()
+        PaletteDark = new PaletteDark
+        {
+            Primary = "#6C63FF",
+            Secondary = "#B39DDB"
+        }
     };
+
+    private bool IsRtl => CultureInfo.CurrentUICulture.TextInfo.IsRightToLeft;
+
+
 }
 
 <MudLayout>
-    <MudDrawer Variant="DrawerVariant.Persistent" Dir="@(CultureInfo.CurrentUICulture.TextInfo.IsRightToLeft ? "rtl" : "rtl")"
-               Open="@_drawerOpen"
+
+    <!-- الدرج: ننقل مكانه حسب RTL -->
+    <MudDrawer Open="@_drawerOpen"
                Elevation="1"
-               ClipMode="DrawerClipMode.Always">
+               Variant="DrawerVariant.Persistent"
+               ClipMode="DrawerClipMode.Never"
+               Anchor="@(IsRtl ? Anchor.End : Anchor.Start)"
+               Class="app-drawer">
+
+        <!-- لو NavMenu في namespace مختلف، تأكد من @using المناسب -->
         <NavMenu />
+        @* أو الاسم المؤهل بالكامل:
+        <Ultimate.IntegrationSystem.Web.Components.Nav.NavMenu /> *@
     </MudDrawer>
 
-    <MudMainContent Dir="@(CultureInfo.CurrentUICulture.TextInfo.IsRightToLeft ? "rtl" : "ltr")">
-        <MudAppBar Color="Color.Primary" Elevation="1">
+    <MudMainContent>
+        <MudAppBar Color="Color.Primary" Elevation="1" Dense="true" Class="app-bar">
             <MudIconButton Icon="@Icons.Material.Filled.Menu"
                            Color="Color.Inherit"
                            Edge="Edge.Start"
                            OnClick="() => _drawerOpen = !_drawerOpen" />
-            <MudText Typo="Typo.h6">@L["AppTitle"]</MudText>
+            <MudText Typo="Typo.h6" Class="ml-2">Ultimate Integration System</MudText>
             <MudSpacer />
             <MudIconButton Icon="@(_isDark? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)"
                            Color="Color.Inherit"
@@ -37,10 +60,11 @@
             <MudAvatar Size="Size.Medium" Class="ml-2">M</MudAvatar>
         </MudAppBar>
 
-        <!-- تغيير الثيم فعلياً -->
+        <!-- مبدّل الثيم -->
         <MudThemeProvider Theme="@(_isDark? DarkTheme : LightTheme)" />
 
-        <div class="p-4">
+        <!-- نحدد اتجاه الصفحة هنا -->
+        <div dir="@(IsRtl ? "rtl" : "ltr")" class="p-4">
             @Body
         </div>
     </MudMainContent>
