@@ -1,4 +1,5 @@
-﻿using Ultimate.IntegrationSystem.Web.Models;
+﻿using System.Text.Json;
+using Ultimate.IntegrationSystem.Web.Models;
 
 namespace Ultimate.IntegrationSystem.Web.Service
 {
@@ -6,32 +7,108 @@ namespace Ultimate.IntegrationSystem.Web.Service
 
     public class EmployeeService : IEmployeeService
     {
-        private static readonly List<EmployeeDto> _employees = new()
+        private readonly HttpClient _http;
+        private readonly JsonSerializerOptions _json;
+
+
+        public EmployeeService(HttpClient http, IConfiguration cfg, IHttpContextAccessor? acc = null)
         {
-            new EmployeeDto { Id=Guid.NewGuid(), FullName="أحمد محمد ناجي  ل صالح", EmployeeNumber="EMP-001", JobTitle="مطور واجهات", Department="التطوير", IsActive=true,  HireDate=DateTime.Now.AddDays(-10)},
-            new EmployeeDto { Id=Guid.NewGuid(), FullName="سارة البب علي",  EmployeeNumber="EMP-002", JobTitle="موارد بشرية", Department="الموارد البشرية", IsActive=true, HireDate=DateTime.Now.AddDays(-25)},
-            new EmployeeDto { Id=Guid.NewGuid(), FullName="محمدففف 555 عادل", EmployeeNumber="EMP-003", JobTitle="مسؤول مبيعات", Department="المبيعات", IsActive=false, HireDate=DateTime.Now.AddMonths(-3)},
-             new EmployeeDto { Id=Guid.NewGuid(), FullName="محمد عادل", EmployeeNumber="EMP-004", JobTitle="مسؤول مبيعات", Department="المبيعات", IsActive=false, HireDate=DateTime.Now.AddMonths(-3)},
-          new EmployeeDto { Id=Guid.NewGuid(), FullName="محمد عادل", EmployeeNumber="EMP-005", JobTitle="مسؤول مبيعات", Department="المبيعات", IsActive=false, HireDate=DateTime.Now.AddMonths(-3)},
-            new EmployeeDto { Id=Guid.NewGuid(), FullName="محمد عادل4", EmployeeNumber="EMP-006", JobTitle="مسؤول مبيعات", Department="المبيعات", IsActive=false, HireDate=DateTime.Now.AddMonths(-3)},
-              new EmployeeDto { Id=Guid.NewGuid(), FullName="أحمد صالح", EmployeeNumber="EMP-007", JobTitle="مطور واجهات", Department="التطوير", IsActive=true,  HireDate=DateTime.Now.AddDays(-10)},
-                new EmployeeDto { Id=Guid.NewGuid(), FullName="أحمد صالح", EmployeeNumber="EMP-008", JobTitle="مطور واجهات", Department="التطوير", IsActive=true,  HireDate=DateTime.Now.AddDays(-10)},
-                  new EmployeeDto { Id=Guid.NewGuid(), FullName="أحمد صالح52", EmployeeNumber="EMP-009", JobTitle="مطور واجهات", Department="التطوير", IsActive=true,  HireDate=DateTime.Now.AddDays(-10)},
-                    new EmployeeDto { Id=Guid.NewGuid(), FullName="أحمد صالح", EmployeeNumber="EMP-010", JobTitle="مطور واجهات", Department="التطوير", IsActive=true,  HireDate=DateTime.Now.AddDays(-10)},
+            if (http.BaseAddress is null)
+            {
+                var baseUrl = cfg["ApiBaseUrl"];
+                if (string.IsNullOrWhiteSpace(baseUrl) && acc?.HttpContext != null)
+                    baseUrl = $"{acc.HttpContext.Request.Scheme}://{acc.HttpContext.Request.Host}/";
 
-        };
-
-        public Task<List<EmployeeDto>> GetAllEmployeesAsync()
-            => Task.FromResult(_employees.OrderBy(e => e.FullName).ToList());
-
-        public Task AddEmployeeAsync(EmployeeDto employee)
-        {
-            employee.Id = _employees.Any() ? Guid.NewGuid(): Guid.NewGuid();
-            _employees.Add(employee);
-            return Task.CompletedTask;
+                if (!string.IsNullOrWhiteSpace(baseUrl))
+                    http.BaseAddress = new Uri(baseUrl);
+            }
+            _http = http;
         }
 
+        // Adjust the route to your controller route
+        private const string Endpoint = "GetEmployees";
+
+        public EmployeeService(HttpClient http)
+        {
+            _http = http;
+            _json = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+        }
+
+        public async Task<List<EmployeeDto>> GetAllEmployeesAsync(EmployeePara para = null, CancellationToken ct = default)
+        {
+            para ??= new EmployeePara { P_LNG_NO = 1 };
+
+            using var resp = await _http.PostAsJsonAsync(Endpoint, para, _json, ct);
+            resp.EnsureSuccessStatusCode();
+
+            var raw = await resp.Content.ReadAsStringAsync(ct);
+            var envelope = JsonSerializer.Deserialize<ApiResultModel>(raw, _json)
+                          ?? throw new Exception("Empty response.");
+            if (envelope.Code != 0)
+                throw new Exception(envelope.Message ?? "API error.");
+
+            // احصل على مصفوفة العناصر من Content
+            JsonElement arrayEl;
+            if (envelope.Content.ValueKind == JsonValueKind.Array)
+            {
+                arrayEl = envelope.Content;
+            }
+            else if (envelope.Content.ValueKind == JsonValueKind.String)
+            {
+                var inner = envelope.Content.GetString() ?? "[]";
+                using var doc = JsonDocument.Parse(inner);
+                arrayEl = doc.RootElement.ValueKind == JsonValueKind.Array ? doc.RootElement : default;
+                if (arrayEl.ValueKind != JsonValueKind.Array) return new List<EmployeeDto>();
+            }
+            else
+            {
+                return new List<EmployeeDto>();
+            }
+
+            static string S(JsonElement el, string name)
+                => el.TryGetProperty(name, out var v) && v.ValueKind != JsonValueKind.Null
+                   ? (v.ValueKind == JsonValueKind.String ? v.GetString() ?? "" : v.ToString())
+                   : "";
+
+            var list = new List<EmployeeDto>();
+            foreach (var e in arrayEl.EnumerateArray())
+            {
+                var employeeNumber = S(e, "employeeNumber");
+                var employeeName = S(e, "employeeName");
+                var firstName = S(e, "firstName");
+                var jobTitle = S(e, "jobName");    // من JSON
+                var dept = S(e, "hrchyName");  // من JSON
+
+                // Id نوعه Guid لديك: حوِّل أو أنشئ جديدًا
+                Guid id = Guid.Empty;
+                if (!Guid.TryParse(employeeNumber, out id))
+                    id = Guid.NewGuid();
+
+                list.Add(new EmployeeDto
+                {
+                    Id = id, // << يحل CS0029
+                    EmployeeNumber = employeeNumber,
+                    FullName = !string.IsNullOrWhiteSpace(employeeName) ? employeeName : firstName,
+                    Department = dept,
+                    JobTitle = jobTitle,
+                    IsActive = true,
+                    HireDate = DateTime.MinValue // << يحل CS0037 (أو اجعل الخاصية Nullable)
+                });
+            }
+
+            return list;
+        }
+
+   
+        
+
+
         public List<Employee> GetAllEmployees()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<List<EmployeeDto>> GetAllEmployeesAsync()
         {
             throw new NotImplementedException();
         }

@@ -29,7 +29,7 @@ builder.Services.AddMudServices(cfg =>
 });
 
 // Œœ„« ﬂ
-builder.Services.AddScoped<IEmployeeService, EmployeeService>();
+
 
 // ÷€ÿ «·«” Ã«»… (SignalR + „Õ ÊÌ«  ⁄«„…)
 builder.Services.AddResponseCompression(opts =>
@@ -38,6 +38,21 @@ builder.Services.AddResponseCompression(opts =>
         new[] { "application/octet-stream" } // ·ﬁ‰Ê«  SignalR
     );
 });
+
+
+
+var apiBase = builder.Configuration["ApiBaseUrl"] ?? "https://localhost:5001/";
+
+// √›÷· ŒÌ«— ·Ê ‰›” «·„Êﬁ⁄/‰›” «·ÂÊ” :
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddHttpClient<IEmployeeService, EmployeeService>((sp, client) =>
+{
+    var ctx = sp.GetRequiredService<IHttpContextAccessor>().HttpContext;
+    client.BaseAddress = new Uri($"{ctx!.Request.Scheme}://{ctx.Request.Host}/");
+});
+// ”Ã¯· «·Œœ„… «· Ì  ” ﬁ»· HttpClient ›Ì «·‹ctor
+builder.Services.AddScoped<IEmployeeService, EmployeeService>();
+
 
 //  ⁄—Ì»
 builder.Services.AddLocalization(o => o.ResourcesPath = "Resources/Localization");
