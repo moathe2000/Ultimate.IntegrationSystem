@@ -22,7 +22,7 @@ namespace Ultimate.IntegrationSystem.Api.Models
         [JsonPropertyName("email")] 
         public string Email { get; set; }
         [JsonPropertyName("inactive")]
-        public int? Inactive { get; set; }
+        public int? Inactive { get; set; } 
         
     }
 }

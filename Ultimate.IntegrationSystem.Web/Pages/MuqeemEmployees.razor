@@ -1,8 +1,13 @@
 ﻿@page "/MuqeemEmployees"
 @using MudBlazor
 @using Ultimate.IntegrationSystem.Web.Pages.Integrations.muqeem.Dialoge  @* <-- عدّلها إذا اختلف الـnamespace *@
+@using Ultimate.IntegrationSystem.Web.Service
+@inject ISnackbar Snackbar
+@inject IDialogService DialogServ
+@inject SelectedEmployeeState SelectedState
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
+@inject NavigationManager Navigation
 
 <style>
     /* ===== Header (compact) ===== */
@@ -83,26 +88,22 @@
 
             <MudItem xs="12" md="8">
                 <MudStack Direction="Row" Wrap="Wrap.NoWrap" Class="emp-chips" Spacing="2">
-                    <MudChip T="string" Variant="Variant.Outlined" Icon="@Icons.Material.Filled.Badge">
-                        إقامة    : @Employee.IqamaNumber
+                    <MudChip T="string" Variant="Variant.Outlined" Icon="@Icons.Material.Filled.AddToHomeScreen">
+                        المسمى الوظيفي          :       @Employee.JobTitle
                     </MudChip>
-                    <MudChip T="string" Variant="Variant.Outlined" Icon="@Icons.Material.Filled.CardTravel">
-                        جواز   : @Employee.PassportNumber
+                  
+                    <MudChip T="string" Variant="Variant.Outlined" Icon="@Icons.Material.Filled.BorderBottom">
+                        الحدود         :  @Employee.BorderNumber
                     </MudChip>
-                    <MudChip T="string" Variant="Variant.Outlined" Icon="@Icons.Material.Filled.QrCode2">
-                        حدود    : @Employee.BorderNumber
-                    </MudChip>
-                    <MudChip T="string" Variant="Variant.Outlined" Color="@PassportExpiryColor" Icon="@Icons.Material.Filled.Event">
-                        انتهاء الجواز: @Employee.PassportExpiry?.ToString("yyyy-MM-dd")
-                    </MudChip>
+                 
                     <MudChip T="string" Variant="Variant.Outlined" Icon="@Icons.Material.Filled.Smartphone">
-                        جوال: @Employee.WorkMobile
+                        رقم الجوال      :    @Employee.WorkMobile
                     </MudChip>
                     <MudChip T="string" Variant="Variant.Outlined" Icon="@Icons.Material.Filled.Call">
-                        هاتف: @Employee.WorkPhone
+                           هاتف:    @Employee.WorkPhone
                     </MudChip>
                     <MudChip T="string" Variant="Variant.Outlined" Icon="@Icons.Material.Filled.Email">
-                        @Employee.WorkEmail
+                            @Employee.WorkEmail
                     </MudChip>
                 </MudStack>
             </MudItem>
@@ -112,18 +113,11 @@
     <!-- ===== Tabs ===== -->
     <MudTabs Rounded="true" Dense="true" Elevation="2" Centered="true"
              Class="tabs-pills mt-4" @bind-ActivePanelIndex="_activeTab">
+
         <!-- الإقامات -->
         <MudTabPanel Icon="@Icons.Material.Filled.Assignment" Text="الإقامات">
             <MudPaper Class="pa-3 mb-3" Elevation="1">
                 <MudGrid Class="tight-toolbar" AlignItems="Center" Spacing="2">
-                    @* <MudItem xs="12" sm="6" md="4">
-                        <MudTextField @bind-Value="_searchResidencies"
-                                      Placeholder="بحث (رقم الإقامة، رقم/اسم الموظف، المهنة)..."
-                                      AdornmentIcon="@Icons.Material.Filled.Search" Variant="Variant.Outlined" Dense="true" />
-                    </MudItem> *@
-                    @*     <MudItem xs="12" sm="6" md="4">
-                        <MudDateRangePicker Label="فترة الإصدار" Dense="true" @bind-DateRange="_residencyDateRange" />
-                    </MudItem> *@
                     <MudItem xs="12" md="4" Class="d-flex justify-end">
                         <MudButton Variant="Variant.Filled" Color="Color.Primary"
                                    StartIcon="@Icons.Material.Filled.Add" OnClick="AddNewResidence" Class="ml-2">
@@ -140,17 +134,6 @@
             <MudPaper Elevation="1">
                 <MudTable Items="@FilteredResidencies" Dense="true" Hover="true" RightToLeft="RightToLeft.Yes"
                           RowsPerPage="@_residencyRowsPerPage" Breakpoint="Breakpoint.None">
-                    @* <ToolBarContent>
-                        <MudText Typo="Typo.body2" Class="ml-2">النتائج لكل صفحة</MudText>
-                        <MudSelect T="int" @bind-Value="_residencyRowsPerPage" Dense="true" Style="width:90px;">
-                            <MudSelectItem Value="10">10</MudSelectItem>
-                            <MudSelectItem Value="21">21</MudSelectItem>
-                            <MudSelectItem Value="50">50</MudSelectItem>
-                            <MudSelectItem Value="100">100</MudSelectItem>
-                        </MudSelect>
-                        <MudSpacer />
-                    </ToolBarContent> *@
-
                     <HeaderContent>
                         <MudTh>رقم الإقامة</MudTh>
                         <MudTh>رقم الموظف</MudTh>
@@ -183,19 +166,10 @@
 
         <!-- جواز السفر -->
         <MudTabPanel Icon="@Icons.Material.Filled.Badge" Text="جواز السفر">
-           
             <MudPaper Elevation="1">
                 <MudTable Items="@FilteredPassports" Dense="true" Hover="true" RightToLeft="RightToLeft.Yes"
                           RowsPerPage="@_passportRowsPerPage" Breakpoint="Breakpoint.None">
                     <ToolBarContent>
-                        @* <MudText Typo="Typo.body2" Class="ml-2">النتائج لكل صفحة</MudText>
-                        <MudSelect T="int" @bind-Value="_passportRowsPerPage" Dense="true" Style="width:90px;">
-                            <MudSelectItem Value="10">10</MudSelectItem>
-                            <MudSelectItem Value="21">21</MudSelectItem>
-                            <MudSelectItem Value="50">50</MudSelectItem>
-                            <MudSelectItem Value="100">100</MudSelectItem>
-                        </MudSelect> 
-                        <MudSpacer />*@
                         <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Print">
                             طباعة
                         </MudButton>
@@ -227,6 +201,7 @@
                             }
                             else
                             {
+
                                 <MudLink Href="@context.PdfPath" Target="_blank">عرض</MudLink>
                             }
                         </MudTd>
@@ -268,14 +243,11 @@
         <!-- الخروج والعودة -->
         <MudTabPanel Icon="@Icons.Material.Filled.FlightTakeoff" Text="الخروج والعودة">
             <MudPaper Class="pa-3 mb-3" Elevation="1">
-              
             </MudPaper>
 
             <MudPaper Elevation="1">
                 <MudTable Items="@FilteredExitReentry" Dense="true" Hover="true" RightToLeft="RightToLeft.Yes"
                           RowsPerPage="@_visaRowsPerPage">
-                  
-
                     <HeaderContent>
                         <MudTh>تاريخ انتهاء الجواز</MudTh>
                         <MudTh>تاريخ انتهاء الإقامة</MudTh>
@@ -296,6 +268,7 @@
                             }
                             else
                             {
+
                                 <MudLink Href="@context.PdfPath" Target="_blank">عرض</MudLink>
                             }
                         </MudTd>
@@ -337,32 +310,9 @@
 
         <!-- الخروج النهائي -->
         <MudTabPanel Icon="@Icons.Material.Filled.ExitToApp" Text="الخروج النهائي">
-       @*      <MudPaper Class="pa-3 mb-3" Elevation="1">
-                <MudGrid Class="tight-toolbar" AlignItems="Center" Spacing="2">
-                    <MudItem xs="12" sm="6" md="4">
-                        <MudTextField @bind-Value="_searchFinalExit" Placeholder="بحث (اسم/رقم إقامة/المتخذ/الحالة)..."
-                                      AdornmentIcon="@Icons.Material.Filled.Search" Variant="Variant.Outlined" Dense="true" />
-                    </MudItem>
-                    <MudItem xs="12" sm="6" md="4">
-                        <MudDateRangePicker Label="فترة الإجراء" Dense="true" @bind-DateRange="_finalExitDateRange" />
-                    </MudItem>
-                </MudGrid>
-            </MudPaper>
- *@
             <MudPaper Elevation="1">
                 <MudTable Items="@FilteredFinalExit" Dense="true" Hover="true" RightToLeft="RightToLeft.Yes"
                           RowsPerPage="@_finalExitRowsPerPage" Breakpoint="Breakpoint.None">
-                    @* <ToolBarContent> 
-                        <MudText Typo="Typo.body2" Class="ml-2">النتائج لكل صفحة</MudText>
-                        <MudSelect T="int" @bind-Value="_finalExitRowsPerPage" Dense="true" Style="width:90px;">
-                            <MudSelectItem Value="10">10</MudSelectItem>
-                            <MudSelectItem Value="21">21</MudSelectItem>
-                            <MudSelectItem Value="50">50</MudSelectItem>
-                            <MudSelectItem Value="100">100</MudSelectItem>
-                        </MudSelect>
-                        <MudSpacer />
-                    </ToolBarContent>*@
-
                     <HeaderContent>
                         <MudTh>رقم الإقامة</MudTh>
                         <MudTh>رقم الموظف</MudTh>
@@ -389,6 +339,7 @@
                             }
                             else
                             {
+
                                 <MudLink Href="@context.PdfPath" Target="_blank">عرض</MudLink>
                             }
                         </MudTd>
@@ -427,26 +378,40 @@
             </MudPaper>
         </MudTabPanel>
 
-       
     </MudTabs>
 </MudContainer>
 
 @code {
     private int _activeTab = 0;
 
-    // ===== Header model =====
-    private EmployeeHeader Employee = new()
+    // ===== Header model filled from SelectedState =====
+    private EmployeeHeader Employee = new();
+
+    protected override void OnInitialized()
     {
-        FullName = "أحمد  علي سالم صالح",
-        JobTitle = " محلل نظم",
-        IqamaNumber = "325329",
-        PassportNumber = "P1234567",
-        BorderNumber = "1234567890",
-        PassportExpiry = new DateTime(2028, 7, 1),
-        WorkMobile = "0550000000",
-        WorkPhone = "011-1234567",
-        WorkEmail = "ahmad.saleh@company.com"
-    };
+        if (!SelectedState.HasValue || SelectedState.Current is null)
+        {
+            Snackbar.Add("لم يتم اختيار موظف من الصفحة السابقة.", Severity.Warning);
+            Navigation.NavigateTo("/employees");
+            return;
+        }
+
+        var e = SelectedState.Current;
+        var full = string.IsNullOrWhiteSpace(e.FullName) ? e.EmployeeName : e.FullName;
+
+        Employee = new EmployeeHeader
+        {
+            FullName = full ?? "-",
+            JobTitle = e.JobName ?? "-",
+            IqamaNumber = "-",   // عبئها لاحقًا إن توفر مصدر
+            PassportNumber = "-",
+            BorderNumber = "-",
+            PassportExpiry = null,
+            WorkMobile = e.MobileNo ?? "-",
+            WorkPhone = e.TelNo ?? "-",
+            WorkEmail = e.Email ?? "-"
+        };
+    }
 
     private Color PassportExpiryColor
     {
@@ -460,7 +425,7 @@
         }
     }
 
-    private string GetInitials(string name)
+    private string GetInitials(string? name)
     {
         if (string.IsNullOrWhiteSpace(name)) return "؟";
         var p = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
@@ -539,35 +504,35 @@
 
     protected override Task OnInitializedAsync()
     {
-        // بيانات تجريبية — استبدلها بالربط الحقيقي
+        // بيانات تجريبية — استبدلها بالربط الحقيقي عند الدمج مع الـ API
         _residencies = new()
-        {
-          new ResidencyRow { IqamaNumber="325329", EmployeeNumber="05", EmployeeName="العنود الغامدي", ActionType="-", IqamaProfession="VP Of Marketing", IssueNumber="-", IssueDate=new DateTime(2022,9,1) },
-          new ResidencyRow { IqamaNumber="444111", EmployeeNumber="07", EmployeeName="محمد سالم",     ActionType="-", IqamaProfession="Engineer",      IssueNumber="-", IssueDate=new DateTime(2022,9,10) }
-        };
+    {
+      new ResidencyRow { IqamaNumber="325329", EmployeeNumber="05", EmployeeName="العنود الغامدي", ActionType="-", IqamaProfession="VP Of Marketing", IssueNumber="-", IssueDate=new DateTime(2022,9,1) },
+      new ResidencyRow { IqamaNumber="444111", EmployeeNumber="07", EmployeeName="محمد سالم",     ActionType="-", IqamaProfession="Engineer",      IssueNumber="-", IssueDate=new DateTime(2022,9,10) }
+    };
 
         _exitReentry = new()
-        {
-          new ExitReentryRow { PassportExpiry=new DateTime(2025,1,1), IqamaExpiry=new DateTime(2025,12,13), PdfPath=null, ActionBy="مازن زيد", ActionTime=new DateTime(2023,9,15,15,25,0), MuqeemStatus="تم إتمامها" },
-          new ExitReentryRow { PassportExpiry=new DateTime(2025,1,1), IqamaExpiry=new DateTime(2025,12,13), PdfPath=null, ActionBy="مازن زيد", ActionTime=new DateTime(2023,9,15,15,24,0), MuqeemStatus="تم رفضها" },
-          new ExitReentryRow { PassportExpiry=null,                   IqamaExpiry=null,                    PdfPath="-",  ActionBy="مازن زيد", ActionTime=new DateTime(2023,9,14,17,10,0), MuqeemStatus="بانتظار الرد" }
-        };
+    {
+      new ExitReentryRow { PassportExpiry=new DateTime(2025,1,1), IqamaExpiry=new DateTime(2025,12,13), PdfPath=null, ActionBy="مازن زيد", ActionTime=new DateTime(2023,9,15,15,25,0), MuqeemStatus="تم إتمامها" },
+      new ExitReentryRow { PassportExpiry=new DateTime(2025,1,1), IqamaExpiry=new DateTime(2025,12,13), PdfPath=null, ActionBy="مازن زيد", ActionTime=new DateTime(2023,9,15,15,24,0), MuqeemStatus="تم رفضها" },
+      new ExitReentryRow { PassportExpiry=null, IqamaExpiry=null, PdfPath="-", ActionBy="مازن زيد", ActionTime=new DateTime(2023,9,14,17,10,0), MuqeemStatus="بانتظار الرد" }
+    };
 
         _finalExitList = new()
-        {
-          new FinalExitRow { IqamaNumber="24567890", EmployeeName="أحمد علي", PassportExpiry=new DateTime(2026,5,1), IqamaExpiry=new DateTime(2025,3,20),
-                             PdfPath="-", ActionBy="منى سالم", ActionTime=new DateTime(2023,6,5,10,15,0), Status="بانتظار الرد" },
-          new FinalExitRow { IqamaNumber="98765432", EmployeeName="رنا محمد", PassportExpiry=new DateTime(2026,8,30), IqamaExpiry=new DateTime(2025,11,10),
-                             PdfPath=null, ActionBy="سامي ناصر", ActionTime=new DateTime(2023,6,7,9,0,0), Status="تم إتمامها" }
-        };
+    {
+      new FinalExitRow { IqamaNumber="24567890", EmployeeName="أحمد علي", PassportExpiry=new DateTime(2026,5,1), IqamaExpiry=new DateTime(2025,3,20),
+                         PdfPath="-", ActionBy="منى سالم", ActionTime=new DateTime(2023,6,5,10,15,0), Status="بانتظار الرد" },
+      new FinalExitRow { IqamaNumber="98765432", EmployeeName="رنا محمد", PassportExpiry=new DateTime(2026,8,30), IqamaExpiry=new DateTime(2025,11,10),
+                         PdfPath=null, ActionBy="سامي ناصر", ActionTime=new DateTime(2023,6,7,9,0,0), Status="تم إتمامها" }
+    };
 
         _passports = new()
-        {
-          new PassportRow { PassportNumber="P1234567", EmployeeName="ليان عبدالله", OldExpiry=new DateTime(2023,7,1), NewExpiry=new DateTime(2028,7,1),
-                            RequestType="تجديد", PdfPath="-", ActionBy="عمر خالد", ActionTime=new DateTime(2023,7,10,14,30,0), Status="تم إتمامها" },
-          new PassportRow { PassportNumber="P7654321", EmployeeName="مروان سعيد", OldExpiry=new DateTime(2024,12,31), NewExpiry=new DateTime(2026,12,31),
-                            RequestType="تمديد", PdfPath=null, ActionBy="نجلاء هيثم", ActionTime=new DateTime(2023,8,1,9,45,0), Status="تم رفضها" }
-        };
+    {
+      new PassportRow { PassportNumber="P1234567", EmployeeName="ليان عبدالله", OldExpiry=new DateTime(2023,7,1), NewExpiry=new DateTime(2028,7,1),
+                        RequestType="تجديد", PdfPath="-", ActionBy="عمر خالد", ActionTime=new DateTime(2023,7,10,14,30,0), Status="تم إتمامها" },
+      new PassportRow { PassportNumber="P7654321", EmployeeName="مروان سعيد", OldExpiry=new DateTime(2024,12,31), NewExpiry=new DateTime(2026,12,31),
+                        RequestType="تمديد", PdfPath=null, ActionBy="نجلاء هيثم", ActionTime=new DateTime(2023,8,1,9,45,0), Status="تم رفضها" }
+    };
 
         return Task.CompletedTask;
     }
@@ -577,49 +542,33 @@
 
     private async Task IssueResidence()
     {
-        // تحويل الهيدر إلى نموذج SimpleEmployee للحوار:
         var emp = new IssueIqamaDialog.SimpleEmployee
         {
             Id = 0, // ضع المعرف الحقيقي إن توفر
             FullName = Employee.FullName ?? string.Empty,
-            EmployeeNumber = "—", // ضع رقم الموظف الحقيقي إن توفر
+            EmployeeNumber = "—",
             IqamaNumber = string.IsNullOrWhiteSpace(Employee.IqamaNumber) ? null : Employee.IqamaNumber
         };
 
-        var parameters = new DialogParameters
-        {
-            ["Employee"] = emp
-        };
+        var parameters = new DialogParameters { ["Employee"] = emp };
 
         var options = new DialogOptions
         {
             CloseOnEscapeKey = true,
-            Position = DialogPosition.TopRight, // أعلى يسار
+            Position = DialogPosition.TopRight,
             FullWidth = false,
             MaxWidth = MaxWidth.Small,
-
-
-          
             CloseButton = false,
-          
-            NoHeader = true,
-           //osition = DialogPosition.TopLeft  // لا يوجد Right في v8 — استخدم CSS لو أردت Side Sheet
+            NoHeader = true
         };
-       
 
         var dialogRef = DialogService.Show<IssueIqamaDialog>(title: string.Empty, parameters, options);
         var result = await dialogRef.Result;
 
-        if (!result.Canceled && result.Data is IssueIqamaDialog.IssueIqamaModel model)
-        {
-            // TODO: نداء API الحقيقي لـ "مقيم"
-            // await _muqeemApi.IssueIqamaAsync(model);
+        if (!result.Canceled && result.Data is IssueIqamaDialog.IssueIqamaModel)
             Snackbar.Add("تم إرسال طلب إصدار الإقامة بنجاح.", Severity.Success);
-        }
         else
-        {
             Snackbar.Add("تم إلغاء العملية.", Severity.Info);
-        }
     }
 
     private void EditResidency(ResidencyRow r) => Snackbar.Add($"تعديل إقامة رقم {r.IqamaNumber}", Severity.Info);
@@ -638,7 +587,7 @@
     private void RenewPassport(PassportRow r) => Snackbar.Add($"تجديد جواز {r.PassportNumber}", Severity.Success);
     private void ReprintPassport(PassportRow r) => Snackbar.Add("إعادة طباعة معاملة الجواز", Severity.Info);
 
-    // ===== Mini models (إن لم تكن موجودة لديك) =====
+    // ===== Mini models =====
     private class EmployeeHeader
     {
         public string FullName { get; set; } = "";

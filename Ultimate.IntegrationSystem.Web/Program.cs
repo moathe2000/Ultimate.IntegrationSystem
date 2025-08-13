@@ -53,6 +53,7 @@ builder.Services.AddHttpClient<IEmployeeService, EmployeeService>((sp, client) =
 // ”Ã¯· «·Œœ„… «· Ì  ” ﬁ»· HttpClient ›Ì «·‹ctor
 builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 
+builder.Services.AddScoped<SelectedEmployeeState>();
 
 //  ⁄—Ì»
 builder.Services.AddLocalization(o => o.ResourcesPath = "Resources/Localization");
