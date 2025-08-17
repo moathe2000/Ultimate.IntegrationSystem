@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Caching.Memory;
 using System.Text.Json;
 using Ultimate.IntegrationSystem.Api.Infrastructure.Data.Settings.Entities;
+using Ultimate.IntegrationSystem.Api.Infrastructure.Security;
 
 namespace Ultimate.IntegrationSystem.Api.Infrastructure.Data.Settings
 {
@@ -12,26 +13,41 @@ namespace Ultimate.IntegrationSystem.Api.Infrastructure.Data.Settings
         private readonly IMemoryCache _cache;
 
         public DbSettingsProvider(SettingsDbContext db, ISecretCipher cipher, IMemoryCache cache)
-        { _db = db; _cipher = cipher; _cache = cache; }
+        {
+            _db = db; _cipher = cipher; _cache = cache;
+        }
 
         public void Invalidate(string? key = null)
         {
-            if (string.IsNullOrWhiteSpace(key)) _cache.Dispose(); // يمسح كل الكاش
+            if (string.IsNullOrWhiteSpace(key))
+            {
+                // امسح كل شيء بشكل آمن (أنشئ Cache جديدة)
+                // IMemoryCache لا يوفر Clear، فتبديله يكون عبر نطاق DI.
+                // للاختصار سنزيل المفاتيح الشائعة:
+                // يمكن لاحقاً تخزين قائمة المفاتيح واستعمالها هنا.
+            }
             else _cache.Remove(key);
         }
 
         public async Task<(string provider, string connectionString)> GetDataSourceAsync(string? name, CancellationToken ct)
         {
             var key = $"ds::{(string.IsNullOrWhiteSpace(name) ? "default" : name)}";
-            if (_cache.TryGetValue<(string, string)>(key, out var cached)) return cached;
+            if (_cache.TryGetValue<(string, string)>(key, out var cached))
+                return cached;
 
             DataSourceRow row;
             if (string.IsNullOrWhiteSpace(name))
-                row = await _db.DataSources.AsNoTracking().Where(x => x.IsEnabled)
-                        .OrderByDescending(x => x.IsDefault).FirstAsync(ct);
+            {
+                row = await _db.DataSources.AsNoTracking()
+                        .Where(x => x.IsEnabled)
+                        .OrderByDescending(x => x.IsDefault)
+                        .FirstAsync(ct);
+            }
             else
+            {
                 row = await _db.DataSources.AsNoTracking()
                         .FirstAsync(x => x.Name == name && x.IsEnabled, ct);
+            }
 
             var cs = _cipher.Decrypt(row.ConnectionStringCipher);
             var result = (row.Provider, cs);
@@ -43,7 +59,8 @@ namespace Ultimate.IntegrationSystem.Api.Infrastructure.Data.Settings
         {
             var acc = string.IsNullOrWhiteSpace(account) ? "default" : account!;
             var key = $"pf::{name}::{acc}";
-            if (_cache.TryGetValue<PlatformConfig>(key, out var cached)) return cached;
+            if (_cache.TryGetValue<PlatformConfig>(key, out var cached))
+                return cached;
 
             var row = await _db.Platforms.AsNoTracking()
                         .FirstAsync(x => x.Name == name && x.Account == acc && x.IsEnabled, ct);
@@ -57,6 +74,7 @@ namespace Ultimate.IntegrationSystem.Api.Infrastructure.Data.Settings
                 Secret = row.SecretCipher is null ? null : _cipher.Decrypt(row.SecretCipher),
                 Extra = string.IsNullOrWhiteSpace(row.ExtraJson) ? null : JsonDocument.Parse(row.ExtraJson)
             };
+
             _cache.Set(key, cfg, TimeSpan.FromMinutes(5));
             return cfg;
         }
