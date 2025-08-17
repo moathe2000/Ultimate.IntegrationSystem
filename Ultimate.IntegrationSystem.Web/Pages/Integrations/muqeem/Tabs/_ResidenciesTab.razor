@@ -1,0 +1,88 @@
+﻿@using MudBlazor
+@inject ISnackbar Snackbar
+
+<MudGrid Class="tight-toolbar mt-2" AlignItems="Center" Spacing="2">
+    <MudItem xs="12" sm="6" md="4">
+        <MudTextField T="string" Label="بحث برقم الإقامة أو الاسم"
+                      @bind-Value="_searchResidencies" Clearable="true"
+                      AdornmentIcon="@Icons.Material.Filled.Search" Adornment="Adornment.Start" />
+    </MudItem>
+    <MudItem xs="12" sm="6" md="4">
+        <MudDatePicker Label="نطاق التاريخ" @bind-DateRange="_residencyDateRange" />
+    </MudItem>
+</MudGrid>
+
+<MudTable Items="@FilteredResidencies" Dense="true" Hover="true" RightToLeft="RightToLeft.Yes"
+          RowsPerPage="@_residencyRowsPerPage" Breakpoint="Breakpoint.None">
+    <HeaderContent>
+        <MudTh>رقم الإقامة</MudTh>
+        <MudTh>رقم الموظف</MudTh>
+        <MudTh>اسم الموظف</MudTh>
+        <MudTh>نوع الإجراء</MudTh>
+        <MudTh>المهنة على الإقامة</MudTh>
+        <MudTh>رقم الإصدار</MudTh>
+        <MudTh>الإجراءات</MudTh>
+    </HeaderContent>
+
+    <RowTemplate>
+        <MudTd>@context.IqamaNumber</MudTd>
+        <MudTd>@context.EmployeeNumber</MudTd>
+        <MudTd>@context.EmployeeName</MudTd>
+        <MudTd>@context.ActionType</MudTd>
+        <MudTd>@context.IqamaProfession</MudTd>
+        <MudTd>@context.IssueNumber</MudTd>
+        <MudTd>
+            <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="@(() => EditResidency(context))" />
+            <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="@(() => DeleteResidency(context))" />
+        </MudTd>
+    </RowTemplate>
+
+    <PagerContent>
+        <MudTablePager InfoFormat="إظهار {first_item}-{last_item} من أصل {all_items} نتيجة" />
+    </PagerContent>
+</MudTable>
+
+@code {
+    private string _searchResidencies = string.Empty;
+    private DateRange _residencyDateRange = new();
+    private int _residencyRowsPerPage = 21;
+    private List<ResidencyRow> _residencies = new();
+
+    private IEnumerable<ResidencyRow> FilteredResidencies =>
+        _residencies
+            .Where(r => string.IsNullOrWhiteSpace(_searchResidencies)
+                        || r.IqamaNumber.Contains(_searchResidencies, StringComparison.OrdinalIgnoreCase)
+                        || r.EmployeeNumber.Contains(_searchResidencies, StringComparison.OrdinalIgnoreCase)
+                        || r.EmployeeName.Contains(_searchResidencies, StringComparison.OrdinalIgnoreCase)
+                        || r.IqamaProfession.Contains(_searchResidencies, StringComparison.OrdinalIgnoreCase))
+            .Where(r =>
+                (!_residencyDateRange.Start.HasValue || (r.IssueDate.HasValue && r.IssueDate.Value.Date >= _residencyDateRange.Start.Value.Date)) &&
+                (!_residencyDateRange.End.HasValue || (r.IssueDate.HasValue && r.IssueDate.Value.Date <= _residencyDateRange.End.Value.Date))
+            );
+
+    protected override Task OnInitializedAsync()
+    {
+        _residencies = new()
+        {
+          new ResidencyRow { IqamaNumber="325329", EmployeeNumber="05", EmployeeName="العنود الغامدي", ActionType="إصدار", IqamaProfession="مدير تسويق", IssueNumber="12345", IssueDate=new DateTime(2022,9,1) },
+          new ResidencyRow { IqamaNumber="444111", EmployeeNumber="07", EmployeeName="محمد سالم", ActionType="تجديد", IqamaProfession="مهندس", IssueNumber="54321", IssueDate=new DateTime(2024,3,15) },
+          new ResidencyRow { IqamaNumber="555666", EmployeeNumber="08", EmployeeName="أحمد علي", ActionType="إلغاء", IqamaProfession="مشرف", IssueNumber="98765", IssueDate=new DateTime(2023,11,20) }
+        };
+
+        return Task.CompletedTask;
+    }
+
+    private void EditResidency(ResidencyRow r) => Snackbar.Add($"تعديل إقامة رقم {r.IqamaNumber}", Severity.Info);
+    private void DeleteResidency(ResidencyRow r) => Snackbar.Add($"حذف إقامة رقم {r.IqamaNumber}", Severity.Warning);
+
+    private class ResidencyRow
+    {
+        public string IqamaNumber { get; set; } = "";
+        public string EmployeeNumber { get; set; } = "";
+        public string EmployeeName { get; set; } = "";
+        public string ActionType { get; set; } = "";
+        public string IqamaProfession { get; set; } = "";
+        public string IssueNumber { get; set; } = "";
+        public DateTime? IssueDate { get; set; }
+    }
+}

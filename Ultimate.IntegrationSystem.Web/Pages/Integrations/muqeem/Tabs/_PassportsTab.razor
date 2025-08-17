@@ -1,0 +1,131 @@
+﻿@using MudBlazor
+@inject ISnackbar Snackbar
+
+<MudGrid Class="tight-toolbar mt-2" AlignItems="Center" Spacing="2">
+    <MudItem xs="12" sm="6" md="4">
+        <MudTextField T="string" Label="بحث برقم الجواز أو الاسم"
+                      @bind-Value="_searchPassports" Clearable="true"
+                      AdornmentIcon="@Icons.Material.Filled.Search" Adornment="Adornment.Start" />
+    </MudItem>
+    <MudItem xs="12" sm="6" md="4">
+        <MudDatePicker Label="نطاق التاريخ" @bind-DateRange="_passportDateRange" />
+    </MudItem>
+</MudGrid>
+<MudTable Items="@FilteredPassports" Dense="true" Hover="true" RightToLeft="RightToLeft.Yes"
+          RowsPerPage="@_passportRowsPerPage" Breakpoint="Breakpoint.None">
+    <ToolBarContent>
+        <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Print">
+            طباعة
+        </MudButton>
+    </ToolBarContent>
+
+    <HeaderContent>
+        <MudTh>رقم الجواز</MudTh>
+        <MudTh>اسم الموظف</MudTh>
+        <MudTh>انتهاء سابق</MudTh>
+        <MudTh>انتهاء جديد</MudTh>
+        <MudTh>نوع الطلب</MudTh>
+        <MudTh>PDF</MudTh>
+        <MudTh>متخذ الإجراء</MudTh>
+        <MudTh>وقت الإجراء</MudTh>
+        <MudTh>الحالة</MudTh>
+        <MudTh>الإجراءات</MudTh>
+    </HeaderContent>
+
+    <RowTemplate>
+        <MudTd>@context.PassportNumber</MudTd>
+        <MudTd>@context.EmployeeName</MudTd>
+        <MudTd>@context.OldExpiry?.ToString("MMM dd, yyyy")</MudTd>
+        <MudTd>@context.NewExpiry?.ToString("MMM dd, yyyy")</MudTd>
+        <MudTd>@context.RequestType</MudTd>
+        <MudTd>
+            @if (string.IsNullOrWhiteSpace(context.PdfPath) || context.PdfPath == "-")
+            {
+                <span>-</span>
+            }
+            else
+            {
+                <MudLink Href="@context.PdfPath" Target="_blank">عرض</MudLink>
+            }
+        </MudTd>
+        <MudTd>@context.ActionBy</MudTd>
+        <MudTd>@context.ActionTime?.ToString("MMM dd, yyyy hh:mm tt")</MudTd>
+        <MudTd>
+            @switch (context.Status)
+            {
+                case "تم إتمامها":
+                    <MudChip T="string" Color="Color.Success" Variant="Variant.Filled" Label="true">تم إتمامها</MudChip>
+                    break;
+                case "تم رفضها":
+                    <MudChip T="string" Color="Color.Error" Variant="Variant.Outlined" Label="true">تم رفضها</MudChip>
+                    break;
+                default:
+                    <MudChip T="string" Color="Color.Info" Variant="Variant.Outlined" Label="true">بانتظار الرد</MudChip>
+                    break;
+            }
+        </MudTd>
+        <MudTd>
+            <MudMenu OffsetY="true">
+                <ActivatorContent><MudIconButton Icon="@Icons.Material.Filled.MoreVert" /></ActivatorContent>
+                <ChildContent>
+                    <MudMenuItem OnClick="@(() => ExtendPassport(context))">تمديد صلاحية</MudMenuItem>
+                    <MudMenuItem OnClick="@(() => RenewPassport(context))">تجديد جواز</MudMenuItem>
+                    <MudMenuItem OnClick="@(() => ReprintPassport(context))">إعادة الطباعة</MudMenuItem>
+                </ChildContent>
+            </MudMenu>
+        </MudTd>
+    </RowTemplate>
+
+    <PagerContent>
+        <MudTablePager InfoFormat="إظهار {first_item}-{last_item} من أصل {all_items} نتيجة" />
+    </PagerContent>
+</MudTable>
+@code {
+    private string _searchPassports = string.Empty;
+    private DateRange _passportDateRange = new();
+    private int _passportRowsPerPage = 21;
+    private List<PassportRow> _passports = new();
+
+    private IEnumerable<PassportRow> FilteredPassports =>
+        _passports
+            .Where(p => string.IsNullOrWhiteSpace(_searchPassports)
+                        || (p.EmployeeName?.Contains(_searchPassports, StringComparison.OrdinalIgnoreCase) ?? false)
+                        || (p.PassportNumber?.Contains(_searchPassports, StringComparison.OrdinalIgnoreCase) ?? false)
+                        || (p.ActionBy?.Contains(_searchPassports, StringComparison.OrdinalIgnoreCase) ?? false)
+                        || (p.RequestType?.Contains(_searchPassports, StringComparison.OrdinalIgnoreCase) ?? false)
+                        || (p.Status?.Contains(_searchPassports, StringComparison.OrdinalIgnoreCase) ?? false))
+            .Where(p =>
+                (!_passportDateRange.Start.HasValue || (p.ActionTime.HasValue && p.ActionTime.Value.Date >= _passportDateRange.Start.Value.Date)) &&
+                (!_passportDateRange.End.HasValue || (p.ActionTime.HasValue && p.ActionTime.Value.Date <= _passportDateRange.End.Value.Date))
+            );
+
+    protected override Task OnInitializedAsync()
+    {
+        _passports = new()
+        {
+          new PassportRow { PassportNumber="P1234567", EmployeeName="ليان عبدالله", OldExpiry=new DateTime(2023,7,1), NewExpiry=new DateTime(2028,7,1),
+                               RequestType="تجديد", PdfPath="-", ActionBy="عمر خالد", ActionTime=new DateTime(2023,7,10,14,30,0), Status="تم إتمامها" },
+          new PassportRow { PassportNumber="P7654321", EmployeeName="مروان سعيد", OldExpiry=new DateTime(2024,12,31), NewExpiry=new DateTime(2026,12,31),
+                               RequestType="تمديد", PdfPath=null, ActionBy="نجلاء هيثم", ActionTime=new DateTime(2023,8,1,9,45,0), Status="تم رفضها" }
+        };
+
+        return Task.CompletedTask;
+    }
+
+    private void ExtendPassport(PassportRow r) => Snackbar.Add($"تمديد صلاحية جواز {r.PassportNumber}", Severity.Info);
+    private void RenewPassport(PassportRow r) => Snackbar.Add($"تجديد جواز {r.PassportNumber}", Severity.Success);
+    private void ReprintPassport(PassportRow r) => Snackbar.Add("إعادة طباعة معاملة الجواز", Severity.Info);
+
+    private class PassportRow
+    {
+        public string PassportNumber { get; set; } = "";
+        public string EmployeeName { get; set; } = "";
+        public DateTime? OldExpiry { get; set; }
+        public DateTime? NewExpiry { get; set; }
+        public string RequestType { get; set; } = "";
+        public string? PdfPath { get; set; }
+        public string? ActionBy { get; set; }
+        public DateTime? ActionTime { get; set; }
+        public string Status { get; set; } = "";
+    }
+}

@@ -55,6 +55,7 @@ builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 
 builder.Services.AddScoped<SelectedEmployeeState>();
 
+
 // ÊÚÑíÈ
 builder.Services.AddLocalization(o => o.ResourcesPath = "Resources/Localization");
 builder.Services.Configure<RequestLocalizationOptions>(o =>

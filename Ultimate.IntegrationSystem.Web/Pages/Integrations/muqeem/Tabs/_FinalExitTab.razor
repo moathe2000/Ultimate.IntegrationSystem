@@ -1,0 +1,125 @@
+﻿@using MudBlazor
+@inject ISnackbar Snackbar
+
+<MudGrid Class="tight-toolbar mt-2" AlignItems="Center" Spacing="2">
+    <MudItem xs="12" sm="6" md="4">
+        <MudTextField T="string" Label="بحث برقم الإقامة أو الاسم"
+                      @bind-Value="_searchFinalExit" Clearable="true"
+                      AdornmentIcon="@Icons.Material.Filled.Search" Adornment="Adornment.Start" />
+    </MudItem>
+    <MudItem xs="12" sm="6" md="4">
+        <MudDatePicker Label="نطاق التاريخ" @bind-DateRange="_finalExitDateRange" />
+    </MudItem>
+</MudGrid>
+<MudTable Items="@FilteredFinalExit" Dense="true" Hover="true" RightToLeft="RightToLeft.Yes"
+          RowsPerPage="@_finalExitRowsPerPage" Breakpoint="Breakpoint.None">
+    <HeaderContent>
+        <MudTh>رقم الإقامة</MudTh>
+        <MudTh>رقم الموظف</MudTh>
+        <MudTh>اسم الموظف</MudTh>
+        <MudTh>انتهاء الجواز</MudTh>
+        <MudTh>انتهاء الإقامة</MudTh>
+        <MudTh>PDF</MudTh>
+        <MudTh>متخذ الإجراء</MudTh>
+        <MudTh>وقت الإجراء</MudTh>
+        <MudTh>الحالة</MudTh>
+        <MudTh>الإجراءات</MudTh>
+    </HeaderContent>
+
+    <RowTemplate>
+        <MudTd>@context.IqamaNumber</MudTd>
+        <MudTd>@context.EmployeeNumber</MudTd>
+        <MudTd>@context.EmployeeName</MudTd>
+        <MudTd>@context.PassportExpiry?.ToString("MMM dd, yyyy")</MudTd>
+        <MudTd>@context.IqamaExpiry?.ToString("MMM dd, yyyy")</MudTd>
+        <MudTd>
+            @if (string.IsNullOrWhiteSpace(context.PdfPath) || context.PdfPath == "-")
+            {
+                <span>-</span>
+            }
+            else
+            {
+                <MudLink Href="@context.PdfPath" Target="_blank">عرض</MudLink>
+            }
+        </MudTd>
+        <MudTd>@context.ActionBy</MudTd>
+        <MudTd>@context.ActionTime?.ToString("MMM dd, yyyy hh:mm tt")</MudTd>
+        <MudTd>
+            @switch (context.Status)
+            {
+                case "تم إتمامها":
+                    <MudChip T="string" Color="Color.Success" Variant="Variant.Filled" Label="true">تم إتمامها</MudChip>
+                    break;
+                case "تم رفضها":
+                    <MudChip T="string" Color="Color.Error" Variant="Variant.Outlined" Label="true">تم رفضها</MudChip>
+                    break;
+                default:
+                    <MudChip T="string" Color="Color.Info" Variant="Variant.Outlined" Label="true">بانتظار الرد</MudChip>
+                    break;
+            }
+        </MudTd>
+        <MudTd>
+            <MudMenu OffsetY="true">
+                <ActivatorContent><MudIconButton Icon="@Icons.Material.Filled.MoreVert" /></ActivatorContent>
+                <ChildContent>
+                    <MudMenuItem OnClick="@(() => IssueFinalExit(context))">إصدار خروج نهائي</MudMenuItem>
+                    <MudMenuItem OnClick="@(() => CancelFinalExit(context))">إلغاء الخروج النهائي</MudMenuItem>
+                    <MudMenuItem OnClick="@(() => ReprintFinalExit(context))">إعادة الطباعة</MudMenuItem>
+                </ChildContent>
+            </MudMenu>
+        </MudTd>
+    </RowTemplate>
+
+    <PagerContent>
+        <MudTablePager InfoFormat="إظهار {first_item}-{last_item} من أصل {all_items} نتيجة" />
+    </PagerContent>
+</MudTable>
+
+@code {
+    private string _searchFinalExit = string.Empty;
+    private DateRange _finalExitDateRange = new();
+    private int _finalExitRowsPerPage = 21;
+    private List<FinalExitRow> _finalExitList = new();
+
+    private IEnumerable<FinalExitRow> FilteredFinalExit =>
+        _finalExitList
+            .Where(x => string.IsNullOrWhiteSpace(_searchFinalExit)
+                        || (x.EmployeeName?.Contains(_searchFinalExit, StringComparison.OrdinalIgnoreCase) ?? false)
+                        || (x.IqamaNumber?.Contains(_searchFinalExit, StringComparison.OrdinalIgnoreCase) ?? false)
+                        || (x.ActionBy?.Contains(_searchFinalExit, StringComparison.OrdinalIgnoreCase) ?? false)
+                        || (x.Status?.Contains(_searchFinalExit, StringComparison.OrdinalIgnoreCase) ?? false))
+            .Where(x =>
+                (!_finalExitDateRange.Start.HasValue || (x.ActionTime.HasValue && x.ActionTime.Value.Date >= _finalExitDateRange.Start.Value.Date)) &&
+                (!_finalExitDateRange.End.HasValue || (x.ActionTime.HasValue && x.ActionTime.Value.Date <= _finalExitDateRange.End.Value.Date))
+            );
+
+    protected override Task OnInitializedAsync()
+    {
+        _finalExitList = new()
+        {
+          new FinalExitRow { IqamaNumber="24567890", EmployeeName="أحمد علي", PassportExpiry=new DateTime(2026,5,1), IqamaExpiry=new DateTime(2025,3,20),
+                               PdfPath="-", ActionBy="منى سالم", ActionTime=new DateTime(2023,6,5,10,15,0), Status="بانتظار الرد" },
+          new FinalExitRow { IqamaNumber="98765432", EmployeeName="رنا محمد", PassportExpiry=new DateTime(2026,8,30), IqamaExpiry=new DateTime(2025,11,10),
+                               PdfPath=null, ActionBy="سامي ناصر", ActionTime=new DateTime(2023,6,7,9,0,0), Status="تم إتمامها" }
+        };
+
+        return Task.CompletedTask;
+    }
+
+    private void IssueFinalExit(FinalExitRow r) => Snackbar.Add($"إصدار خروج نهائي للمقيم {r.EmployeeName}", Severity.Success);
+    private void CancelFinalExit(FinalExitRow r) => Snackbar.Add($"إلغاء الخروج النهائي للمقيم {r.EmployeeName}", Severity.Warning);
+    private void ReprintFinalExit(FinalExitRow r) => Snackbar.Add("إعادة طباعة الخروج النهائي", Severity.Info);
+
+    private class FinalExitRow
+    {
+        public string IqamaNumber { get; set; } = "";
+        public string EmployeeNumber { get; set; } = "";
+        public string EmployeeName { get; set; } = "";
+        public DateTime? PassportExpiry { get; set; }
+        public DateTime? IqamaExpiry { get; set; }
+        public string? PdfPath { get; set; }
+        public string? ActionBy { get; set; }
+        public DateTime? ActionTime { get; set; }
+        public string Status { get; set; } = "بانتظار الرد";
+    }
+}

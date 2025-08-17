@@ -1,0 +1,115 @@
+﻿@using MudBlazor
+@inject ISnackbar Snackbar
+
+<MudGrid Class="tight-toolbar mt-2" AlignItems="Center" Spacing="2">
+    <MudItem xs="12" sm="6" md="4">
+        <MudTextField T="string" Label="بحث بمتخذ الإجراء أو الحالة"
+                      @bind-Value="_searchVisas" Clearable="true"
+                      AdornmentIcon="@Icons.Material.Filled.Search" Adornment="Adornment.Start" />
+    </MudItem>
+    <MudItem xs="12" sm="6" md="4">
+        <MudDatePicker Label="نطاق التاريخ" @bind-DateRange="_visaDateRange" />
+    </MudItem>
+</MudGrid>
+
+<MudTable Items="@FilteredExitReentry" Dense="true" Hover="true" RightToLeft="RightToLeft.Yes"
+          RowsPerPage="@_visaRowsPerPage">
+    <HeaderContent>
+        <MudTh>تاريخ انتهاء الجواز</MudTh>
+        <MudTh>تاريخ انتهاء الإقامة</MudTh>
+        <MudTh>PDF</MudTh>
+        <MudTh>متخذ الإجراء</MudTh>
+        <MudTh>وقت الإجراء</MudTh>
+        <MudTh>حالة مقيم</MudTh>
+        <MudTh>الإجراءات</MudTh>
+    </HeaderContent>
+
+    <RowTemplate>
+        <MudTd>@context.PassportExpiry?.ToString("MMM dd, yyyy")</MudTd>
+        <MudTd>@context.IqamaExpiry?.ToString("MMM dd, yyyy")</MudTd>
+        <MudTd>
+            @if (string.IsNullOrWhiteSpace(context.PdfPath))
+            {
+                <span>-</span>
+            }
+            else
+            {
+                <MudLink Href="@context.PdfPath" Target="_blank">عرض</MudLink>
+            }
+        </MudTd>
+        <MudTd>@context.ActionBy</MudTd>
+        <MudTd>@context.ActionTime?.ToString("MMM dd, yyyy hh:mm tt")</MudTd>
+        <MudTd>
+            @switch (context.MuqeemStatus)
+            {
+                case "تم إتمامها":
+                    <MudChip T="string" Color="Color.Success" Variant="Variant.Filled" Label="true">تم إتمامها</MudChip>
+                    break;
+                case "تم رفضها":
+                    <MudChip T="string" Color="Color.Error" Variant="Variant.Outlined" Label="true">تم رفضها</MudChip>
+                    break;
+                default:
+                    <MudChip T="string" Color="Color.Info" Variant="Variant.Outlined" Label="true">بانتظار الرد</MudChip>
+                    break;
+            }
+        </MudTd>
+        <MudTd>
+            <MudMenu OffsetY="true">
+                <ActivatorContent><MudIconButton Icon="@Icons.Material.Filled.MoreVert" /></ActivatorContent>
+                <ChildContent>
+                    <MudMenuItem OnClick="@(() => IssueExitReentry(context))">إصدار</MudMenuItem>
+                    <MudMenuItem OnClick="@(() => CancelExitReentry(context))">إلغاء</MudMenuItem>
+                    <MudMenuItem OnClick="@(() => ExtendExitReentry(context))">تمديد</MudMenuItem>
+                    <MudMenuItem OnClick="@(() => ReprintExitReentry(context))">إعادة الطباعة</MudMenuItem>
+                </ChildContent>
+            </MudMenu>
+        </MudTd>
+    </RowTemplate>
+
+    <PagerContent>
+        <MudTablePager InfoFormat="إظهار {first_item}-{last_item} من أصل {all_items} نتيجة" />
+    </PagerContent>
+</MudTable>
+
+@code {
+    private string _searchVisas = string.Empty;
+    private DateRange _visaDateRange = new();
+    private int _visaRowsPerPage = 21;
+    private List<ExitReentryRow> _exitReentry = new();
+
+    private IEnumerable<ExitReentryRow> FilteredExitReentry =>
+        _exitReentry
+            .Where(v => string.IsNullOrWhiteSpace(_searchVisas)
+                        || (v.ActionBy?.Contains(_searchVisas, StringComparison.OrdinalIgnoreCase) ?? false))
+            .Where(v =>
+                (!_visaDateRange.Start.HasValue || (v.ActionTime.HasValue && v.ActionTime.Value.Date >= _visaDateRange.Start.Value.Date)) &&
+                (!_visaDateRange.End.HasValue || (v.ActionTime.HasValue && v.ActionTime.Value.Date <= _visaDateRange.End.Value.Date))
+            );
+
+    protected override Task OnInitializedAsync()
+    {
+        _exitReentry = new()
+        {
+          new ExitReentryRow { PassportExpiry=new DateTime(2025,1,1), IqamaExpiry=new DateTime(2025,12,13), PdfPath=null, ActionBy="مازن زيد", ActionTime=new DateTime(2023,9,15,15,25,0), MuqeemStatus="تم إتمامها" },
+          new ExitReentryRow { PassportExpiry=new DateTime(2025,1,1), IqamaExpiry=new DateTime(2025,12,13), PdfPath=null, ActionBy="مازن زيد", ActionTime=new DateTime(2023,9,15,15,24,0), MuqeemStatus="تم رفضها" },
+          new ExitReentryRow { PassportExpiry=null, IqamaExpiry=null, PdfPath="-", ActionBy="مازن زيد", ActionTime=new DateTime(2023,9,14,17,10,0), MuqeemStatus="بانتظار الرد" }
+        };
+
+        return Task.CompletedTask;
+    }
+
+    private void IssueExitReentry(ExitReentryRow r) => Snackbar.Add("إصدار تأشيرة خروج وعودة", Severity.Success);
+    private void CancelExitReentry(ExitReentryRow r) => Snackbar.Add("إلغاء التأشيرة", Severity.Warning);
+    private void ExtendExitReentry(ExitReentryRow r) => Snackbar.Add("تمديد التأشيرة", Severity.Info);
+    private void ReprintExitReentry(ExitReentryRow r) => Snackbar.Add("إعادة طباعة التأشيرة", Severity.Info);
+
+    private class ExitReentryRow
+    {
+        public DateTime? PassportExpiry { get; set; }
+        public DateTime? IqamaExpiry { get; set; }
+        public string? PdfPath { get; set; }
+        public string? ActionBy { get; set; }
+        public DateTime? ActionTime { get; set; }
+        public string MuqeemStatus { get; set; } = "بانتظار الرد";
+    }
+}

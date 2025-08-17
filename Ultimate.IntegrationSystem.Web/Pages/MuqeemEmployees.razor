@@ -1,12 +1,12 @@
 ﻿@page "/MuqeemEmployees"
+
 @using MudBlazor
-@using Ultimate.IntegrationSystem.Web.Pages.Integrations.muqeem.Dialoge  @* <-- عدّلها إذا اختلف الـnamespace *@
 @using Ultimate.IntegrationSystem.Web.Service
-@inject ISnackbar Snackbar
-@inject IDialogService DialogServ
-@inject SelectedEmployeeState SelectedState
+@using Ultimate.IntegrationSystem.Web.Pages.Integrations.muqeem.Dialoge   @* عدّلها لو النيمسبيس مختلف *@
+
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
+@inject SelectedEmployeeState SelectedState
 @inject NavigationManager Navigation
 
 <style>
@@ -69,6 +69,11 @@
     .tight-toolbar .mud-input-root {
         max-width: 340px
     }
+    /* خلفية أفتح عندما نحمل كلاس side-sheet على الديالوج */
+    .mud-overlay {
+        background-color: rgba(0,0,0,.35); /* خفف/زد حسب رغبتك */
+    }
+
 </style>
 
 <MudContainer MaxWidth="MaxWidth.False" Class="pa-0">
@@ -89,21 +94,19 @@
             <MudItem xs="12" md="8">
                 <MudStack Direction="Row" Wrap="Wrap.NoWrap" Class="emp-chips" Spacing="2">
                     <MudChip T="string" Variant="Variant.Outlined" Icon="@Icons.Material.Filled.AddToHomeScreen">
-                        المسمى الوظيفي          :       @Employee.JobTitle
+                        المسمى الوظيفي : @Employee.JobTitle
                     </MudChip>
-                  
                     <MudChip T="string" Variant="Variant.Outlined" Icon="@Icons.Material.Filled.BorderBottom">
-                        الحدود         :  @Employee.BorderNumber
+                        الحدود : @Employee.BorderNumber
                     </MudChip>
-                 
                     <MudChip T="string" Variant="Variant.Outlined" Icon="@Icons.Material.Filled.Smartphone">
-                        رقم الجوال      :    @Employee.WorkMobile
+                        رقم الجوال : @Employee.WorkMobile
                     </MudChip>
                     <MudChip T="string" Variant="Variant.Outlined" Icon="@Icons.Material.Filled.Call">
-                           هاتف:    @Employee.WorkPhone
+                        هاتف : @Employee.WorkPhone
                     </MudChip>
                     <MudChip T="string" Variant="Variant.Outlined" Icon="@Icons.Material.Filled.Email">
-                            @Employee.WorkEmail
+                        @Employee.WorkEmail
                     </MudChip>
                 </MudStack>
             </MudItem>
@@ -201,7 +204,6 @@
                             }
                             else
                             {
-
                                 <MudLink Href="@context.PdfPath" Target="_blank">عرض</MudLink>
                             }
                         </MudTd>
@@ -242,8 +244,7 @@
 
         <!-- الخروج والعودة -->
         <MudTabPanel Icon="@Icons.Material.Filled.FlightTakeoff" Text="الخروج والعودة">
-            <MudPaper Class="pa-3 mb-3" Elevation="1">
-            </MudPaper>
+            <MudPaper Class="pa-3 mb-3" Elevation="1"></MudPaper>
 
             <MudPaper Elevation="1">
                 <MudTable Items="@FilteredExitReentry" Dense="true" Hover="true" RightToLeft="RightToLeft.Yes"
@@ -268,7 +269,6 @@
                             }
                             else
                             {
-
                                 <MudLink Href="@context.PdfPath" Target="_blank">عرض</MudLink>
                             }
                         </MudTd>
@@ -339,7 +339,6 @@
                             }
                             else
                             {
-
                                 <MudLink Href="@context.PdfPath" Target="_blank">عرض</MudLink>
                             }
                         </MudTd>
@@ -403,7 +402,7 @@
         {
             FullName = full ?? "-",
             JobTitle = e.JobName ?? "-",
-            IqamaNumber = "-",   // عبئها لاحقًا إن توفر مصدر
+            IqamaNumber = "-",
             PassportNumber = "-",
             BorderNumber = "-",
             PassportExpiry = null,
@@ -411,18 +410,6 @@
             WorkPhone = e.TelNo ?? "-",
             WorkEmail = e.Email ?? "-"
         };
-    }
-
-    private Color PassportExpiryColor
-    {
-        get
-        {
-            if (Employee?.PassportExpiry is null) return Color.Default;
-            var days = (Employee.PassportExpiry.Value.Date - DateTime.Today).TotalDays;
-            if (days < 0) return Color.Error;
-            if (days <= 60) return Color.Warning;
-            return Color.Success;
-        }
     }
 
     private string GetInitials(string? name)
@@ -504,35 +491,35 @@
 
     protected override Task OnInitializedAsync()
     {
-        // بيانات تجريبية — استبدلها بالربط الحقيقي عند الدمج مع الـ API
+        // بيانات تجريبية — استبدلها بالربط الحقيقي عند الدمج مع API
         _residencies = new()
-    {
-      new ResidencyRow { IqamaNumber="325329", EmployeeNumber="05", EmployeeName="العنود الغامدي", ActionType="-", IqamaProfession="VP Of Marketing", IssueNumber="-", IssueDate=new DateTime(2022,9,1) },
-      new ResidencyRow { IqamaNumber="444111", EmployeeNumber="07", EmployeeName="محمد سالم",     ActionType="-", IqamaProfession="Engineer",      IssueNumber="-", IssueDate=new DateTime(2022,9,10) }
-    };
+        {
+          new ResidencyRow { IqamaNumber="325329", EmployeeNumber="05", EmployeeName="العنود الغامدي", ActionType="-", IqamaProfession="VP Of Marketing", IssueNumber="-", IssueDate=new DateTime(2022,9,1) },
+          new ResidencyRow { IqamaNumber="444111", EmployeeNumber="07", EmployeeName="محمد سالم",     ActionType="-", IqamaProfession="Engineer",      IssueNumber="-", IssueDate=new DateTime(2022,9,10) }
+        };
 
         _exitReentry = new()
-    {
-      new ExitReentryRow { PassportExpiry=new DateTime(2025,1,1), IqamaExpiry=new DateTime(2025,12,13), PdfPath=null, ActionBy="مازن زيد", ActionTime=new DateTime(2023,9,15,15,25,0), MuqeemStatus="تم إتمامها" },
-      new ExitReentryRow { PassportExpiry=new DateTime(2025,1,1), IqamaExpiry=new DateTime(2025,12,13), PdfPath=null, ActionBy="مازن زيد", ActionTime=new DateTime(2023,9,15,15,24,0), MuqeemStatus="تم رفضها" },
-      new ExitReentryRow { PassportExpiry=null, IqamaExpiry=null, PdfPath="-", ActionBy="مازن زيد", ActionTime=new DateTime(2023,9,14,17,10,0), MuqeemStatus="بانتظار الرد" }
-    };
+        {
+          new ExitReentryRow { PassportExpiry=new DateTime(2025,1,1), IqamaExpiry=new DateTime(2025,12,13), PdfPath=null, ActionBy="مازن زيد", ActionTime=new DateTime(2023,9,15,15,25,0), MuqeemStatus="تم إتمامها" },
+          new ExitReentryRow { PassportExpiry=new DateTime(2025,1,1), IqamaExpiry=new DateTime(2025,12,13), PdfPath=null, ActionBy="مازن زيد", ActionTime=new DateTime(2023,9,15,15,24,0), MuqeemStatus="تم رفضها" },
+          new ExitReentryRow { PassportExpiry=null, IqamaExpiry=null, PdfPath="-", ActionBy="مازن زيد", ActionTime=new DateTime(2023,9,14,17,10,0), MuqeemStatus="بانتظار الرد" }
+        };
 
         _finalExitList = new()
-    {
-      new FinalExitRow { IqamaNumber="24567890", EmployeeName="أحمد علي", PassportExpiry=new DateTime(2026,5,1), IqamaExpiry=new DateTime(2025,3,20),
-                         PdfPath="-", ActionBy="منى سالم", ActionTime=new DateTime(2023,6,5,10,15,0), Status="بانتظار الرد" },
-      new FinalExitRow { IqamaNumber="98765432", EmployeeName="رنا محمد", PassportExpiry=new DateTime(2026,8,30), IqamaExpiry=new DateTime(2025,11,10),
-                         PdfPath=null, ActionBy="سامي ناصر", ActionTime=new DateTime(2023,6,7,9,0,0), Status="تم إتمامها" }
-    };
+        {
+          new FinalExitRow { IqamaNumber="24567890", EmployeeName="أحمد علي", PassportExpiry=new DateTime(2026,5,1), IqamaExpiry=new DateTime(2025,3,20),
+                             PdfPath="-", ActionBy="منى سالم", ActionTime=new DateTime(2023,6,5,10,15,0), Status="بانتظار الرد" },
+          new FinalExitRow { IqamaNumber="98765432", EmployeeName="رنا محمد", PassportExpiry=new DateTime(2026,8,30), IqamaExpiry=new DateTime(2025,11,10),
+                             PdfPath=null, ActionBy="سامي ناصر", ActionTime=new DateTime(2023,6,7,9,0,0), Status="تم إتمامها" }
+        };
 
         _passports = new()
-    {
-      new PassportRow { PassportNumber="P1234567", EmployeeName="ليان عبدالله", OldExpiry=new DateTime(2023,7,1), NewExpiry=new DateTime(2028,7,1),
-                        RequestType="تجديد", PdfPath="-", ActionBy="عمر خالد", ActionTime=new DateTime(2023,7,10,14,30,0), Status="تم إتمامها" },
-      new PassportRow { PassportNumber="P7654321", EmployeeName="مروان سعيد", OldExpiry=new DateTime(2024,12,31), NewExpiry=new DateTime(2026,12,31),
-                        RequestType="تمديد", PdfPath=null, ActionBy="نجلاء هيثم", ActionTime=new DateTime(2023,8,1,9,45,0), Status="تم رفضها" }
-    };
+        {
+          new PassportRow { PassportNumber="P1234567", EmployeeName="ليان عبدالله", OldExpiry=new DateTime(2023,7,1), NewExpiry=new DateTime(2028,7,1),
+                            RequestType="تجديد", PdfPath="-", ActionBy="عمر خالد", ActionTime=new DateTime(2023,7,10,14,30,0), Status="تم إتمامها" },
+          new PassportRow { PassportNumber="P7654321", EmployeeName="مروان سعيد", OldExpiry=new DateTime(2024,12,31), NewExpiry=new DateTime(2026,12,31),
+                            RequestType="تمديد", PdfPath=null, ActionBy="نجلاء هيثم", ActionTime=new DateTime(2023,8,1,9,45,0), Status="تم رفضها" }
+        };
 
         return Task.CompletedTask;
     }
@@ -544,23 +531,43 @@
     {
         var emp = new IssueIqamaDialog.SimpleEmployee
         {
-            Id = 0, // ضع المعرف الحقيقي إن توفر
+            Id = 0,
             FullName = Employee.FullName ?? string.Empty,
             EmployeeNumber = "—",
-            IqamaNumber = string.IsNullOrWhiteSpace(Employee.IqamaNumber) ? null : Employee.IqamaNumber
+           // IqamaNumber = string.IsNullOrWhiteSpace(Employee.IqamaNumber) ? null : Employee.IqamaNumber
         };
 
         var parameters = new DialogParameters { ["Employee"] = emp };
-
+        
+        // var options = new DialogOptions
+        // {
+        //     CloseOnEscapeKey = true,
+        //     MaxWidth = MaxWidth.Medium,   // كان Small
+        //     FullWidth = true,             // لكي يأخذ العرض الذي حدّدناه في CSS
+        //     CloseButton = false,
+        //     NoHeader = true                // عندنا هيدر مخصص داخل الديالوج
+        // }; 
+        // var options = new DialogOptions
+        // {
+        //     CloseOnEscapeKey = true,
+        //     Position = DialogPosition.TopRight, // ما فيه Right صريح؛ نستخدم CSS لدفعه لليمين
+        //     FullWidth = false,
+        //     MaxWidth = MaxWidth.Small,
+        //     CloseButton = true,
+        //     NoHeader = true
+        // };
         var options = new DialogOptions
         {
             CloseOnEscapeKey = true,
-            Position = DialogPosition.TopRight,
+         //   BackdropClick = false, // امنع الإغلاق عند النقر على الخلفية (v8)
+            Position = DialogPosition.BottomLeft,
+            MaxWidth = MaxWidth.False,    // نتحكم في العرض بالكامل عبر CSS
             FullWidth = false,
-            MaxWidth = MaxWidth.Small,
+            NoHeader = true,
             CloseButton = false,
-            NoHeader = true
+            BackgroundClass = "side-sheet"          // كلاس مخصص للستايل
         };
+
 
         var dialogRef = DialogService.Show<IssueIqamaDialog>(title: string.Empty, parameters, options);
         var result = await dialogRef.Result;

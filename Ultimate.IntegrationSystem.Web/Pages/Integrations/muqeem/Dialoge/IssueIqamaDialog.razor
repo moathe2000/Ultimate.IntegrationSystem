@@ -1,171 +1,85 @@
-﻿@using System
-@using System.ComponentModel.DataAnnotations
-@using Microsoft.AspNetCore.Components
-@using MudBlazor
-@inject NavigationManager Nav
+﻿@using MudBlazor
 
-<MudPaper Class="pa-3">
-    <div class="sheet-header">
-        <MudIconButton Icon="@Icons.Material.Filled.ArrowBackIosNew" OnClick="@CancelDialog" />
-        <MudText Typo="Typo.h6" Class="ml-2">عملية مقيم جديدة</MudText>
-        <MudSpacer />
-        <MudIconButton Icon="@Icons.Material.Filled.Close" OnClick="@CancelDialog" />
-    </div>
+<MudDialog Class="side-sheet">
+    <DialogContent>
+        <MudForm @ref="_form">
+            <MudStack Spacing="2">
 
-    <MudPaper Class="pa-3 mb-3">
-        <div class="d-flex align-center">
-            <MudAvatar Size="Size.Medium" Color="Color.Primary">@Initials</MudAvatar>
-            <div class="ml-3">
-                <MudText Typo="Typo.subtitle2">@EmployeeTitle</MudText>
-                <MudText Typo="Typo.caption" Color="Color.Secondary">@EmployeeCaption</MudText>
-            </div>
-            <MudSpacer />
-            <MudTooltip Text="عرض ملف الموظف">
-                <MudIconButton Icon="@Icons.Material.Outlined.OpenInNew"
-                               Disabled="@IsEmployeeNull"
-                               OnClick="@OpenEmployeeProfile" />
-            </MudTooltip>
-        </div>
-    </MudPaper>
+                <!-- Header صغير داخل الديالوج -->
+                <MudStack Direction="Row" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="sheet-header">
+                    <MudStack Direction="Row" AlignItems="AlignItems.Center" Spacing="2">
+                        <MudAvatar Size="Size.Medium" Color="Color.Primary">@GetInitials(Employee?.FullName)</MudAvatar>
+                        <div>
+                            <MudText Typo="Typo.subtitle2">@Employee?.FullName</MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">رقم الموظف: @Employee?.EmployeeNumber</MudText>
+                        </div>
+                    </MudStack>
+                    <MudIconButton Icon="@Icons.Material.Filled.Close" OnClick="Cancel" />
+                </MudStack>
 
-    <MudDivider Class="mb-3" />
+                <MudDivider Class="my-2" />
+                <MudText Typo="Typo.overline">بيانات الإقامة</MudText>
 
-    <MudForm @ref="form" Model="@Model">
-        <MudGrid Class="px-2">
-            <MudItem xs="12">
-                <MudSelect T="string" @bind-Value="Model.Service" Label="الخدمة" Dense="true" Required="true">
-                    <MudSelectItem T="string">إصدار إقامة</MudSelectItem>
-                    <MudSelectItem T="string">تجديد إقامة</MudSelectItem>
-                    <MudSelectItem T="string">بدل تالف/فاقد</MudSelectItem>
-                </MudSelect>
-            </MudItem>
+                <!-- شبكة الحقول -->
+                <MudGrid RightToLeft="RightToLeft.Yes" GutterSize="GutterSize.Small">
 
-            <MudItem xs="12" sm="6">
-                <MudTextField T="string" @bind-Value="Model.IqamaNumber"
-                              Label="رقم الإقامة" Dense="true"
-                              Required="true" Placeholder="2457011111" />
-            </MudItem>
+                    <MudItem xs="12" md="6">
+                        <MudSelect T="string" Label="مدة الإقامة (شهر)" @bind-Value="Model.IqamaDuration" Dense="true" Required="true">
+                            <MudSelectItem T="string" Value="@("12")">12</MudSelectItem>
+    <MudSelectItem T="string" Value="@("24")">24</MudSelectItem>
+                        </MudSelect>
+                    </MudItem>
 
-            <MudItem xs="12" sm="6">
-                <MudTextField T="string" @bind-Value="Model.PassportNumber" Label="رقم الجواز" Dense="true" />
-            </MudItem>
+                    <MudItem xs="12" md="6">
+                        <MudTextField T="string" Label="رقم الحدود"
+                                      @bind-Value="Model.BorderNumber" Dense="true" Required="true"
+                                      Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.QrCode2"
+                                      HelperText="يبدأ بـ 3 أو 4 أو 5 ويتكون من 10 أرقام" />
+                    </MudItem>
 
-            <MudItem xs="12" sm="6">
-                <MudTextField T="string" @bind-Value="Model.Profession" Label="المهنة على الإقامة" Dense="true" />
-            </MudItem>
+                    <MudItem xs="12" md="6">
+                        <MudTextField T="string" Label="رمز دولة الميلاد"
+                                      @bind-Value="Model.LkBirthCountry" Dense="true" Required="true"
+                                      Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Public" />
+                    </MudItem>
 
-            <MudItem xs="12" sm="6">
-                <MudDatePicker T="DateTime?" @bind-Value="Model.IqamaExpiry" Label="تاريخ انتهاء الإقامة" Dense="true" />
-            </MudItem>
+                    <MudItem xs="12" md="6">
+                        <MudTextField T="string" Label="الحالة الاجتماعية (رمز)"
+                                      @bind-Value="Model.MaritalStatus" Dense="true" Required="true"
+                                      Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.FavoriteBorder" />
+                    </MudItem>
 
-            <MudItem xs="12">
-                <MudTextField T="string" @bind-Value="Model.Notes" Label="ملاحظات" Lines="2" />
-            </MudItem>
-        </MudGrid>
+                    <MudItem xs="12" md="6">
+                        <MudTextField T="string" Label="مدينة إصدار الجواز"
+                                      @bind-Value="Model.PassportIssueCity" Dense="true" Required="true"
+                                      Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.LocationCity" />
+                    </MudItem>
+                </MudGrid>
 
-        <MudDivider Class="my-3" />
+                <MudDivider Class="my-2" />
+                <MudText Typo="Typo.overline">الاسم بالإنجليزية</MudText>
 
-        <div class="d-flex justify-end gap-2 pb-3 px-2">
-            <MudButton Variant="Variant.Outlined" OnClick="@CancelDialog">إغلاق</MudButton>
-            <MudButton Color="Color.Primary" StartIcon="@Icons.Material.Filled.Send"
-                       OnClick="@Submit" Disabled="@submitting">
-                @if (submitting)
-                {
-                    <MudProgressCircular Indeterminate="true" Size="Size.Small" Class="mr-2" />
-                }
-                إرسال إلى مقيم
-            </MudButton>
-        </div>
-    </MudForm>
-</MudPaper>
+                <MudGrid RightToLeft="RightToLeft.Yes" GutterSize="GutterSize.Small">
+                    <MudItem xs="12" md="6">
+                        <MudTextField T="string" Label="First Name (EN)" @bind-Value="Model.TrFirstName" Dense="true" Required="true" />
+                    </MudItem>
+                    <MudItem xs="12" md="6">
+                        <MudTextField T="string" Label="Father Name (EN)" @bind-Value="Model.TrFatherName" Dense="true" Required="true" />
+                    </MudItem>
+                    <MudItem xs="12" md="6">
+                        <MudTextField T="string" Label="Grand Father Name (EN)" @bind-Value="Model.TrGrandFatherName" Dense="true" Required="true" />
+                    </MudItem>
+                    <MudItem xs="12" md="6">
+                        <MudTextField T="string" Label="Family Name (EN)" @bind-Value="Model.TrFamilyName" Dense="true" Required="true" />
+                    </MudItem>
+                </MudGrid>
 
-@code {
-    // المرجع يُحقن كـ CascadingParameter في v8
-    [CascadingParameter] private IDialogReference? DialogRef { get; set; }
-
-    [Parameter] public SimpleEmployee? Employee { get; set; }
-
-    private MudForm? form;
-    private bool submitting;
-    private IssueIqamaModel Model = new();
-
-    private bool IsEmployeeNull => Model.EmployeeId is null;
-    private string Initials => GetInitials(Model.EmployeeName ?? "؟");
-    private string EmployeeTitle => string.IsNullOrWhiteSpace(Model.EmployeeName) ? "اختر موظفًا" : Model.EmployeeName!;
-    private string EmployeeCaption
-    {
-        get
-        {
-            var num = string.IsNullOrWhiteSpace(Model.EmployeeNumber) ? "-" : Model.EmployeeNumber!;
-            return Model.IqamaNumber is null ? num : $"{num} - {Model.IqamaNumber}";
-        }
-    }
-
-    protected override void OnInitialized()
-    {
-        if (Employee is not null)
-        {
-            Model.EmployeeId = Employee.Id;
-            Model.EmployeeName = Employee.FullName;
-            Model.EmployeeNumber = Employee.EmployeeNumber;
-            Model.IqamaNumber ??= Employee.IqamaNumber;
-        }
-    }
-
-    private async Task Submit()
-    {
-        await form!.Validate();
-        if (!form.IsValid) return;
-
-        submitting = true;
-        try
-        {
-            await Task.Delay(300); // TODO: استبدلها بنداء API الفعلي
-            DialogRef?.Close(DialogResult.Ok(Model));
-        }
-        finally { submitting = false; }
-    }
-
-    // بدل IDialogReference بـ IMudDialogInstance
-    [CascadingParameter] private IMudDialogInstance? MudDialog { get; set; }
-
-    private void CancelDialog() => MudDialog?.Cancel();
-
-  
-
-    private void OpenEmployeeProfile()
-    {
-        if (Model.EmployeeId is not null)
-            Nav.NavigateTo($"/employees/{Model.EmployeeId}");
-    }
-
-    private static string GetInitials(string name)
-    {
-        var p = (name ?? "").Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        return p.Length switch { 0 => "؟", 1 => p[0][0].ToString(), _ => $"{p[0][0]}{p[^1][0]}" };
-    }
-
-    // نموذج مبسّط
-    public sealed class IssueIqamaModel
-    {
-        public int? EmployeeId { get; set; }
-        public string? EmployeeName { get; set; }
-        public string? EmployeeNumber { get; set; }
-
-        [Required] public string Service { get; set; } = "إصدار إقامة";
-        [Required] public string? IqamaNumber { get; set; }
-
-        public string? PassportNumber { get; set; }
-        public string? Profession { get; set; }
-        public DateTime? IqamaExpiry { get; set; }
-        public string? Notes { get; set; }
-    }
-
-    public sealed class SimpleEmployee
-    {
-        public int Id { get; set; }
-        public string FullName { get; set; } = "";
-        public string EmployeeNumber { get; set; } = "";
-        public string? IqamaNumber { get; set; }
-    }
-}
+                <!-- Actions (تلتصق أسفل اللوح على الشاشات الطويلة) -->
+                <MudStack Direction="Row" Justify="Justify.FlexEnd" Spacing="1" Class="sheet-actions">
+                    <MudButton Variant="Variant.Outlined" Color="Color.Default" OnClick="Cancel">إلغاء</MudButton>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Save" StartIcon="@Icons.Material.Filled.Save">حفظ</MudButton>
+                </MudStack>
+            </MudStack>
+        </MudForm>
+    </DialogContent>
+</MudDialog>
