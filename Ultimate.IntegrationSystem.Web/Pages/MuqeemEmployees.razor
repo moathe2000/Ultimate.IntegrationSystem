@@ -533,34 +533,24 @@
 
     private async Task IssueResidence()
     {
-        var emp = new IssueIqamaDialog.SimpleEmployee
-        {
-            FullName = Employee.FullName ?? string.Empty,
-            EmployeeNumber = "—"
-        };
+        // var emp = new IssueIqamaDialog.SimpleEmployee
+        // {
+        //     FullName = Employee.FullName ?? string.Empty,
+        //     EmployeeNumber = "—"
+        // };
 
         var parameters = new DialogParameters { ["Employee"] = Employee };
 
-      
-
-        // var options = new DialogOptions
-        // {
-        //     CloseOnEscapeKey = true,
-        //     NoHeader = true,
-        //     FullWidth = true,
-        //     MaxWidth = MaxWidth.Large,
-        //     BackgroundClass = "side-sheet-clickthrough" // أو "side-sheet-overlay"
-        // };
         var options = new DialogOptions
         {
             CloseOnEscapeKey = true,
+            MaxWidth = MaxWidth.False,
+            FullWidth = false,
             NoHeader = true,
-            FullWidth = true,
-            MaxWidth = MaxWidth.ExtraExtraLarge,
-            BackgroundClass = "side-sheet-overlay"// "side-sheet-clickthrough" // أو "side-sheet-overlay"
-
-
+            CloseButton = false,
+            BackgroundClass = "side-sheet-overlay"
         };
+      
 
 
         var dialogRef = DialogService.Show<IssueIqamaDialog>(string.Empty, parameters, options);

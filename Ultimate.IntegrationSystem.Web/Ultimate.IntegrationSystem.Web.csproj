@@ -10,4 +10,8 @@
 		<PackageReference Include="MudBlazor" Version="8.11.0" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\Ultimate.IntegrationSystem.Api\Ultimate.IntegrationSystem.Api.csproj" />
+	</ItemGroup>
 </Project>

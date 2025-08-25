@@ -97,81 +97,57 @@ html, body, .mud-typography {
 
 /* «·Ê—ﬁ…: ·ÊÕ Ã«‰»Ì Ì”«—Ì »⁄—÷ À«»  Ê«— ›«⁄ ﬂ«„· */
 
-
-
-.side-sheet-left .mud-dialog-paper {
+/* ========== Side-Sheet (MudDialog) „À· „ﬁÌ„ API Key ========== */
+.mud-dialog.side-sheet .mud-dialog-paper {
     position: fixed !important;
     top: 0;
-    left: 0;
-    right: auto;
+    right: 0; /* Ì› Õ „‰ «·Ì„Ì‰ */
+    left: auto;
     height: 100dvh;
     width: 560px;
     max-width: 92vw;
     margin: 0 !important;
     transform: none !important;
-    border-radius: 0 16px 16px 0;
+    border-radius: 16px 0 0 16px;
+    background: #fff;
     display: flex;
     flex-direction: column;
     z-index: 1400 !important;
-    box-shadow: 0 10px 30px rgba(0,0,0,.22);
-    animation: slideInLeft .22s ease-out;
+    box-shadow: -4px 0 20px rgba(0,0,0,.2);
+    animation: slideInRight .25s ease-out;
 }
 
-.side-sheet-left .mud-dialog-content {
+.mud-dialog.side-sheet .mud-dialog-content {
     flex: 1 1 auto;
     overflow: auto;
     -webkit-overflow-scrolling: touch;
-    padding: 0;
+    padding: 16px;
 }
 
-/*.side-sheet-left .mud-dialog-paper {
-    position: fixed !important;
-    top: 0;
-    left: 0;*/ /* ≈Ã»«— «·› Õ „‰ «·Ì”«— Õ Ï „⁄ RTL */
-    /*right: auto;
-    height: 100dvh;*/ /* √œﬁ „‰ 100vh ⁄·Ï «·„ ’›Õ«  «·ÕœÌÀ… */
-    /*width: 560px;*/ /* €Ì¯—Â« Õ”» —€» ﬂ („À«·: 640px) */
-    /*max-width: 92vw;*/ /* «” Ã«»… ⁄·Ï «·‘«‘«  «·÷Ìﬁ… */
-    /*margin: 0 !important;
-    transform: none !important;
-    border-radius: 0 16px 16px 0;*/ /* Õ«›… ‰«⁄„… Ì„Ì‰ «··ÊÕ */
-    /*display: flex;
-    flex-direction: column;
-    z-index: 1400 !important;*/ /* √⁄·Ï „‰ «·‹overlay */
-    /*box-shadow: 0 10px 30px rgba(0,0,0,.22);
-    animation: slideInLeft .22s ease-out;
-}*/
-
-/* „Õ ÊÏ «·œÌ«·ÊÃ ó Scroll œ«Œ·Ì Ê„‰⁄ «·ﬁ’ */
-/*.side-sheet-left .mud-dialog-content {
-    flex: 1 1 auto;
-    overflow: auto;*/ /* Ì„‰⁄ «·ﬁ’ ··√”›· */
-    /*-webkit-overflow-scrolling: touch;*/ /* ”·«”… ⁄·Ï iOS */
-    /*padding: 0;*/ /* «·Õ‘Ê ÌﬂÊ‰ œ«Œ· »ÿ«ﬁ« ﬂ */
-/*}*/
-
-/* ⁄‰Ê«‰ „À»  («Œ Ì«—Ì) */
-.side-sheet-left .mud-dialog-title {
+.side-sheet .js-header {
     position: sticky;
     top: 0;
-    background: var(--mud-palette-surface);
-    z-index: 1;
+    z-index: 3;
+    padding: 14px 16px;
+    background: #fff;
+    border-bottom: 1px solid #eee;
 }
 
-/* ›Ê — „À»  ··√“—«— «·”›·Ì… */
-.side-sheet-left .dialog-footer {
+.side-sheet .js-footer {
     position: sticky;
     bottom: 0;
-    background: var(--mud-palette-surface);
+    z-index: 3;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
     padding: 12px 16px;
-    border-top: 1px solid rgba(0,0,0,.08);
-    z-index: 1;
+    background: #fff;
+    border-top: 1px solid #eee;
 }
 
-/* √‰Ì„Ì‘‰ «·œŒÊ· „‰ «·Ì”«— */
-@keyframes slideInLeft {
+@keyframes slideInRight {
     from {
-        transform: translateX(-18px);
+        transform: translateX(40px);
         opacity: 0;
     }
 
@@ -180,36 +156,3 @@ html, body, .mud-typography {
         opacity: 1;
     }
 }
-
-/* «” Ã«»… ··ÃÊ«·/«· «»·  */
-@media (max-width: 900px) {
-    .side-sheet-left .mud-dialog-paper {
-        width: 100vw;
-        border-radius: 0; /* ‘«‘… ﬂ«„·… ⁄·Ï «·ÃÊ«· */
-    }
-}
-
-/* ==========================================================
-    Õ”Ì‰«  ≈÷«›Ì… ··ÕﬁÊ· œ«Œ· «·œÌ«·ÊÃ («Œ Ì«—Ì…)
-   ========================================================== */
-
-/* »ÿ«ﬁ«  œ«Œ·Ì… ‰ŸÌ›… */
-.side-sheet-left .js-card {
-    padding: 16px 18px;
-    border: 1px solid #f2f2ff;
-    border-radius: 8px;
-    margin-bottom: 10px;
-}
-
-/* √ÌﬁÊ‰«  «·ÕﬁÊ· »„Õ«–«… ’ÕÌÕ… */
-.mud-input-adornment {
-    margin-inline-start: 4px;
-    display: flex;
-    align-items: center;
-}
-
-/* „·«ÕŸ…:
-   ·« ‰ı€Ì¯ˆ— ”·Êﬂ ﬁ›·  „—Ì— «·Ã”„ (body scroll lock) «·Œ«’ »‹ MudBlazor
-   Õ Ï ·« ÌÕœÀ  œ«Œ·  „—Ì— »Ì‰ «·Œ·›Ì… Ê«·œÌ«·ÊÃ.
-*/
-

@@ -63,6 +63,8 @@ namespace Ultimate.IntegrationSystem.Api.Dto.Muqeem.Requests
 
         [JsonProperty("iqamaNumber")]
         public string IqamaNumber { get; set; }
+        public string EmployeeNumber { get; set; }
+        public string BorderNumber { get; set; }
     }
 
     // ✅ تمديد صلاحية الجواز
@@ -112,6 +114,8 @@ namespace Ultimate.IntegrationSystem.Api.Dto.Muqeem.Requests
         public string TrFatherName { get; set; }
         public string TrFirstName { get; set; }
         public string TrGrandFatherName { get; set; }
+
+        public string EmployeeNumber { get; set; }
     }
 
     // ✅ التحقق من الموافقة على تغيير مهنة

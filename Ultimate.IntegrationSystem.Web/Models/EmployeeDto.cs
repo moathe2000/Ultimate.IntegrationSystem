@@ -63,9 +63,7 @@ namespace Ultimate.IntegrationSystem.Web.Models
         // إذا لاحقاً أضفت المدينة
 
         public string CityName { get; set; }
-
-
-
+        public string IqamaNumber { get;  set; }
     }
 }
 
