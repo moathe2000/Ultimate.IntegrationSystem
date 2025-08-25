@@ -33,7 +33,6 @@
         transition: .15s ease;
     }
 
-        /* أيقونة + نص الرابط */
         .mud-navmenu .mud-nav-link .mud-nav-link-text {
             font-weight: 500;
         }
@@ -42,11 +41,9 @@
             color: var(--bosta-muted) !important;
         }
 
-        /* Hover */
         .mud-navmenu .mud-nav-link:hover {
             background: #eee8ff;
         }
-
         /* الرابط الفعّال */
         .mud-navmenu .mud-nav-link.active,
         .mud-navmenu .mud-nav-link.mud-nav-link-active {
@@ -60,7 +57,7 @@
                 color: var(--bosta-primary) !important;
             }
 
-/* أزرار داخل الكروت أو الحاويات إن حبيت */
+/* أزرار */
 .mud-button.mud-button-outlined-primary {
     border-color: var(--bosta-primary) !important;
     color: var(--bosta-primary) !important;
@@ -69,26 +66,4 @@
 .mud-button.mud-button-filled-primary {
     background: var(--bosta-primary) !important;
     color: #fff !important;
-}
-/* Side sheet positioned to the right */
-.side-sheet {
-    position: fixed;
-    inset-inline-end: 0;
-    top: 0;
-    height: 100dvh;
-    width: 420px; /* عرض اللوحة */
-    overflow: auto;
-    background: #fff;
-    z-index: 1300; /* فوق المودال */
-    border-inline-start: 1px solid #eee;
-    padding: 12px 12px 0 12px;
-}
-
-.sheet-header {
-    display: flex;
-    align-items: center;
-    gap: .25rem;
-    padding: .25rem .25rem .5rem .25rem;
-    border-bottom: 1px solid #f0f0f0;
-    margin-bottom: .5rem;
 }

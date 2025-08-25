@@ -14,7 +14,7 @@ namespace Ultimate.IntegrationSystem.Api.Services
 {
    
 
-    public class OracleDataAccessService : IDataAccessSerivce
+    public class OracleDataAccessService : IDataAccessService
     {
 
         private OracleConnection _con;
@@ -44,7 +44,7 @@ namespace Ultimate.IntegrationSystem.Api.Services
             _dbContext = dbContext;
 
             // Fetch settings from DBSetting asynchronously
-            var settings = _dbContext.DBSetting.FirstOrDefaultAsync(s => s.ID == 1).Result;
+            var settings = _dbContext.ConnectionSettings.FirstOrDefaultAsync(s => s.ID == 1).Result;
 
             if (settings != null)
             {

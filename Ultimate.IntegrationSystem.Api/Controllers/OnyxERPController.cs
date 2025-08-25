@@ -12,10 +12,10 @@ namespace Ultimate.IntegrationSystem.Api.Controllers
 
 
         private readonly ILogger<OnyxERPController> _logger;
-        private readonly IDataAccessSerivce _dataAccessSerivce;
+        private readonly IDataAccessService _dataAccessSerivce;
         private readonly IDbModelMappingService _dbModelMapping;
         private readonly IMapper _mapper;
-        public OnyxERPController(ILogger<OnyxERPController> logger, IDataAccessSerivce dataAccessSerivce, IDbModelMappingService dbModelMapping)
+        public OnyxERPController(ILogger<OnyxERPController> logger, IDataAccessService dataAccessSerivce, IDbModelMappingService dbModelMapping)
         {
             _logger = logger;
             _dataAccessSerivce = dataAccessSerivce;

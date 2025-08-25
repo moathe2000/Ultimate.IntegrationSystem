@@ -326,7 +326,7 @@
                                     <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small" AriaLabel="إجراءات" />
                                 </ActivatorContent>
                                 <ChildContent>
-                                    <MudMenuItem OnClick="@(() => EditEmployee(row))">خدمات مقيم</MudMenuItem>
+                                    <MudMenuItem OnClick="@(() => GoToMuqeem(row))">خدمات مقيم</MudMenuItem>
                                     <MudMenuItem OnClick="@(() => NavigateToDetails(row))">تفاصيل</MudMenuItem>
                                 </ChildContent>
                             </MudMenu>
@@ -373,7 +373,7 @@
                                                 <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small" />
                                             </ActivatorContent>
                                             <ChildContent>
-                                                <MudMenuItem OnClick="@(() => EditEmployee(e))">خدمات مقيم</MudMenuItem>
+                                                <MudMenuItem OnClick="@(() => GoToMuqeem(e))">خدمات مقيم</MudMenuItem>
                                                 <MudMenuItem OnClick="@(() => NavigateToDetails(e))">تفاصيل</MudMenuItem>
                                             </ChildContent>
                                         </MudMenu>
@@ -488,7 +488,7 @@
     }
 
     // تمرير المختار إلى صفحة Muqeem باستخدام الحالة
-    private void EditEmployee(EmployeeDto e)
+    private void GoToMuqeem(EmployeeDto e)
     {
         SelectedState.Set(e);
         Navigation.NavigateTo("/MuqeemEmployees");

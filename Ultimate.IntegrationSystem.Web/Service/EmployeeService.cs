@@ -12,7 +12,7 @@ namespace Ultimate.IntegrationSystem.Web.Service
         private readonly HttpClient _http;
         private readonly JsonSerializerOptions _json;
 
-
+       [ ActivatorUtilitiesConstructor]
         public EmployeeService(HttpClient http, IConfiguration cfg, IHttpContextAccessor? acc = null)
         {
             if (http.BaseAddress is null)
@@ -56,57 +56,7 @@ namespace Ultimate.IntegrationSystem.Web.Service
                 throw new Exception(result.Message ?? "API error.");
 
             var envelope = JsonConvert.DeserializeObject<EmployeeDto[]>(result.Content.ToString());
-            // احصل على مصفوفة العناصر من Content
-            //JsonElement arrayEl;
-            //if (envelope.Content.ValueKind == JsonValueKind.Array)
-            //{
-            //    arrayEl = envelope.Content;
-            //}
-            //else if (envelope.Content.ValueKind == JsonValueKind.String)
-            //{
-            //    var inner = envelope.Content.GetString() ?? "[]";
-            //    using var doc = JsonDocument.Parse(inner);
-            //    arrayEl = doc.RootElement.ValueKind == JsonValueKind.Array ? doc.RootElement : default;
-            //    if (arrayEl.ValueKind != JsonValueKind.Array) return new List<EmployeeDto>();
-            //}
-            //else
-            //{
-            //    return new List<EmployeeDto>();
-            //}
-
-            //static string S(JsonElement el, string name)
-            //    => el.TryGetProperty(name, out var v) && v.ValueKind != JsonValueKind.Null
-            //       ? (v.ValueKind == JsonValueKind.String ? v.GetString() ?? "" : v.ToString())
-            //       : "";
-
-            //var list = new List<EmployeeDto>();
-            //foreach (var e in arrayEl.EnumerateArray())
-            //{
-            //    var employeeNumber = S(e, "employeeNumber");
-            //    var employeeName = S(e, "employeeName");
-            //    var firstName = S(e, "firstName");
-            //    var jobTitle = S(e, "jobName");    // من JSON
-            //    var dept = S(e, "hrchyName");  // من JSON
-
-            //    // Id نوعه Guid لديك: حوِّل أو أنشئ جديدًا
-            //    //Guid id = Guid.Empty;
-            //    //if (!Guid.TryParse(employeeNumber, out id))
-            //    //    id = Guid.NewGuid();
-
-            //    list.Add(new EmployeeDto
-            //    {
-            //     // Id = id, // << يحل CS0029
-            //        EmployeeNumber = employeeNumber,
-            //        FullName = !string.IsNullOrWhiteSpace(employeeName) ? employeeName : firstName,
-            //        Department = dept,
-            //        JobTitle = jobTitle,
-            //        Inactive = true,
-            //        HireDate = DateTime.MinValue, // << يحل CS0037 (أو اجعل الخاصية Nullable)
-            //        EmployeeName = employeeName,
-            //        Address = envelope.,
-                    
-            //    });
-            //}
+          
 
             return envelope.ToList();
         }

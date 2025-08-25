@@ -11,7 +11,7 @@ using Ultimate.IntegrationSystem.Api.DBMangers;
 namespace Ultimate.IntegrationSystem.Api.Migrations
 {
     [DbContext(typeof(IntegrationApiDbContext))]
-    [Migration("20250811235020_InitialCreate")]
+    [Migration("20250818005418_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -27,36 +27,51 @@ namespace Ultimate.IntegrationSystem.Api.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("AddOnlySubProductsFromOrderWithPriceDistribution")
-                        .HasColumnType("INTEGER");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(0);
 
                     b.Property<string>("ApiKey")
                         .IsRequired()
+                        .HasMaxLength(256)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("ApiUrl")
+                        .IsRequired()
+                        .HasMaxLength(1024)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("AppId")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("DName")
                         .IsRequired()
+                        .HasMaxLength(128)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("DateFormat")
                         .IsRequired()
+                        .HasMaxLength(32)
                         .HasColumnType("TEXT");
 
                     b.Property<int>("DoLog")
-                        .HasColumnType("INTEGER");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(0);
 
                     b.Property<string>("Email")
                         .IsRequired()
+                        .HasMaxLength(256)
                         .HasColumnType("TEXT");
 
                     b.Property<int?>("ExpiresOn")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("FracWhenSyncPrice")
-                        .HasColumnType("INTEGER");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(0);
 
                     b.Property<int>("LoginActivity")
                         .HasColumnType("INTEGER");
@@ -69,14 +84,21 @@ namespace Ultimate.IntegrationSystem.Api.Migrations
 
                     b.Property<string>("Password")
                         .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PlatformKey")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("PublicIPWithPort")
                         .IsRequired()
+                        .HasMaxLength(64)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("RedirectUrl")
                         .IsRequired()
+                        .HasMaxLength(1024)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("RefreshToken")
@@ -87,16 +109,24 @@ namespace Ultimate.IntegrationSystem.Api.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("ShowActiveSyncButton")
-                        .HasColumnType("INTEGER");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(0);
 
                     b.Property<int>("ShowOrderDataWhenSync")
-                        .HasColumnType("INTEGER");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(0);
 
                     b.Property<int>("SyncItemQuantityAndPrice")
-                        .HasColumnType("INTEGER");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(0);
 
                     b.Property<int>("SyncItemQuantityAndPricePeriodInMinuts")
-                        .HasColumnType("INTEGER");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(0);
 
                     b.Property<string>("Token")
                         .IsRequired()
@@ -104,7 +134,11 @@ namespace Ultimate.IntegrationSystem.Api.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("integration_api_settings");
+                    b.HasIndex("ApiUrl");
+
+                    b.HasIndex("Email");
+
+                    b.ToTable("integration_api_settings", (string)null);
                 });
 
             modelBuilder.Entity("Ultimate.IntegrationSystem.Api.Models.SqlLite.ApiRequestSettings", b =>
@@ -115,10 +149,12 @@ namespace Ultimate.IntegrationSystem.Api.Migrations
 
                     b.Property<string>("ApiKey")
                         .IsRequired()
+                        .HasMaxLength(256)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("BodyFormat")
                         .IsRequired()
+                        .HasMaxLength(32)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("BodyTemplate")
@@ -127,14 +163,17 @@ namespace Ultimate.IntegrationSystem.Api.Migrations
 
                     b.Property<string>("CreatedAt")
                         .IsRequired()
+                        .HasMaxLength(40)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Description")
                         .IsRequired()
+                        .HasMaxLength(512)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Endpoint")
                         .IsRequired()
+                        .HasMaxLength(1024)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Headers")
@@ -143,6 +182,7 @@ namespace Ultimate.IntegrationSystem.Api.Migrations
 
                     b.Property<string>("HttpMethod")
                         .IsRequired()
+                        .HasMaxLength(8)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Parametr")
@@ -151,7 +191,9 @@ namespace Ultimate.IntegrationSystem.Api.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ApiRequestSettings");
+                    b.HasIndex("HttpMethod", "Endpoint");
+
+                    b.ToTable("ApiRequestSettings", (string)null);
                 });
 
             modelBuilder.Entity("Ultimate.IntegrationSystem.Api.Models.SqlLite.ConnectionSetting", b =>
@@ -165,10 +207,12 @@ namespace Ultimate.IntegrationSystem.Api.Migrations
 
                     b.Property<string>("Host")
                         .IsRequired()
+                        .HasMaxLength(255)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Password")
                         .IsRequired()
+                        .HasMaxLength(256)
                         .HasColumnType("TEXT");
 
                     b.Property<int>("Port")
@@ -176,18 +220,22 @@ namespace Ultimate.IntegrationSystem.Api.Migrations
 
                     b.Property<string>("SchemaName")
                         .IsRequired()
+                        .HasMaxLength(128)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("SelectedSystem")
                         .IsRequired()
+                        .HasMaxLength(64)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("ServiceName")
                         .IsRequired()
+                        .HasMaxLength(128)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Year")
                         .IsRequired()
+                        .HasMaxLength(10)
                         .HasColumnType("TEXT");
 
                     b.HasKey("ID");
@@ -195,7 +243,7 @@ namespace Ultimate.IntegrationSystem.Api.Migrations
                     b.HasIndex("Year", "Activity")
                         .IsUnique();
 
-                    b.ToTable("DBSetting");
+                    b.ToTable("ConnectionSetting", (string)null);
                 });
 #pragma warning restore 612, 618
         }

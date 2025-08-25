@@ -30,7 +30,6 @@
     <Folder Include="Common\Extensions\" />
     <Folder Include="Common\Correlation\" />
     <Folder Include="Common\Result\" />
-    <Folder Include="Integrations\Muqeem\" />
     <Folder Include="Models\NewFolder\" />
   </ItemGroup>
 

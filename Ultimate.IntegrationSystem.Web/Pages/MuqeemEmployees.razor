@@ -1,6 +1,7 @@
 ﻿@page "/MuqeemEmployees"
 
 @using MudBlazor
+@using Ultimate.IntegrationSystem.Web.Models
 @using Ultimate.IntegrationSystem.Web.Service
 @using Ultimate.IntegrationSystem.Web.Pages.Integrations.muqeem.Dialoge   @* عدّلها لو النيمسبيس مختلف *@
 
@@ -84,29 +85,29 @@
             <MudItem xs="12" md="4" Class="emp-id-col">
                 <MudStack AlignItems="AlignItems.Center" Spacing="1">
                     <MudAvatar Class="emp-avatar" Color="Color.Primary">
-                        @GetInitials(Employee.FullName)
+                        @GetInitials(Employee.EmployeeName)
                     </MudAvatar>
-                    <MudText Typo="Typo.subtitle2">@Employee.FullName</MudText>
-                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">@Employee.JobTitle</MudText>
+                    <MudText Typo="Typo.subtitle2">@Employee.EmployeeName</MudText>
+                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">@Employee.HrchyName</MudText>
                 </MudStack>
             </MudItem>
 
             <MudItem xs="12" md="8">
                 <MudStack Direction="Row" Wrap="Wrap.NoWrap" Class="emp-chips" Spacing="2">
                     <MudChip T="string" Variant="Variant.Outlined" Icon="@Icons.Material.Filled.AddToHomeScreen">
-                        المسمى الوظيفي : @Employee.JobTitle
+                        المسمى الوظيفي : @Employee.JobName
                     </MudChip>
                     <MudChip T="string" Variant="Variant.Outlined" Icon="@Icons.Material.Filled.BorderBottom">
                         الحدود : @Employee.BorderNumber
                     </MudChip>
                     <MudChip T="string" Variant="Variant.Outlined" Icon="@Icons.Material.Filled.Smartphone">
-                        رقم الجوال : @Employee.WorkMobile
+                        رقم الجوال : @Employee.MobileNo
                     </MudChip>
                     <MudChip T="string" Variant="Variant.Outlined" Icon="@Icons.Material.Filled.Call">
-                        هاتف : @Employee.WorkPhone
+                        هاتف : @Employee.TelNo
                     </MudChip>
                     <MudChip T="string" Variant="Variant.Outlined" Icon="@Icons.Material.Filled.Email">
-                        @Employee.WorkEmail
+                        @Employee.Email
                     </MudChip>
                 </MudStack>
             </MudItem>
@@ -126,7 +127,7 @@
                                    StartIcon="@Icons.Material.Filled.Add" OnClick="AddNewResidence" Class="ml-2">
                             إضافة إقامة حالية +
                         </MudButton>
-                        <MudButton Variant="Variant.Outlined" Color="Color.Primary"
+                        <MudButton Variant="Variant.Outlined" Color="Color.Primary"  
                                    StartIcon="@Icons.Material.Filled.Task" OnClick="IssueResidence">
                             إصدار إقامة
                         </MudButton>
@@ -384,7 +385,7 @@
     private int _activeTab = 0;
 
     // ===== Header model filled from SelectedState =====
-    private EmployeeHeader Employee = new();
+    private EmployeeDto Employee = new();
 
     protected override void OnInitialized()
     {
@@ -397,19 +398,22 @@
 
         var e = SelectedState.Current;
         var full = string.IsNullOrWhiteSpace(e.FullName) ? e.EmployeeName : e.FullName;
+        Employee = SelectedState.Current;
+        // Employee = new EmployeeH
+        // {
+        //     FullName = full ?? "-",
+        //     JobTitle = e.JobName ?? "-",
+        //     IqamaNumber = "-",
+        //     PassportNumber = "-",
+        //     BorderNumber = e.BorderNumber,
+        //     PassportExpiry = null,
+            
+        //     WorkMobile = e.MobileNo ?? "-",
+        //     WorkPhone = e.TelNo ?? "-",
+        //     WorkEmail = e.Email ?? "-",
+        //     EmployeeNumber = e.EmployeeNumber ?? "-",
 
-        Employee = new EmployeeHeader
-        {
-            FullName = full ?? "-",
-            JobTitle = e.JobName ?? "-",
-            IqamaNumber = "-",
-            PassportNumber = "-",
-            BorderNumber = "-",
-            PassportExpiry = null,
-            WorkMobile = e.MobileNo ?? "-",
-            WorkPhone = e.TelNo ?? "-",
-            WorkEmail = e.Email ?? "-"
-        };
+        // };
     }
 
     private string GetInitials(string? name)
@@ -531,13 +535,47 @@
     {
         var emp = new IssueIqamaDialog.SimpleEmployee
         {
-            Id = 0,
             FullName = Employee.FullName ?? string.Empty,
-            EmployeeNumber = "—",
-           // IqamaNumber = string.IsNullOrWhiteSpace(Employee.IqamaNumber) ? null : Employee.IqamaNumber
+            EmployeeNumber = "—"
         };
 
-        var parameters = new DialogParameters { ["Employee"] = emp };
+        var parameters = new DialogParameters { ["Employee"] = Employee };
+
+      
+
+        // var options = new DialogOptions
+        // {
+        //     CloseOnEscapeKey = true,
+        //     NoHeader = true,
+        //     FullWidth = true,
+        //     MaxWidth = MaxWidth.Large,
+        //     BackgroundClass = "side-sheet-clickthrough" // أو "side-sheet-overlay"
+        // };
+        var options = new DialogOptions
+        {
+            CloseOnEscapeKey = true,
+            NoHeader = true,
+            FullWidth = true,
+            MaxWidth = MaxWidth.ExtraExtraLarge,
+            BackgroundClass = "side-sheet-overlay"// "side-sheet-clickthrough" // أو "side-sheet-overlay"
+
+
+        };
+
+
+        var dialogRef = DialogService.Show<IssueIqamaDialog>(string.Empty, parameters, options);
+        var result = await dialogRef.Result;
+
+        if (!result.Canceled && result.Data is IssueIqamaDialog.IqamaModel model)
+        {
+            // TODO: استدعِ API الإرسال إلى مقيم باستخدام model
+            Snackbar.Add("تم إرسال طلب إصدار الإقامة بنجاح.", Severity.Success);
+        }
+        else
+        {
+            Snackbar.Add("تم إلغاء العملية.", Severity.Info);
+        }
+
         
         // var options = new DialogOptions
         // {
@@ -556,26 +594,26 @@
         //     CloseButton = true,
         //     NoHeader = true
         // };
-        var options = new DialogOptions
-        {
-            CloseOnEscapeKey = true,
-         //   BackdropClick = false, // امنع الإغلاق عند النقر على الخلفية (v8)
-            Position = DialogPosition.BottomLeft,
-            MaxWidth = MaxWidth.False,    // نتحكم في العرض بالكامل عبر CSS
-            FullWidth = false,
-            NoHeader = true,
-            CloseButton = false,
-            BackgroundClass = "side-sheet"          // كلاس مخصص للستايل
-        };
+        // var options = new DialogOptions
+        // {
+        //     CloseOnEscapeKey = true,
+        //  //   BackdropClick = false, // امنع الإغلاق عند النقر على الخلفية (v8)
+        //     Position = DialogPosition.BottomLeft,
+        //     MaxWidth = MaxWidth.Medium,    // نتحكم في العرض بالكامل عبر CSS
+        //     FullWidth = false,
+        //     NoHeader = true,
+        //     CloseButton = true,
+        //     BackgroundClass = "side-sheet"          // كلاس مخصص للستايل
+        // };
 
 
-        var dialogRef = DialogService.Show<IssueIqamaDialog>(title: string.Empty, parameters, options);
-        var result = await dialogRef.Result;
+        // var dialogRef = DialogService.Show<IssueIqamaDialog>(title: string.Empty, parameters, options);
+        // var result = await dialogRef.Result;
 
-        if (!result.Canceled && result.Data is IssueIqamaDialog.IssueIqamaModel)
-            Snackbar.Add("تم إرسال طلب إصدار الإقامة بنجاح.", Severity.Success);
-        else
-            Snackbar.Add("تم إلغاء العملية.", Severity.Info);
+        // if (!result.Canceled && result.Data is IssueIqamaDialog.IssueIqamaModel)
+        //     Snackbar.Add("تم إرسال طلب إصدار الإقامة بنجاح.", Severity.Success);
+        // else
+        //     Snackbar.Add("تم إلغاء العملية.", Severity.Info);
     }
 
     private void EditResidency(ResidencyRow r) => Snackbar.Add($"تعديل إقامة رقم {r.IqamaNumber}", Severity.Info);
@@ -595,18 +633,20 @@
     private void ReprintPassport(PassportRow r) => Snackbar.Add("إعادة طباعة معاملة الجواز", Severity.Info);
 
     // ===== Mini models =====
-    private class EmployeeHeader
-    {
-        public string FullName { get; set; } = "";
-        public string JobTitle { get; set; } = "";
-        public string IqamaNumber { get; set; } = "";
-        public string PassportNumber { get; set; } = "";
-        public string BorderNumber { get; set; } = "";
-        public DateTime? PassportExpiry { get; set; }
-        public string WorkMobile { get; set; } = "";
-        public string WorkPhone { get; set; } = "";
-        public string WorkEmail { get; set; } = "";
-    }
+    // private class EmployeeHeader
+    // {
+    //     public string FullName { get; set; } = "";
+    //     public string JobTitle { get; set; } = "";
+    //     public string IqamaNumber { get; set; } = "";
+    //     public string PassportNumber { get; set; } = "";
+    //     public string BorderNumber { get; set; } = "";
+    //     public DateTime? PassportExpiry { get; set; }
+    //     public string WorkMobile { get; set; } = "";
+    //     public string WorkPhone { get; set; } = "";
+    //     public string WorkEmail { get; set; } = "";
+    //     public string EmployeeNumber { get; set; } = "";
+      
+    //         }
 
     private class ResidencyRow
     {

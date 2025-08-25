@@ -1,4 +1,6 @@
-﻿namespace Ultimate.IntegrationSystem.Web.Models
+﻿using System.Text.Json.Serialization;
+
+namespace Ultimate.IntegrationSystem.Web.Models
 {
     public class EmployeeDto
     {
@@ -29,7 +31,41 @@
 
         public string Id { get; set; }
 
-     
+
+
+        // --- الحقول الإضافية من s_emp ---
+   
+        public string BorderNumber { get; set; }
+
+
+        public int? BirthCountry { get; set; }
+    public int? MaritalStatus { get; set; }
+
+
+        public string FamilyName { get; set; }
+
+ 
+        public string FatherName { get; set; }
+
+
+        public string GivenName { get; set; }
+
+
+        public string GrandFatherName { get; set; }
+
+        // أسماء مفهومة من الجداول المرجعية
+
+        public string MaritalStatusName { get; set; }
+
+
+        public string BirthCountryName { get; set; }
+
+        // إذا لاحقاً أضفت المدينة
+
+        public string CityName { get; set; }
+
+
+
     }
 }
 

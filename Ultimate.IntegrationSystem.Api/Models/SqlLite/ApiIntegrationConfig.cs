@@ -6,7 +6,7 @@ namespace Ultimate.IntegrationSystem.Api.Models.SqlLite
     {
         [Key]
         public int Id { get; set; }
-
+        public string PlatformKey { get; set; }
         public string Token { get; set; }
         public string RefreshToken { get; set; }
         public int? ExpiresOn { get; set; }
@@ -15,6 +15,8 @@ namespace Ultimate.IntegrationSystem.Api.Models.SqlLite
         public string Email { get; set; }
         public string Password { get; set; }
         public string ApiKey { get; set; }
+
+        public string AppId {get; set; } = string.Empty;
         public string ApiUrl { get; set; }
         public int LoginYear { get; set; }
         public int LoginUser { get; set; }

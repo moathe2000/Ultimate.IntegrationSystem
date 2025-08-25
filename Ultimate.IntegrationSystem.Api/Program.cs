@@ -14,24 +14,28 @@ using System.Text;
 using Ultimate.IntegrationSystem.Api.DBMangers;
 using Ultimate.IntegrationSystem.Api.Interface;
 using Ultimate.IntegrationSystem.Api.Services;
+using Ultimate.IntegrationSystem.Api.Integrations.Muqeem;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Àﬁ«›… «› —«÷Ì…
 CultureInfo.DefaultThreadCurrentCulture = CultureInfo.GetCultureInfo("ar-YE");
+CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.GetCultureInfo("ar-YE");
 
-//Configure Serilog
-var logger = new LoggerConfiguration()
-    .ReadFrom.Configuration(builder.Configuration)
-    .Enrich.FromLogContext()
-    .CreateLogger();
-builder.Logging.ClearProviders();
-builder.Logging.AddSerilog(logger);
+// Serilog
+builder.Host.UseSerilog((ctx, lc) => lc
+    .ReadFrom.Configuration(ctx.Configuration)
+    .Enrich.FromLogContext());
 
-// Add services to the container.
-//builder.Services.AddScoped(sp => new HttpClient() { BaseAddress = new Uri("https://aka.ms/aspnetcore/swashbuckle", UriKind.Absolute), Timeout = TimeSpan.FromDays(1) });
+// --- MVC/Controllers („⁄ œ⁄„ XML) ---
+builder.Services.AddControllers(options =>
+{
+    options.RespectBrowserAcceptHeader = true;
+})
+.AddXmlSerializerFormatters(); // »œ·« „‰ AddMvc + ≈÷«›… «·›Ê—„« — ÌœÊÌ«
 
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+// Swagger + JWT
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -39,122 +43,84 @@ builder.Services.AddSwaggerGen(options =>
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         In = ParameterLocation.Header,
-        Description = "Please enter a valid token",
+        Description = "JWT in Authorization header. Example: Bearer {token}",
         Name = "Authorization",
         Type = SecuritySchemeType.Http,
         BearerFormat = "JWT",
         Scheme = "Bearer"
-
-
     });
     options.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
-        {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference()
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            new string[]{ }
-        }
+        { new OpenApiSecurityScheme
+            { Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" } },
+          Array.Empty<string>() }
     });
-
 });
 
-//Add Automapper profiles
+// --- EF Core: SQLite ---
+var dbPath = Path.Combine(AppContext.BaseDirectory, "dbSqlit.db");
 builder.Services.AddDbContext<IntegrationApiDbContext>(options =>
-{
-    var dbPath = Path.Combine(Directory.GetCurrentDirectory(), "dbSqlit.db");
-    options.UseSqlite($"Data Source={dbPath}");
-});
+    options.UseSqlite($"Data Source={dbPath}"));
 
-//////var dbPath = Path.Combine(Directory.GetCurrentDirectory(), "dbSqlit.db");
-
-//////var columnsToEnsure = new Dictionary<string, string>
-//////{
-//////    { "DName", "TEXT" }
-//////};
-
-//////DbSchemaUpdater.EnsureColumnsExist(dbPath, "integration_api_settings", columnsToEnsure);
-
-
-// ≈÷«›… «·Œœ„«  «·Œ«’…
-//builder.Services.AddScoped<ApiIntegrationConfig>();
-//builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-////Add Domain Services
-builder.Services.AddScoped<IDataAccessSerivce, OracleDataAccessService>();
+// --- DI ·Œœ„«  «·œÊ„Ì‰ ---
+// „·«ÕŸ…:  √ﬂœ √‰ «·Ê«ÃÂ… „’Õ¯Õ… ≈·Ï IDataAccessService (Ê·Ì” IDataAccessService)
+builder.Services.AddScoped<IDataAccessService, OracleDataAccessService>();
 builder.Services.AddSingleton<IDbModelMappingService, DbModelMappingService>();
-//builder.Services.AddScoped<IItemServies, ItemServies>();
-//builder.Services.AddScoped<BTMBOXServes>();
-//builder.Services.AddScoped<ISyncToBMTBOXServivce, SyncToBMTBOXServivce>();
+//builder.Services.AddScoped<Platfo>();
+
+builder.Services.AddScoped<MuqeemService>();
+builder.Services.AddScoped<ISyncToMuqeemService, SyncToMuqeemService>();
 //builder.Services.AddScoped<ISyncToBMTBOXServiceTest, SyncToBMTBOXServiceTest>();
-//builder.Services.Configure<Microsoft.AspNetCore.Mvc.JsonOptions>(options =>
-//{
-//    options.JsonSerializerOptions.MaxDepth = 256;
-//});
-//builder.Services.AddControllers(
-//options => options.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true);
+// ≈‰ √—œ   ﬂ«„· Muqeem ·«Õﬁ« (Ìﬁ—√ «·≈⁄œ«œ«  „‰ «·ÃœÊ· ›ﬁÿ) ”Ã¯· «·Œœ„«  Â‰«:
+// builder.Services.AddMemoryCache();
+// builder.Services.AddSingleton<IMuqeemRuntimeConfigAccessor, MuqeemRuntimeConfigAccessor>();
+// builder.Services.AddSingleton<IMuqeemTokenProvider, MuqeemTokenProvider>();
+// builder.Services.AddTransient<MuqeemHeadersHandler>();
+// builder.Services.AddHttpClient<MuqeemClient>().AddHttpMessageHandler<MuqeemHeadersHandler>();
 
-
-//builder.Services.AddApplicationInsightsTelemetry(Configuration);
-builder.Services.AddMvc(config =>
-{
-    // Add XML Content Negotiation
-    config.RespectBrowserAcceptHeader = true;
-    config.InputFormatters.Add(new XmlSerializerInputFormatter(config));
-    config.OutputFormatters.Add(new XmlSerializerOutputFormatter());
-});
-//builder.Services.AddControllers().Addn(options =>
-//    options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
-//);
-//add JWT Authentication
+// --- JWT Auth ---
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
-        options.Events = new JwtBearerEvents()
-        {
-            OnTokenValidated = OnTokenValidated,
-        };
+        options.Events = new JwtBearerEvents { OnTokenValidated = OnTokenValidated };
+        var issuer = builder.Configuration["Jwt:Issuer"];
+        var audience = builder.Configuration["Jwt:Audience"];
+        var key = builder.Configuration["Jwt:Key"];
+
+        if (string.IsNullOrWhiteSpace(issuer) || string.IsNullOrWhiteSpace(audience) || string.IsNullOrWhiteSpace(key))
+            throw new InvalidOperationException("JWT settings (Issuer/Audience/Key) are missing.");
+
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])),
-            ClockSkew = TimeSpan.Zero,
+            ValidIssuer = issuer,
+            ValidAudience = audience,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)),
+            ClockSkew = TimeSpan.Zero
         };
     });
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-//if (app.Environment.IsDevelopment())
-//{
+// Swagger œ«∆„« («Œ Ì«—Ì: ﬁ’—Â ⁄·Ï «· ÿÊÌ—)
 app.UseSwagger();
 app.UseSwaggerUI();
-//}
 
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
-
 app.UseAuthorization();
 
 app.MapControllers();
 
 app.Run();
 
-//Validating the token
-static async Task OnTokenValidated(TokenValidatedContext context)
+// Validating the token
+static Task OnTokenValidated(TokenValidatedContext context)
 {
     context.Success();
-    var x = context.Result.Succeeded;
-    await Task.CompletedTask;
-
+    return Task.CompletedTask;
 }
