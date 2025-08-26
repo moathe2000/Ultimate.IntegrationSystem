@@ -3,10 +3,7 @@
 @using Ultimate.IntegrationSystem.Web.Map
 @using Ultimate.IntegrationSystem.Web.Models
 
-
 <MudDialog Class="side-sheet" MaxWidth="MaxWidth.False" FullWidth="false" Style="--sheet-w:560px">
-
- 
     <DialogContent>
 
         <!-- Header -->
@@ -21,21 +18,23 @@
         </div>
 
         <MudForm @ref="_form" Model="@Model">
-
             <!-- Body -->
             <div class="sheet-body">
 
                 <!-- البيانات الأساسية -->
                 <MudPaper Elevation="0" Class="card">
-                    <MudText Typo="Typo.subtitle1" Class="mb-2">البيانات الأساسية</MudText>
+                    <MudText Typo="Typo.subtitle1" Class="card-title">
+                        <MudIcon Icon="@Icons.Material.Filled.Info" Color="Color.Primary" /> البيانات الأساسية
+                    </MudText>
 
-                    <MudGrid RightToLeft="RightToLeft.Yes" GutterSize="GutterSize.Small">
-                        <MudItem xs="12" md="6">
+                    <!-- لاحظ id وكلاسات الأعمدة لضبط المحاذاة -->
+                    <MudGrid id="iqama-basic" RightToLeft="RightToLeft.Yes" GutterSize="GutterSize.Small">
+                        <MudItem xs="12" md="6" Class="col-name">
                             <MudTextField Label="اسم الموظف" Value="@Employee.EmployeeName" ReadOnly="true" Dense="true"
                                           Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Badge" />
                         </MudItem>
 
-                        <MudItem xs="12" md="6">
+                        <MudItem xs="12" md="6" Class="col-number">
                             <MudTextField Label="رقم الموظف" Value="@Employee.EmployeeNumber" ReadOnly="true" Dense="true"
                                           Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Tag" />
                         </MudItem>
@@ -85,10 +84,12 @@
                 @if (!IsRenew)
                 {
                     <!-- الاسم بالإنجليزية -->
-                    <MudPaper Elevation="0" Class="card mt-2">
-                        <MudText Typo="Typo.subtitle1" Class="mb-2">الاسم بالإنجليزية</MudText>
+                    <MudPaper Elevation="0" Class="card mt-2 en-block">
+                        <MudText Typo="Typo.subtitle1" Class="card-title">
+                            <MudIcon Icon="@Icons.Material.Filled.Translate" Color="Color.Primary" /> الاسم بالإنجليزية
+                        </MudText>
 
-                        <MudGrid RightToLeft="RightToLeft.Yes" GutterSize="GutterSize.Small">
+                        <MudGrid RightToLeft="RightToLeft.No" GutterSize="GutterSize.Small">
                             <MudItem xs="12" md="6">
                                 <MudTextField Label="First Name (EN)"
                                               @bind-Value="Model.TrFirstName" For="@(() => Model.TrFirstName)"
@@ -126,7 +127,6 @@
                     إرسال إلى مقيم
                 </MudButton>
             </div>
-
         </MudForm>
 
     </DialogContent>
@@ -157,7 +157,6 @@
         public string MaritalStatus { get; set; } = "";
         public string PassportIssueCity { get; set; } = "";
 
-        // أسماء إنجليزية مطلوبة فقط عند الإصدار (نتحقق برمجياً قبل الإرسال)
         public string TrFirstName { get; set; } = "";
         public string TrFatherName { get; set; } = "";
         public string TrGrandFatherName { get; set; } = "";
@@ -169,26 +168,14 @@
         Model.BorderNumber = Employee?.BorderNumber ?? "";
         Model.BirthCountryCode = Employee?.BirthCountryName ?? "";
         Model.MaritalStatus = Employee?.MaritalStatusName ?? "";
-        Model.PassportIssueCity = Employee?.MobileNo ?? ""; // ✔️ لا تستخدم MaritalStatus.ToString()
+        Model.PassportIssueCity = Employee?.MobileNo ?? "";
     }
 
     private async Task Submit()
     {
         if (_form is null) return;
-
         await _form.Validate();
         if (!_form.IsValid) return;
-
-        // عند الإصدار، تأكد أن الأسماء الإنجليزية معبأة
-        if (!IsRenew &&
-            (string.IsNullOrWhiteSpace(Model.TrFirstName)
-             || string.IsNullOrWhiteSpace(Model.TrFatherName)
-             || string.IsNullOrWhiteSpace(Model.TrGrandFatherName)
-             || string.IsNullOrWhiteSpace(Model.TrFamilyName)))
-        {
-            // دع الفاليديشن المرئي يتكفّل، فقط لا تُرسل
-            return;
-        }
 
         busy = true;
         try
