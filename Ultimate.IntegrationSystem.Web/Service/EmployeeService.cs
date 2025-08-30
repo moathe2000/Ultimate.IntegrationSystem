@@ -1,73 +1,50 @@
-﻿using Newtonsoft.Json;
-using System.Net.Http;
+﻿using System.Net.Http.Json;
 using System.Text.Json;
+using System.Text.Json.Serialization;
+using Ultimate.IntegrationSystem.Web.Dto;
 using Ultimate.IntegrationSystem.Web.Models;
 
 namespace Ultimate.IntegrationSystem.Web.Service
 {
-
-
     public class EmployeeService : IEmployeeService
     {
         private readonly HttpClient _http;
         private readonly JsonSerializerOptions _json;
 
-       [ ActivatorUtilitiesConstructor]
-        public EmployeeService(HttpClient http, IConfiguration cfg, IHttpContextAccessor? acc = null)
-        {
-            if (http.BaseAddress is null)
-            {
-                var baseUrl = cfg["ApiBaseUrl"];
-                if (string.IsNullOrWhiteSpace(baseUrl) && acc?.HttpContext != null)
-                    baseUrl = $"{acc.HttpContext.Request.Scheme}://{acc.HttpContext.Request.Host}/";
-
-                if (!string.IsNullOrWhiteSpace(baseUrl))
-                    http.BaseAddress = new Uri(baseUrl);
-            }
-            _http = http;
-        }
-
-        // Adjust the route to your controller route
-        private const string Endpoint = "GetEmployees";
-
         public EmployeeService(HttpClient http)
         {
             _http = http;
-            _json = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            _json = new(JsonSerializerDefaults.Web)
+            {
+                PropertyNameCaseInsensitive = true,
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+                NumberHandling = JsonNumberHandling.AllowReadingFromString
+            };
         }
 
-        public async Task<List<EmployeeDto>> GetAllEmployeesAsync(EmployeePara para = null, CancellationToken ct = default)
+        // عدّل هذا ليتوافق مع الراوت الفعلي لديك
+        private const string Endpoint = "GetEmployees";
+
+        public async Task<List<EmployeeDto>> GetAllEmployeesAsync(EmployeePara? para = null, CancellationToken ct = default)
         {
             para ??= new EmployeePara { P_LNG_NO = 1 };
 
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            cts.CancelAfter(TimeSpan.FromSeconds(60));
 
-            //var response1 = await _http.PostAsJsonAsync(Endpoint, para).ConfigureAwait(false);
+            using var resp = await _http.PostAsJsonAsync(Endpoint, para, _json, cts.Token);
 
-            //var response = JsonConvert.DeserializeObject<ApiResultModel>(await response1.Content.ReadAsStringAsync());
+            var api = await resp.Content.ReadFromJsonAsync<ApiResultModel<List<EmployeeDto>>>(_json, cts.Token);
+            if (api is null)
+            {
+                var txt = await resp.Content.ReadAsStringAsync(cts.Token);
+                throw new InvalidOperationException($"Unexpected response ({(int)resp.StatusCode}): {txt}");
+            }
 
+            if (api.Code != 0)
+                throw new InvalidOperationException(api.Message?.Trim().Length > 0 ? api.Message! : "API error.");
 
-            using var resp = await _http.PostAsJsonAsync(Endpoint, para, _json, ct);
-            resp.EnsureSuccessStatusCode();
-
-            var raw = await resp.Content.ReadAsStringAsync(ct);
-            var result = JsonConvert.DeserializeObject<ApiResultModel>(raw.ToString())
-                          ?? throw new Exception("Empty response.");
-            if (result.Code != 0)
-                throw new Exception(result.Message ?? "API error.");
-
-            var envelope = JsonConvert.DeserializeObject<EmployeeDto[]>(result.Content.ToString());
-          
-
-            return envelope.ToList();
+            return api.Content ?? new List<EmployeeDto>();
         }
-
-   
-        
-
-
-        
-
-        
     }
-    }
-  
+}

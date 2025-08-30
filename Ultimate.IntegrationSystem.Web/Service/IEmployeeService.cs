@@ -1,4 +1,5 @@
-﻿using Ultimate.IntegrationSystem.Web.Models;
+﻿using Ultimate.IntegrationSystem.Web.Dto;
+using Ultimate.IntegrationSystem.Web.Models;
 
 namespace Ultimate.IntegrationSystem.Web.Service
 {

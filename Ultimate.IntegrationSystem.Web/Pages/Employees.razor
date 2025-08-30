@@ -1,6 +1,6 @@
 ﻿@page "/employees"
 @using MudBlazor
-
+@using Ultimate.IntegrationSystem.Web.Dto
 @using Ultimate.IntegrationSystem.Web.Models
 @using Ultimate.IntegrationSystem.Web.Service
 
@@ -309,10 +309,13 @@
                         <MudTh>إجراءات</MudTh>
                     </HeaderContent>
                     <RowTemplate Context="row">
-                        <MudTd>@row.EmployeeNumber</MudTd>
-                        <MudTd>@(string.IsNullOrWhiteSpace(row.FullName) ? row.EmployeeName : row.FullName)</MudTd>
-                        <MudTd>@row.HrchyName</MudTd>
-                        <MudTd>@row.JobName</MudTd>
+                        <MudTd>@row.Id</MudTd>
+                        <MudTd>
+                            @(string.IsNullOrWhiteSpace(row.FullName) ? row.FullNameEn : row.FullName)
+
+                </MudTd>
+                        <MudTd>@row.Department</MudTd>
+                        <MudTd>@row.JobTitle</MudTd>
                         <MudTd>@row.Email</MudTd>
                         <MudTd>
                             <MudChip T="string" Variant="Variant.Filled" Size="Size.Small"
@@ -349,16 +352,16 @@
                                         <div class="d-flex align-center">
                                             <div style="position:relative;margin-right:12px;">
                                                 <MudAvatar Size="Size.Large" Color="Color.Primary">
-                                                    <MudText>@GetInitials(string.IsNullOrWhiteSpace(e.FullName) ? e.EmployeeName : e.FullName)</MudText>
+                                                    <MudText>@GetInitials(string.IsNullOrWhiteSpace(e.FullName) ? e.FullNameEn : e.FullName)</MudText>
                                                 </MudAvatar>
                                                 <div class="avatar-badge @(rowInactive(e) ? "active-badge" : "inactive-badge")"></div>
                                             </div>
                                             <div>
                                                 <MudText Typo="Typo.subtitle1" Class="font-weight-bold line-2">
-                                                    @(string.IsNullOrWhiteSpace(e.FullName) ? e.EmployeeName : e.FullName)
+                                                    @(string.IsNullOrWhiteSpace(e.FullName) ? e.FullNameEn : e.FullName)
                                                 </MudText>
-                                                <MudText Typo="Typo.body2" Color="Color.Tertiary" Class="line-1">@e.JobName</MudText>
-                                                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="line-1">@e.HrchyName</MudText>
+                                                <MudText Typo="Typo.body2" Color="Color.Tertiary" Class="line-1">@e.JobTitle</MudText>
+                                                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="line-1">@e.Department</MudText>
                                             </div>
                                         </div>
                                     </MudCardContent>
@@ -410,7 +413,7 @@
 @code {
     private List<EmployeeDto> allEmployees = new();
     private string searchTerm = string.Empty;
-    private bool? selectedActive = null;          // null=الكل، true=فعال (Inactive==0)، false=موقّف (Inactive!=0)
+    private bool? selectedActive = null;          // null=الكل، true=فعال (IsActive==0)، false=موقّف (IsActive!=0)
     private string? selectedDepartment = null;    // يطابق HrchyName
 
     // 0 = بطاقات ، 1 = جدول
@@ -431,12 +434,12 @@
         allEmployees.Where(e =>
             (string.IsNullOrWhiteSpace(searchTerm)
              || (e.FullName?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false)
-             || (e.EmployeeName?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false)
-             || (e.EmployeeNumber?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false)
-             || (e.JobName?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false)
-             || (e.HrchyName?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false))
-            && (!selectedActive.HasValue || (selectedActive.Value ? e.Inactive == 0 : e.Inactive != 0))
-            && (string.IsNullOrEmpty(selectedDepartment) || string.Equals(e.HrchyName, selectedDepartment, StringComparison.OrdinalIgnoreCase)));
+             || (e.FullNameEn?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false)
+             || (e.Id?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false)
+             || (e.JobTitle?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false)
+             || (e.Department?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false))
+            && (!selectedActive.HasValue || (selectedActive.Value ? e.IsActive  : !e.IsActive ))
+            && (string.IsNullOrEmpty(selectedDepartment) || string.Equals(e.Department, selectedDepartment, StringComparison.OrdinalIgnoreCase)));
 
     private IEnumerable<EmployeeDto> pagedEmployees =>
         filteredEmployees.Skip((currentPage - 1) * pageSize).Take(pageSize);
@@ -468,7 +471,7 @@
 
     private void CalcKpis()
     {
-        activeCount = allEmployees.Count(e => e.Inactive == 0);
+        activeCount = allEmployees.Count(e => e.IsActive );
         inactiveCount = totalEmployees - activeCount;
         newHiresCount = 11; // مؤقت
     }
@@ -478,7 +481,7 @@
     private void OnPageChanged(int page) => currentPage = page;
     private void OnRowClick(TableRowClickEventArgs<EmployeeDto> args) => NavigateToDetails(args.Item);
 
-    private static bool rowInactive(EmployeeDto e) => e.Inactive == 0; // true => Active
+    private static bool rowInactive(EmployeeDto e) => e.IsActive ; // true => Active
 
     private string GetInitials(string name)
     {

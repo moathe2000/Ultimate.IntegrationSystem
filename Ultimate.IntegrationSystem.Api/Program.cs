@@ -1,20 +1,16 @@
-
-
-
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
+
 using System.Globalization;
 using System.Text;
-using System.Globalization;
-using System.Text;
+using Ultimate.IntegrationSystem.Api.AutoMapper;
 using Ultimate.IntegrationSystem.Api.DBMangers;
+using Ultimate.IntegrationSystem.Api.Integrations.Muqeem;
 using Ultimate.IntegrationSystem.Api.Interface;
 using Ultimate.IntegrationSystem.Api.Services;
-using Ultimate.IntegrationSystem.Api.Integrations.Muqeem;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -77,7 +73,7 @@ builder.Services.AddScoped<ISyncToMuqeemService, SyncToMuqeemService>();
 // builder.Services.AddSingleton<IMuqeemTokenProvider, MuqeemTokenProvider>();
 // builder.Services.AddTransient<MuqeemHeadersHandler>();
 // builder.Services.AddHttpClient<MuqeemClient>().AddHttpMessageHandler<MuqeemHeadersHandler>();
-
+builder.Services.AddAutoMapper(typeof(EmployeeProfile));
 // --- JWT Auth ---
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>

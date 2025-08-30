@@ -1,6 +1,7 @@
 ﻿
 
 @using MudBlazor
+@using Ultimate.IntegrationSystem.Web.Dto
 @using Ultimate.IntegrationSystem.Web.Models
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
@@ -9,7 +10,7 @@
     <MudListItem OnClick="ViewProfile" Icon="@Icons.Material.Filled.Person">عرض الملف الشخصي</MudListItem>
     <MudListItem OnClick="EditEmployee" Icon="@Icons.Material.Filled.Edit">تعديل</MudListItem>
     <MudListItem OnClick="ToggleStatus" Icon="@Icons.Material.Filled.Update">
-        @(Employee.Inactive==0 ? "تعطيل الحساب" : "تفعيل الحساب")
+        @(Employee.IsActive? "تعطيل الحساب" : "تفعيل الحساب")
     </MudListItem>
     <MudListItem OnClick="DeleteEmployee" Icon="@Icons.Material.Filled.Delete" Color="Color.Error">حذف</MudListItem>
 </MudList>

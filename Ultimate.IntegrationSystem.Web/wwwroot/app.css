@@ -74,6 +74,48 @@ a, .btn-link {
 h1:focus {
     outline: none;
 }
+.search-modern .mud-input-root {
+    border-radius: 12px !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,.06);
+    transition: .2s;
+}
+
+    .search-modern .mud-input-root:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,.12);
+    }
+
+.employee-card {
+    border-radius: 12px;
+    transition: .2s;
+}
+
+    .employee-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 18px rgba(0,0,0,.12);
+    }
+
+.kpi {
+    border-radius: 12px;
+    color: #fff;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.kpi-icon {
+    font-size: 2rem;
+    opacity: .9;
+}
+
+.kpi-title {
+    font-weight: 600;
+    opacity: .85;
+}
+
+.kpi-value {
+    font-size: 1.8rem;
+    font-weight: 800;
+}
 
 /* ================== Overlay («Œ Ì«—Ì) ================== */
 /* „—¯—Â „‰ DialogOptions: BackgroundClass = "side-sheet-overlay" */

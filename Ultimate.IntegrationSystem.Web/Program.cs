@@ -1,4 +1,3 @@
-using System.Globalization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Localization;
@@ -7,7 +6,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using MudBlazor.Services;
+using System.Globalization;
+using System.Net;
+using System.Net.Http;
 using Ultimate.IntegrationSystem.Web.Service;
+using Ultimate.IntegrationSystem.Web.Service.Muqeem;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,8 +19,7 @@ builder.WebHost.UseStaticWebAssets();
 
 // Razor/Blazor
 builder.Services.AddRazorPages();
-builder.Services.AddServerSideBlazor()
-    .AddCircuitOptions(o => o.DetailedErrors = true);
+builder.Services.AddServerSideBlazor().AddCircuitOptions(o => o.DetailedErrors = true);
 
 // MudBlazor + Snackbar
 builder.Services.AddMudServices(cfg =>
@@ -29,46 +31,55 @@ builder.Services.AddMudServices(cfg =>
     cfg.SnackbarConfiguration.MaxDisplayedSnackbars = 3;
 });
 
-// ÖÛØ ÇáÇÓÊÌÇÈÉ (Brotli + Gzip) + ÏÚã SignalR
+// ÖÛØ ÇáÇÓÊÌÇÈÉ + SignalR
 builder.Services.AddResponseCompression(opts =>
 {
     opts.EnableForHttps = true;
     opts.Providers.Add<BrotliCompressionProvider>();
     opts.Providers.Add<GzipCompressionProvider>();
-    opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
-        new[] { "application/octet-stream" } // áŞäæÇÊ SignalR
-    );
+    opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[] { "application/octet-stream" });
 });
+builder.Services.Configure<BrotliCompressionProviderOptions>(o => o.Level = System.IO.Compression.CompressionLevel.Fastest);
+builder.Services.Configure<GzipCompressionProviderOptions>(o => o.Level = System.IO.Compression.CompressionLevel.Fastest);
 
-// ãÒæøÏ ÓíÇŞ HTTP (ŞÏ íßæä null ÃËäÇÁ ÇáÜ prerender)
+// ãÒæøÏ ÓíÇŞ HTTP
 builder.Services.AddHttpContextAccessor();
 
-// ÖÈØ HttpClient ÇáãØÈæÚ ááÎÏãÉ ãÚ ŞæÇÚÏ ÚäæÇä API
-var apiBase = builder.Configuration["ApiBaseUrl"]; // íãßä Ãä Êßæä İÇÑÛÉ Ãæ äÓÈíÉ
-builder.Services.AddHttpClient<IEmployeeService, EmployeeService>((sp, client) =>
+// ÏÇáÉ áÍÓã ŞÇÚÏÉ ÚäæÇä ÇáÜ API
+static Uri ResolveApiBase(IServiceProvider sp, IConfiguration cfg)
 {
     var accessor = sp.GetRequiredService<IHttpContextAccessor>();
     var ctx = accessor.HttpContext;
+    var apiBase = cfg["ApiBaseUrl"];
 
-    // 1) Åä ßÇäÊ ApiBaseUrl ãõÚÑøİÉ æãØáŞÉ¡ ÇÓÊÎÏãåÇ
-    if (!string.IsNullOrWhiteSpace(apiBase) && Uri.TryCreate(apiBase, UriKind.Absolute, out var absolute))
-    {
-        client.BaseAddress = absolute;
-        return;
-    }
+    if (!string.IsNullOrWhiteSpace(apiBase) && Uri.TryCreate(apiBase, UriKind.Absolute, out var abs))
+        return abs;
 
-    // 2) æÅáÇ ÍÇæá ÇÓÊÎÏÇã äİÓ ÇáãÖíİ ÃËäÇÁ ÇáØáÈ
     if (ctx?.Request?.Host.HasValue == true)
-    {
-        var scheme = ctx.Request.Scheme;
-        var host = ctx.Request.Host.Value;
-        client.BaseAddress = new Uri($"{scheme}://{host}/");
-        return;
-    }
+        return new Uri($"{ctx.Request.Scheme}://{ctx.Request.Host}/");
 
-    // 3) Fallback ÃÎíÑ: Åä ßÇäÊ ApiBaseUrl äÓÈíøÉ Ãæ ÛíÑ ÕÇáÍÉ¡ ÍæøáåÇ áÚäæÇä ãÍáí Âãä
-    var fallback = string.IsNullOrWhiteSpace(apiBase) ? "https://localhost:5001/" : apiBase;
-    client.BaseAddress = new Uri(fallback, UriKind.RelativeOrAbsolute);
+    return new Uri("https://localhost:5001/");
+}
+
+// ÊÓÌíá HttpClient ááÎÏãÇÊ
+builder.Services.AddHttpClient<IEmployeeService, EmployeeService>((sp, client) =>
+{
+    var cfg = sp.GetRequiredService<IConfiguration>();
+    client.BaseAddress = ResolveApiBase(sp, cfg);
+})
+.ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+{
+    AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
+});
+
+builder.Services.AddHttpClient<IIqamaService, IqamaService>((sp, client) =>
+{
+    var cfg = sp.GetRequiredService<IConfiguration>();
+    client.BaseAddress = ResolveApiBase(sp, cfg);
+})
+.ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+{
+    AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
 });
 
 // ÍÇáÉ ãÎÊÇÑÉ (state)
@@ -88,28 +99,25 @@ builder.Services.Configure<RequestLocalizationOptions>(o =>
     o.SupportedCultures = cultures;
     o.SupportedUICultures = cultures;
 
-    // ÇáÓãÇÍ ÈÇÎÊíÇÑ ÇááÛÉ ÚÈÑ ÇáßæßíÒ
     o.RequestCultureProviders.Insert(0, new CookieRequestCultureProvider
     {
         CookieName = CookieRequestCultureProvider.DefaultCookieName
     });
 });
 
-// ÏÚã Reverse Proxy (X-Forwarded-For/Proto/Host)
+// ÏÚã Reverse Proxy
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
     options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost;
-    // ÅĞÇ áÏíß ÈÑæßÓíÇÊ ãæËæŞÉ ãÍÏÏÉ¡ ÃÖİåÇ åäÇ ÚÈÑ KnownProxies/KnownNetworks
+    // options.KnownProxies.Add(IPAddress.Parse("x.x.x.x"));
 });
 
 var app = builder.Build();
 
-// ËŞÇİÉ ÇİÊÑÇÖíÉ Úáì ãÓÊæì ÇáÎíæØ (ÇÎÊíÇÑí)
 var defaultCulture = new CultureInfo("ar-YE");
 CultureInfo.DefaultThreadCurrentCulture = defaultCulture;
 CultureInfo.DefaultThreadCurrentUICulture = defaultCulture;
 
-// ÊÑÊíÈ ÇáãíÏá æíÑ
 app.UseRequestLocalization(app.Services.GetRequiredService<IOptions<RequestLocalizationOptions>>().Value);
 
 if (!app.Environment.IsDevelopment())
@@ -118,18 +126,14 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
-
-app.UseResponseCompression();
-
-// ÚäÏ ÇáÚãá Îáİ Proxy (İÚøá ÈÚÏ UseHttpsRedirection)
+// ÖÚ ForwardedHeaders ãÈßÑÇğ Îáİ ÈÑæßÓí
 app.UseForwardedHeaders();
 
+app.UseHttpsRedirection();
+app.UseResponseCompression();
 app.UseStaticFiles();
-
 app.UseRouting();
 
-// Endpoints
 app.MapRazorPages();
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");

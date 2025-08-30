@@ -1,6 +1,7 @@
 ﻿@page "/MuqeemEmployees"
 
 @using MudBlazor
+@using Ultimate.IntegrationSystem.Web.Dto
 @using Ultimate.IntegrationSystem.Web.Map
 @using Ultimate.IntegrationSystem.Web.Models
 @using Ultimate.IntegrationSystem.Web.Service
@@ -86,26 +87,26 @@
             <MudItem xs="12" md="4" Class="emp-id-col">
                 <MudStack AlignItems="AlignItems.Center" Spacing="1">
                     <MudAvatar Class="emp-avatar" Color="Color.Primary">
-                        @GetInitials(Employee.EmployeeName)
+                        @GetInitials(Employee.FullName)
                     </MudAvatar>
-                    <MudText Typo="Typo.subtitle2">@Employee.EmployeeName</MudText>
-                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">@Employee.HrchyName</MudText>
+                    <MudText Typo="Typo.subtitle2">@Employee.FullName</MudText>
+                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">@Employee.Department</MudText>
                 </MudStack>
             </MudItem>
 
             <MudItem xs="12" md="8">
                 <MudStack Direction="Row" Wrap="Wrap.NoWrap" Class="emp-chips" Spacing="2">
                     <MudChip T="string" Variant="Variant.Outlined" Icon="@Icons.Material.Filled.AddToHomeScreen">
-                        المسمى الوظيفي : @Employee.JobName
+                        المسمى الوظيفي : @Employee.JobTitle
                     </MudChip>
                     <MudChip T="string" Variant="Variant.Outlined" Icon="@Icons.Material.Filled.BorderBottom">
-                        الحدود : @Employee.BorderNumber
+                        الحدود : @Employee.BorderId
                     </MudChip>
                     <MudChip T="string" Variant="Variant.Outlined" Icon="@Icons.Material.Filled.Smartphone">
-                        رقم الجوال : @Employee.MobileNo
+                        رقم الجوال : @Employee.Mobile
                     </MudChip>
                     <MudChip T="string" Variant="Variant.Outlined" Icon="@Icons.Material.Filled.Call">
-                        هاتف : @Employee.TelNo
+                        هاتف : @Employee.Phone
                     </MudChip>
                     <MudChip T="string" Variant="Variant.Outlined" Icon="@Icons.Material.Filled.Email">
                         @Employee.Email
@@ -398,7 +399,7 @@
         }
 
         var e = SelectedState.Current;
-        var full = string.IsNullOrWhiteSpace(e.FullName) ? e.EmployeeName : e.FullName;
+        var full = string.IsNullOrWhiteSpace(e.FullName) ? e.FullNameEn : e.FullName;
         Employee = SelectedState.Current;
         // Employee = new EmployeeH
         // {
@@ -549,7 +550,12 @@
             CloseButton = false,
             MaxWidth = MaxWidth.False,    // لا يفرض عرض معين
             FullWidth = false,              // نخلي الـCSS يتحكم بالعرض
-            BackgroundClass = "side-sheet-overlay"
+            BackgroundClass = "side-sheet-overlay",
+
+
+           
+            Position = DialogPosition.CenterRight
+            // لا تستخدم DisableBackdropClick (غير موج
         };
 
 

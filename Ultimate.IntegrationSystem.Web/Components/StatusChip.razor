@@ -1,0 +1,8 @@
+﻿<MudChip T="string" Variant="Variant.Outlined" Size="Size.Small"
+         Color="@(IsActive ? Color.Success : Color.Error)">
+    @(IsActive ? "فعال" : "موقّف")
+</MudChip>
+
+@code {
+    [Parameter] public bool IsActive { get; set; }
+}

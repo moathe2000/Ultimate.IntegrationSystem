@@ -1,0 +1,52 @@
+﻿@page "/integrations-view"
+
+<h3>Integrations (Static View)</h3>
+
+<h5>Platforms</h5>
+<table class="table table-bordered table-sm">
+    <thead>
+        <tr><th>Key</th><th>BaseUrl</th><th>AuthType</th><th>Enabled</th></tr>
+    </thead>
+    <tbody>
+        <tr><td>Muqeem</td><td>https://api.muqeem.sa</td><td>ApiKey+JWT</td><td>Yes</td></tr>
+        <tr><td>Jisr</td><td>https://api.jisr.net</td><td>OAuth2ClientCredentials</td><td>Yes</td></tr>
+        <tr><td>ECom</td><td>https://shop.example.com/api</td><td>ApiKeyInHeader</td><td>Yes</td></tr>
+        <tr><td>BMTBOX_Identity</td><td>http://185.215.165.43:8080</td><td>BearerFromAction</td><td>Yes</td></tr>
+    </tbody>
+</table>
+
+<h5>Actions</h5>
+<table class="table table-bordered table-sm">
+    <thead>
+        <tr><th>PlatformKey</th><th>ActionKey</th><th>Method</th><th>Endpoint</th></tr>
+    </thead>
+    <tbody>
+        <tr><td>Muqeem</td><td>ExitReentry_Issue</td><td>POST</td><td>/api/ExitReentry/Issue</td></tr>
+        <tr><td>Muqeem</td><td>FinalExit_Issue</td><td>POST</td><td>/api/FinalExit/Issue</td></tr>
+        <tr><td>Jisr</td><td>Employee_Add</td><td>POST</td><td>/api/employees</td></tr>
+        <tr><td>ECom</td><td>Order_Create</td><td>POST</td><td>/api/orders</td></tr>
+        <tr><td>ECom</td><td>Stock_Update</td><td>PUT</td><td>/api/stock</td></tr>
+        <tr><td>BMTBOX_Identity</td><td>Auth_Login</td><td>POST</td><td>/login</td></tr>
+    </tbody>
+</table>
+
+<h5>Mappings</h5>
+<table class="table table-bordered table-sm">
+    <thead>
+        <tr><th>PlatformKey</th><th>ActionKey</th><th>Condition</th></tr>
+    </thead>
+    <tbody>
+        <tr><td>Muqeem</td><td>ExitReentry_Issue</td><td>$.code == 0</td></tr>
+        <tr><td>Jisr</td><td>Employee_Add</td><td>$.success == true</td></tr>
+        <tr><td>ECom</td><td>Order_Create</td><td>$.status == "ok"</td></tr>
+        <tr><td>BMTBOX_Identity</td><td>Auth_Login</td><td>$.token != null</td></tr>
+    </tbody>
+</table>
+
+<h5>Secrets</h5>
+<pre>{
+  "Muqeem": { "ApiKey": "***", "Token": "(hidden)" },
+  "Jisr": { "ClientId": "***", "ClientSecret": "***" },
+  "ECom": { "ApiKey": "***" },
+  "BMTBOX_Identity": { "Username": "api", "Password": "***" }
+}</pre>

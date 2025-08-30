@@ -1,5 +1,242 @@
-﻿@using MudBlazor
-@using Microsoft.JSInterop
+﻿@using Microsoft.JSInterop
+@using MudBlazor
+@using Ultimate.IntegrationSystem.Web.Dto
+@using Ultimate.IntegrationSystem.Web.Map
+@using Ultimate.IntegrationSystem.Web.Models
+@using Ultimate.IntegrationSystem.Web.Service
+@using Ultimate.IntegrationSystem.Web.Service.Muqeem
+
+<MudDialog Class="side-sheet side-sheet-left" MaxWidth="MaxWidth.False" FullWidth="false" Style="--sheet-w:560px">
+    <DialogContent>
+        <div class="sheet-header">
+            <MudStack Direction="Row" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                <MudStack Direction="Row" AlignItems="AlignItems.Center" Spacing="1">
+                    <MudIcon Icon="@Icons.Material.Filled.Badge" Color="Color.Secondary" />
+                    <MudText Typo="Typo.h6">@(IsRenew ? "تجديد الإقامة" : "إصدار الإقامة")</MudText>
+                </MudStack>
+                <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" OnClick="Cancel" Disabled="@busy" />
+            </MudStack>
+        </div>
+
+        <MudForm @ref="_form" Model="@Model">
+            <div class="sheet-body">
+                <MudPaper Elevation="0" Class="card">
+                    <MudText Typo="Typo.subtitle1" Class="card-title">
+                        <MudIcon Icon="@Icons.Material.Filled.Info" Color="Color.Primary" /> البيانات الأساسية
+                    </MudText>
+
+                    <MudGrid id="iqama-basic" RightToLeft="RightToLeft.Yes" GutterSize="GutterSize.Small">
+                        <MudItem xs="12" md="6" Class="col-name">
+                            <MudTextField Label="اسم الموظف" Value="@Employee.FullName" ReadOnly="true" Dense="true"
+                                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Badge" />
+                        </MudItem>
+
+                        <MudItem xs="12" md="6" Class="col-number">
+                            <MudTextField Label="رقم الموظف" Value="@Employee.Id" ReadOnly="true" Dense="true"
+                                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Tag" />
+                        </MudItem>
+
+                        <MudItem xs="12" md="6">
+                            <MudTextField Label="رقم الحدود"
+                                          @bind-Value="Model.BorderNumber"
+                                          For="@(() => Model.BorderNumber)"
+                                          Dense="true" Required="true"
+                                          Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.QrCode2"
+                                          InputType="InputType.Telephone" MaxLength="10"
+                                          HelperText="10 أرقام تبدأ بـ 3 أو 4 أو 5" />
+                        </MudItem>
+
+                        <MudItem xs="12" md="6">
+                            <MudSelect T="int" Label="مدة الإقامة (شهر)"
+                                       @bind-Value="Model.IqamaDuration" For="@(() => Model.IqamaDuration)"
+                                       Dense="true" Required="true">
+                                <MudSelectItem Value="12">12</MudSelectItem>
+                                <MudSelectItem Value="24">24</MudSelectItem>
+                            </MudSelect>
+                        </MudItem>
+
+                        <MudItem xs="12" md="6">
+                            <MudTextField Label="رمز دولة الميلاد"
+                                          @bind-Value="Model.BirthCountryCode" For="@(() => Model.BirthCountryCode)"
+                                          Dense="true" Required="true"
+                                          Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Public" />
+                        </MudItem>
+
+                        <MudItem xs="12" md="6">
+                            <MudTextField Label="الحالة الاجتماعية"
+                                          @bind-Value="Model.MaritalStatus" For="@(() => Model.MaritalStatus)"
+                                          Dense="true"
+                                          Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.FavoriteBorder" />
+                        </MudItem>
+
+                        <MudItem xs="12" md="6">
+                            <MudTextField Label="مدينة إصدار الجواز"
+                                          @bind-Value="Model.PassportIssueCity" For="@(() => Model.PassportIssueCity)"
+                                          Dense="true"
+                                          Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.LocationCity" />
+                        </MudItem>
+                    </MudGrid>
+                </MudPaper>
+
+                @if (!IsRenew)
+                {
+                    <MudPaper Elevation="0" Class="card mt-2 en-block">
+                        <MudText Typo="Typo.subtitle1" Class="card-title">
+                            <MudIcon Icon="@Icons.Material.Filled.Translate" Color="Color.Primary" /> الاسم بالإنجليزية
+                        </MudText>
+
+                        <MudGrid RightToLeft="RightToLeft.No" GutterSize="GutterSize.Small">
+                            <MudItem xs="12" md="6">
+                                <MudTextField Label="First Name (EN)"
+                                              @bind-Value="Model.TrFirstName" For="@(() => Model.TrFirstName)"
+                                              Dense="true" Required="true" />
+                            </MudItem>
+                            <MudItem xs="12" md="6">
+                                <MudTextField Label="Father Name (EN)"
+                                              @bind-Value="Model.TrFatherName" For="@(() => Model.TrFatherName)"
+                                              Dense="true" Required="true" />
+                            </MudItem>
+                            <MudItem xs="12" md="6">
+                                <MudTextField Label="Grand Father Name (EN)"
+                                              @bind-Value="Model.TrGrandFatherName" For="@(() => Model.TrGrandFatherName)"
+                                              Dense="true" Required="true" />
+                            </MudItem>
+                            <MudItem xs="12" md="6">
+                                <MudTextField Label="Family Name (EN)"
+                                              @bind-Value="Model.TrFamilyName" For="@(() => Model.TrFamilyName)"
+                                              Dense="true" Required="true" />
+                            </MudItem>
+                        </MudGrid>
+                    </MudPaper>
+                }
+            </div>
+
+            <div class="sheet-footer">
+                <MudButton Variant="Variant.Outlined" Color="Color.Default" OnClick="Cancel" Disabled="@busy">إلغاء</MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                           Type="ButtonType.Button"
+                           OnClick="Submit"
+                           Disabled="@busy"
+                           Loading="@busy"
+                           StartIcon="@Icons.Material.Filled.Send">
+                    إرسال إلى مقيم
+                </MudButton>
+            </div>
+        </MudForm>
+    </DialogContent>
+</MudDialog>
+
+@code {[CascadingParameter] public IMudDialogInstance MudDialog { get; set; } = default!;
+
+  
+    [Parameter] public EmployeeDto Employee { get; set; } = new();
+    [Parameter] public bool IsRenew { get; set; } = false;
+
+    [Inject] IIqamaService IqamaSrv { get; set; } = default!;
+    [Inject] ISnackbar Snackbar { get; set; } = default!;
+
+    private MudForm? _form;
+    private bool busy;
+
+    private IqamaModel Model { get; set; } = new();
+
+    public class IqamaModel
+    {
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "رقم الحدود مطلوب")]
+        [System.ComponentModel.DataAnnotations.RegularExpression(@"^[345]\d{9}$", ErrorMessage = "رقم الحدود يجب أن يكون 10 أرقام ويبدأ بـ 3 أو 4 أو 5")]
+        public string BorderNumber { get; set; } = "";
+
+        [System.ComponentModel.DataAnnotations.Required]
+        public int IqamaDuration { get; set; } = 12;
+
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "رمز الدولة مطلوب")]
+        public string BirthCountryCode { get; set; } = "";
+
+        public string MaritalStatus { get; set; } = "";
+        public string PassportIssueCity { get; set; } = "";
+
+        public string TrFirstName { get; set; } = "";
+        public string TrFatherName { get; set; } = "";
+        public string TrGrandFatherName { get; set; } = "";
+        public string TrFamilyName { get; set; } = "";
+    }
+
+    protected override void OnInitialized()
+    {
+        Model.BorderNumber = Employee?.BorderId ?? "";
+        Model.BirthCountryCode = Employee?.BirthCountry ?? "";
+        Model.MaritalStatus = Employee?.MaritalStatus ?? "";
+        // لو عندك حقل خاص لمدينة إصدار الجواز عدّل السطر التالي
+      //  Model.PassportIssueCity = Employee?.PassportIssueCity ?? "";
+
+        Model.TrFirstName = Employee?.FirstNameEn ?? Employee?.FirstName;
+        Model.TrFatherName = Employee?.MiddleNameEn ?? Employee.MiddleName;
+        Model.TrGrandFatherName = Employee?.ThirdNameEn ?? Employee.ThirdName;
+        Model.TrFamilyName = Employee?.LastNameEn ?? Employee?.LastName;
+    }
+
+    private async Task Submit()
+    {
+        if (_form is null) return;
+        await _form.Validate();
+        if (!_form.IsValid) return;
+
+        busy = true;
+        try
+        {
+            ApiResultModel api;
+
+            if (IsRenew)
+            {
+                var dto = MuqeemMapper.ToRenewIqama(Employee, Model.IqamaDuration);
+                api = await IqamaSrv.RenewAsync(dto);
+            }
+            else
+            {
+                var dto = MuqeemMapper.ToIssueIqama(
+                    Employee,
+                    Model.IqamaDuration,
+                    Model.BirthCountryCode,
+                    Model.MaritalStatus,
+                    Model.TrFirstName, Model.TrFatherName, Model.TrGrandFatherName, Model.TrFamilyName
+                );
+                api = await IqamaSrv.IssueAsync(dto);
+            }
+
+            if (api.Code == 0)
+            {
+                Snackbar.Add(api.Message ?? "تمت العملية بنجاح.", Severity.Success);
+                MudDialog?.Close(DialogResult.Ok(api.Content));
+            }
+            else
+            {
+                Snackbar.Add(api.Message ?? "فشلت العملية.", Severity.Error);
+            }
+        }
+        catch (TaskCanceledException)
+        {
+            Snackbar.Add("انتهت مهلة الاتصال (Timeout).", Severity.Error);
+        }
+        catch (HttpRequestException)
+        {
+            Snackbar.Add("تعذّر الاتصال بالخادم.", Severity.Error);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"خطأ غير متوقع: {ex.Message}", Severity.Error);
+        }
+        finally { busy = false; }
+    }
+
+    private void Cancel() => MudDialog?.Close(DialogResult.Cancel());
+}
+
+
+
+
+@* @using Microsoft.JSInterop
+@using MudBlazor
+@using Ultimate.IntegrationSystem.Web.Dto
 @using Ultimate.IntegrationSystem.Web.Map
 @using Ultimate.IntegrationSystem.Web.Models
 
@@ -14,10 +251,10 @@
         <div class="sheet-header">
             <MudStack Direction="Row" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
                 <MudStack Direction="Row" AlignItems="AlignItems.Center" Spacing="1">
-                    <MudIcon Icon="@Icons.Material.Filled.Badge" Color="Color.Primary" />
+                    <MudIcon Icon="@Icons.Material.Filled.Badge" Color="Color.Secondary" />
                     <MudText Typo="Typo.h6">@(IsRenew ? "تجديد الإقامة" : "إصدار الإقامة")</MudText>
                 </MudStack>
-                <MudIconButton Icon="@Icons.Material.Filled.Close" OnClick="Cancel" Disabled="@busy" />
+                <MudIconButton Icon="@Icons.Material.Filled.ArrowOutward" OnClick="Cancel" Disabled="@busy" />
             </MudStack>
         </div>
 
@@ -34,12 +271,12 @@
                     <!-- لاحظ id وكلاسات الأعمدة لضبط المحاذاة -->
                     <MudGrid id="iqama-basic" RightToLeft="RightToLeft.Yes" GutterSize="GutterSize.Small">
                         <MudItem xs="12" md="6" Class="col-name">
-                            <MudTextField Label="اسم الموظف" Value="@Employee.EmployeeName" ReadOnly="true" Dense="true"
+                            <MudTextField Label="اسم الموظف" Value="@Employee.FullName" ReadOnly="true" Dense="true"
                                           Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Badge" />
                         </MudItem>
 
                         <MudItem xs="12" md="6" Class="col-number">
-                            <MudTextField Label="رقم الموظف" Value="@Employee.EmployeeNumber" ReadOnly="true" Dense="true"
+                            <MudTextField Label="رقم الموظف" Value="@Employee.Id" ReadOnly="true" Dense="true"
                                           Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Tag" />
                         </MudItem>
 
@@ -121,7 +358,7 @@
 
             <!-- Footer -->
             <div class="sheet-footer">
-                <MudButton Variant="Variant.Outlined" Color="Color.Default" OnClick="Cancel" Disabled="@busy">إلغاء</MudButton>
+                <MudButton Variant="Variant.Outlined" Color="Color.Default" OnClick="Cancel" Disabled="@busy">إغلاق </MudButton>
                 <MudButton Variant="Variant.Filled" Color="Color.Primary"
                            Type="ButtonType.Submit"
                            OnClick="Submit"
@@ -169,10 +406,14 @@
 
     protected override void OnInitialized()
     {
-        Model.BorderNumber = Employee?.BorderNumber ?? "";
-        Model.BirthCountryCode = Employee?.BirthCountryName ?? "";
-        Model.MaritalStatus = Employee?.MaritalStatusName ?? "";
-        Model.PassportIssueCity = Employee?.MobileNo ?? "";
+        Model.BorderNumber = Employee?.BorderId ?? "";
+        Model.BirthCountryCode = Employee?.BirthCountry ?? "";
+        Model.MaritalStatus = Employee?.MaritalStatus ?? "";
+        Model.PassportIssueCity = Employee?.Mobile ?? "";
+        Model.TrFirstName = Employee?.FirstNameEn ?? Employee?.FirstName;
+        Model.TrFatherName = Employee?.MiddleNameEn ?? Employee.MiddleName;
+        Model.TrGrandFatherName = Employee?.ThirdNameEn ?? Employee.ThirdName;
+        Model.TrFamilyName = Employee?.LastNameEn ?? Employee?.LastName;
     }
 
     private async Task Submit()
@@ -206,3 +447,4 @@
 
     private void Cancel() => DialogRef?.Close(DialogResult.Cancel());
 }
+ *@

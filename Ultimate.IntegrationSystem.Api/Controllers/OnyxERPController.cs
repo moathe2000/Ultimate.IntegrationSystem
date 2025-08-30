@@ -15,87 +15,147 @@ namespace Ultimate.IntegrationSystem.Api.Controllers
         private readonly IDataAccessService _dataAccessSerivce;
         private readonly IDbModelMappingService _dbModelMapping;
         private readonly IMapper _mapper;
-        public OnyxERPController(ILogger<OnyxERPController> logger, IDataAccessService dataAccessSerivce, IDbModelMappingService dbModelMapping)
+        public OnyxERPController(ILogger<OnyxERPController> logger, IDataAccessService dataAccessSerivce, IDbModelMappingService dbModelMapping, IMapper mapper)
         {
             _logger = logger;
             _dataAccessSerivce = dataAccessSerivce;
             _dbModelMapping = dbModelMapping;
+            _mapper = mapper;
         }
 
-     
 
- 
-/// <summary>
-/// <see langword="get"/>
-/// </summary>
-/// <param name="para"></param>
-/// <returns></returns>
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="para"></param>
+        /// <returns></returns>
 
         [HttpPost("GetEmployees")]
-    public async Task<ApiResultModel> GetEmployees([FromBody] EmployeePara para)
-    {
-        try
+ 
+        public async Task<ApiResultModel> GetEmployees([FromBody] EmployeePara para)
         {
-            // استدعاء الدالة التي تُرجع JSON
-            var json = await _dataAccessSerivce.GetEmployeesAsJson(
-                P_EMP_NO: para.P_EMP_NO,
-                P_EMP_NO_FROM: para.P_EMP_NO_FROM,
-                P_EMP_NO_TO: para.P_EMP_NO_TO,
-                P_LNG_NO: para.P_LNG_NO
-            );
-
-            if (string.IsNullOrWhiteSpace(json))
-                throw new Exception("Empty JSON response from GET_EMPLOYEE_JSON.");
+            try
+            {
+                var json = await _dataAccessSerivce.GetEmployeesAsJson(
+                    P_EMP_NO: para.P_EMP_NO,
+                    P_EMP_NO_FROM: para.P_EMP_NO_FROM,
+                    P_EMP_NO_TO: para.P_EMP_NO_TO,
+                    P_LNG_NO: para.P_LNG_NO
+                );
 
                 if (string.IsNullOrWhiteSpace(json))
                 {
-                    return new ApiResultModel()
+                    return new ApiResultModel
                     {
-                        Code = 204, // No Content
+                        Code = 204,
                         Message = "لا توجد بيانات متاحة",
                         Content = null
                     };
                 }
 
-                //  تحليل JSON إلى كائن C# (بدلاً من XML)
-                //var response = JsonConvert.DeserializeObject<ApiResultModel>(json);
-
-                //// التحقق مما إذا كانت هناك مشكلة في البيانات
-
                 var response = _dbModelMapping.GetDbResultModelFromJson(json);
-                var result = _dbModelMapping.MapJson<EmployeeRecordModel>(response);
-                // If Content is not already a string, convert or serialize it properly
-                if (response.Result?.MsgNo != "004" && (response.Data == null))
+                var result = _dbModelMapping.MapJson<EmployeeModel>(response);
+
+                if (response.Result?.MsgNo != "004" || result == null)
                 {
-                    return new ApiResultModel()
+                    return new ApiResultModel
                     {
-                        Code = 0, // No Content
-                        Message = "لم يتم العثور على أصناف مطابقة",
+                        Code = 204,
+                        Message = "لم يتم العثور على موظفين مطابقين",
                         Content = null
                     };
                 }
 
-                // ✅ إعادة النتيجة كما هي بدون تحويل غير ضروري
-                return new ApiResultModel()
+                // ✅ التحويل إلى DTO باستخدام AutoMapper
+                var employees = _mapper.Map<EmployeeDto[]>(result);
+
+                return new ApiResultModel
                 {
                     Code = 0,
-                    Message = "",
-                    Content = result // Content is now a string
+                    Message = "تم جلب البيانات بنجاح",
+                    Content = employees
                 };
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "حدث خطأ أثناء جلب بيانات ");
+                _logger.LogError(e, "حدث خطأ أثناء جلب بيانات الموظفين");
 
-                return new ApiResultModel()
+                return new ApiResultModel
                 {
                     Code = 500,
-                    Message = $"حدث خطأ: {e.Message}"
+                    Message = $"حدث خطأ: {e.Message}",
+                    Content = null
                 };
             }
-
-           
         }
+
+
+        //public async Task<ApiResultModel> GetEmployees([FromBody] EmployeePara para)
+        //{
+        //    try
+        //    {
+        //        // استدعاء الدالة التي تُرجع JSON
+        //        var json = await _dataAccessSerivce.GetEmployeesAsJson(
+        //            P_EMP_NO: para.P_EMP_NO,
+        //            P_EMP_NO_FROM: para.P_EMP_NO_FROM,
+        //            P_EMP_NO_TO: para.P_EMP_NO_TO,
+        //            P_LNG_NO: para.P_LNG_NO
+        //        );
+
+        //        if (string.IsNullOrWhiteSpace(json))
+        //            throw new Exception("Empty JSON response from GET_EMPLOYEE_JSON.");
+
+        //            if (string.IsNullOrWhiteSpace(json))
+        //            {
+        //                return new ApiResultModel()
+        //                {
+        //                    Code = 204, // No Content
+        //                    Message = "لا توجد بيانات متاحة",
+        //                    Content = null
+        //                };
+        //            }
+
+        //            //  تحليل JSON إلى كائن C# (بدلاً من XML)
+        //            //var response = JsonConvert.DeserializeObject<ApiResultModel>(json);
+
+        //            //// التحقق مما إذا كانت هناك مشكلة في البيانات
+
+        //            var response = _dbModelMapping.GetDbResultModelFromJson(json);
+        //            var result = _dbModelMapping.MapJson<EmployeeModel>(response);
+        //            // If Content is not already a string, convert or serialize it properly
+        //            if (response.Result?.MsgNo != "004" && (response.Data == null))
+        //            {
+        //                return new ApiResultModel()
+        //                {
+        //                    Code = 0, // No Content
+        //                    Message = "لم يتم العثور على بيانات  مطابقة",
+        //                    Content = null
+        //                };
+        //            }
+
+        //            // ✅ إعادة النتيجة كما هي بدون تحويل غير ضروري
+        //            return new ApiResultModel()
+        //            {
+        //                Code = 0,
+        //                Message = "",
+        //                Content = result // Content is now a string
+        //            };
+        //        }
+        //        catch (Exception e)
+        //        {
+        //            _logger.LogError(e, "حدث خطأ أثناء جلب بيانات ");
+
+        //            return new ApiResultModel()
+        //            {
+        //                Code = 500,
+        //                Message = $"حدث خطأ: {e.Message}"
+        //            };
+        //        }
+
+
+        //    }
 
 
         [HttpPost("GetEmpDocs")]

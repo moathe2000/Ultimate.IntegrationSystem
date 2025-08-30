@@ -1,6 +1,6 @@
 ﻿
 using Ultimate.IntegrationSystem.Api.Dto.Muqeem.Requests;
-using Ultimate.IntegrationSystem.Web.Models;
+using Ultimate.IntegrationSystem.Web.Dto;
 
 namespace Ultimate.IntegrationSystem.Web.Map
 {
@@ -12,16 +12,16 @@ namespace Ultimate.IntegrationSystem.Web.Map
         {
             return new IssueIqamaRequestDto
             {
-                EmployeeNumber= emp.EmployeeNumber,
-                BorderNumber = emp.BorderNumber,
+                EmployeeNumber= emp.Id,
+                BorderNumber = emp.BorderId,
                 IqamaDuration = duration.ToString(),
                 LkBirthCountry = emp.BirthCountry?.ToString(),
                 MaritalStatus = emp.MaritalStatus?.ToString(),
                 PassportIssueCity = PssprtIssueCty,
-                TrFirstName = emp.GivenName,
-                TrFatherName = emp.FatherName,
-                TrGrandFatherName = emp.GrandFatherName,
-                TrFamilyName = emp.FamilyName
+                TrFirstName = emp.FirstNameEn??emp.FirstName,
+                TrFatherName = emp.MiddleNameEn??emp.MiddleName,
+                TrGrandFatherName = emp.ThirdNameEn??emp.ThirdName,
+                TrFamilyName = emp.LastNameEn??emp.LastName
             };
         }
 
@@ -29,9 +29,9 @@ namespace Ultimate.IntegrationSystem.Web.Map
         {
             return new RenewIqamaRequestDto
             {
-                EmployeeNumber = emp.EmployeeNumber,
-                IqamaNumber = emp.IqamaNumber,
-                BorderNumber = emp.BorderNumber,
+                EmployeeNumber = emp.Id,
+                IqamaNumber =null,
+                BorderNumber = emp.BorderId,
                 IqamaDuration = duration.ToString()
             };
         }

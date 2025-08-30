@@ -151,7 +151,7 @@ namespace Ultimate.IntegrationSystem.Web.Resources.Localization {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Inactive.
+        ///   Looks up a localized string similar to IsActive.
         /// </summary>
         public static string Inactive {
             get {
