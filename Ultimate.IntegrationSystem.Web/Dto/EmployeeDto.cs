@@ -6,7 +6,7 @@ namespace Ultimate.IntegrationSystem.Web.Dto
     {
       
           
-        public string Id { get; set; } 
+        public int? Id { get; set; } 
         public string FullName { get; set; }
         public string FullNameEn { get; set; }
 
@@ -21,7 +21,9 @@ namespace Ultimate.IntegrationSystem.Web.Dto
         public string Website { get; set; }
         public string Email { get; set; }
         public bool IsActive { get; set; } 
-        public string BorderId { get; set; }   
+        public string BorderId { get; set; }
+
+      public   string  IqamaId {get; set; }
         public int? BirthCountryId { get; set; } 
         public string BirthCountry { get; set; }
         public int? MaritalStatusId { get; set; } 

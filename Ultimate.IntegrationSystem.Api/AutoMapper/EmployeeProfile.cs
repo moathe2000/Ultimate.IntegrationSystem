@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Ultimate.IntegrationSystem.Api.Dto;
+using Ultimate.IntegrationSystem.Api.Dto.Muqeem.Responses;
 using Ultimate.IntegrationSystem.Api.Models;
 
 namespace Ultimate.IntegrationSystem.Api.AutoMapper
@@ -37,6 +38,32 @@ namespace Ultimate.IntegrationSystem.Api.AutoMapper
                 .ForMember(dest => dest.LastName, opt => opt.MapFrom(src => src.LastNameLocal))
                 .ForMember(dest => dest.LastNameEn, opt => opt.MapFrom(src => src.LastNameForeign))
                 .ForMember(dest => dest.City, opt => opt.MapFrom(src => src.CityName));
+
+
+            CreateMap<RawIssueIqamaResponse, IssueIqamaResponseDto>()
+                .ForMember(dest => dest.BirthDate, opt => opt.MapFrom(src => string.IsNullOrWhiteSpace(src.birthDateG) ? (DateTime?)null : DateTime.Parse(src.birthDateG)))
+                .ForMember(dest => dest.ExpiryDateGregorian, opt => opt.MapFrom(src => string.IsNullOrWhiteSpace(src.iqamaExpiryDateG) ? (DateTime?)null : DateTime.Parse(src.iqamaExpiryDateG)))
+                .ForMember(dest => dest.ExpiryDateHijri, opt => opt.MapFrom(src => src.iqamaExpiryDateH))
+                .ForMember(dest => dest.IqamaNumber, opt => opt.MapFrom(src => src.iqamaNumber))
+
+                .ForMember(dest => dest.ResidentArabicName, opt => opt.MapFrom(src => src.residentName))
+                .ForMember(dest => dest.ResidentEnglishName, opt => opt.MapFrom(src => src.translatedResidentName))
+
+                .ForMember(dest => dest.NationalityArabic, opt => opt.MapFrom(src => src.nationality.ar))
+                .ForMember(dest => dest.NationalityEnglish, opt => opt.MapFrom(src => src.nationality.en))
+                .ForMember(dest => dest.NationalityCode, opt => opt.MapFrom(src => src.nationality.code))
+
+                .ForMember(dest => dest.OccupationArabic, opt => opt.MapFrom(src => src.occupation.ar))
+                .ForMember(dest => dest.OccupationEnglish, opt => opt.MapFrom(src => src.occupation.en))
+                .ForMember(dest => dest.OccupationCode, opt => opt.MapFrom(src => src.occupation.code))
+
+                .ForMember(dest => dest.ReligionArabic, opt => opt.MapFrom(src => src.religion.ar))
+                .ForMember(dest => dest.ReligionEnglish, opt => opt.MapFrom(src => src.religion.en))
+                .ForMember(dest => dest.ReligionCode, opt => opt.MapFrom(src => src.religion.code))
+
+                .ForMember(dest => dest.OrganizationMOINumber, opt => opt.MapFrom(src => src.organizationMOINumber))
+                .ForMember(dest => dest.OrganizationName, opt => opt.MapFrom(src => src.organizationName));
         }
+
     }
 }

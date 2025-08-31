@@ -2,12 +2,15 @@
 @using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Components
 @using MudBlazor
+@using Ultimate.IntegrationSystem.Web.Dto
 
 <MudSlideTransition Visible="true" Direction="Direction.Left">
     <MudPaper Class="pa-3 inline-panel" Elevation="2">
         <div class="sheet-header">
             <MudIconButton Icon="@Icons.Material.Filled.ArrowBackIosNew" OnClick="@Cancel" />
-            <MudText Typo="Typo.h6" Class="ml-2">عملية مقيم جديدة</MudText>
+            <MudText Typo="Typo.h6" Class="ml-2">
+                @(IsRenew ? "تجديد إقامة" : "إصدار إقامة جديدة")
+            </MudText>
             <MudSpacer />
             <MudIconButton Icon="@Icons.Material.Filled.Close" OnClick="@Cancel" />
         </div>
@@ -72,7 +75,7 @@
                     {
                         <MudProgressCircular Indeterminate="true" Size="Size.Small" Class="mr-2" />
                     }
-                    إرسال إلى مقيم
+                    @(IsRenew ? "تجديد في مقيم" : "إرسال إلى مقيم")
                 </MudButton>
             </div>
         </MudForm>
@@ -80,13 +83,9 @@
 </MudSlideTransition>
 
 @code {
-    // مدخلات من الأب
-    [Parameter] public int? EmployeeId { get; set; }
-    [Parameter] public string? EmployeeName { get; set; }
-    [Parameter] public string? EmployeeNumber { get; set; }
-    [Parameter] public string? IqamaNumber { get; set; }
+    [Parameter] public EmployeeDto? Employee { get; set; }
+    [Parameter] public bool IsRenew { get; set; }
 
-    // أحداث للأب
     [Parameter] public EventCallback OnCancel { get; set; }
     [Parameter] public EventCallback<IssueIqamaModel> OnSubmit { get; set; }
 
@@ -99,15 +98,23 @@
 
     protected override void OnInitialized()
     {
-        Model.EmployeeId = EmployeeId;
-        Model.EmployeeName = EmployeeName;
-        Model.EmployeeNumber = EmployeeNumber;
-        Model.IqamaNumber = IqamaNumber;
+        if (Employee is not null)
+        {
+            Model.EmployeeId = Employee.Id;
+            Model.EmployeeName = Employee.FullName;
+            Model.EmployeeNumber = Employee.Id.ToString();
+            Model.IqamaNumber = Employee.BorderId.ToString();
+        }
+
+        if (IsRenew)
+            Model.Service = "تجديد إقامة";
+        else
+            Model.Service = "إصدار إقامة";
     }
 
     private bool IsEmployeeNull => Model.EmployeeId is null;
     private string Initials => GetInitials(Model.EmployeeName ?? "؟");
-    private string EmployeeTitle => string.IsNullOrWhiteSpace(Model.EmployeeName) ? "اختر موظفًا" : Model.EmployeeName!;
+    private string EmployeeTitle => string.IsNullOrWhiteSpace(Model.EmployeeName) ? " موظفًا" : Model.EmployeeName!;
     private string EmployeeCaption
     {
         get
@@ -143,7 +150,6 @@
         return p.Length switch { 0 => "؟", 1 => p[0][0].ToString(), _ => $"{p[0][0]}{p[^1][0]}" };
     }
 
-    // نموذج مبسّط
     public sealed class IssueIqamaModel
     {
         public int? EmployeeId { get; set; }
@@ -158,3 +164,28 @@
         public string? Notes { get; set; }
     }
 }
+/* ==== Side-Sheet Dialog ==== */
+<style>
+.side-sheet .mud-dialog {
+    width: 520px;              /* عرض اللوحة */
+    height: 100vh;             /* طول الشاشة بالكامل */
+    margin: 0;
+    border-radius: 0;
+    position: fixed;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    animation: slideIn 0.3s ease-out;
+    box-shadow: -4px 0 16px rgba(0,0,0,.25);
+}
+
+/* خلفية أفتح عند فتح الـ side-sheet */
+.side-sheet-overlay {
+    background-color: rgba(0,0,0,.35) !important;
+}
+
+@@keyframes slideIn {
+    from { transform: translateX(100%); }
+    to { transform: translateX(0); }
+}
+</style>

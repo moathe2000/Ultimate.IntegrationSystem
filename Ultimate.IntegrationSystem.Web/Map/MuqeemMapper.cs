@@ -8,12 +8,12 @@ namespace Ultimate.IntegrationSystem.Web.Map
     {
 
         public static IssueIqamaRequestDto ToIssueIqama(EmployeeDto emp, int duration, string birthCountryCode, string maritalCode,
-                                                      string firstName, string fatherName, string grandFatherName, string PssprtIssueCty)
+                                                      string firstName, string fatherName, string grandFatherName, string PssprtIssueCty,string BorderId = null)
         {
             return new IssueIqamaRequestDto
             {
-                EmployeeNumber= emp.Id,
-                BorderNumber = emp.BorderId,
+                EmployeeNumber= emp.Id.ToString(),
+                BorderNumber = BorderId,
                 IqamaDuration = duration.ToString(),
                 LkBirthCountry = emp.BirthCountry?.ToString(),
                 MaritalStatus = emp.MaritalStatus?.ToString(),
@@ -29,7 +29,7 @@ namespace Ultimate.IntegrationSystem.Web.Map
         {
             return new RenewIqamaRequestDto
             {
-                EmployeeNumber = emp.Id,
+                EmployeeNumber = emp.Id.ToString(),
                 IqamaNumber =null,
                 BorderNumber = emp.BorderId,
                 IqamaDuration = duration.ToString()

@@ -435,7 +435,7 @@
             (string.IsNullOrWhiteSpace(searchTerm)
              || (e.FullName?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false)
              || (e.FullNameEn?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false)
-             || (e.Id?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false)
+             || (e.Id?.ToString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false)
              || (e.JobTitle?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false)
              || (e.Department?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false))
             && (!selectedActive.HasValue || (selectedActive.Value ? e.IsActive  : !e.IsActive ))

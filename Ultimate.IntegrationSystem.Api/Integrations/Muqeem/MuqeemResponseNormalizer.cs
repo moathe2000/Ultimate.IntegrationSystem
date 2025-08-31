@@ -36,7 +36,7 @@ namespace Ultimate.IntegrationSystem.Api.Integrations.Muqeem
 
                     // ✅ إصدار إقامة
                     MuqeemEndpoint.Iqama_Issue =>
-                        JsonConvert.DeserializeObject<IqamaIssueResponseDto>(rawResponse),
+                        JsonConvert.DeserializeObject<RawIssueIqamaResponse>(rawResponse),
 
                     // ✅ نقل كفالة
                     MuqeemEndpoint.Iqama_Transfer =>

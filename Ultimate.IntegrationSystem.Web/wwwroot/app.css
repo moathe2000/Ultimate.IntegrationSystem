@@ -207,7 +207,7 @@ h1:focus {
 
 .side-sheet .sheet-footer {
     position: sticky;
-    bottom: 0;
+    bottom: 8;
     z-index: 3;
     display: flex;
     justify-content: flex-end;

@@ -1,10 +1,14 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using System;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Ultimate.IntegrationSystem.Api.Common.Enum;
 using Ultimate.IntegrationSystem.Api.Dto.Muqeem;
 using Ultimate.IntegrationSystem.Api.Dto.Muqeem.Requests;
+using Ultimate.IntegrationSystem.Api.Dto.Muqeem.Responses;
 using Ultimate.IntegrationSystem.Api.Integrations.Muqeem;
 using Ultimate.IntegrationSystem.Api.Models;
 
@@ -16,11 +20,12 @@ namespace Ultimate.IntegrationSystem.Api.Controllers
     {
         private readonly ILogger<MuqeemController> _logger;
         private readonly ISyncToMuqeemService _syncToMuqeem;
-
-        public MuqeemController(ILogger<MuqeemController> logger, ISyncToMuqeemService syncToMuqeem)
+        private readonly IMapper _mapper;
+        public MuqeemController(ILogger<MuqeemController> logger, ISyncToMuqeemService syncToMuqeem, IMapper mapper)
         {
             _logger = logger;
             _syncToMuqeem = syncToMuqeem;
+            _mapper = mapper;
         }
 
         // 🟢 Authentication
@@ -66,7 +71,49 @@ namespace Ultimate.IntegrationSystem.Api.Controllers
         [HttpPost("Iqama/Issue")]
         public async Task<ApiResultModel> IssueIqama([FromBody] IssueIqamaRequestDto dto = null)
             => await CallMuqeem(MuqeemEndpoint.Iqama_Issue, dto, "Iqama Issue");
+        //  [HttpPost("Iqama/Issue")]
+        //public async Task<ApiResultModel> IssueIqama([FromBody] IssueIqamaRequestDto dto)
+        //{
+        //    var result = await _syncToMuqeem.SendAsync((int)MuqeemEndpoint.Iqama_Issue, dto);
 
+        //    if (result.Code == 0 && result.Content != null)
+        //    {
+        //        var contentStr = result.Content.ToString()?.Trim();
+
+        //        // لو مش JSON (ما يبدأش بـ { أو [)، رجعها نص عادي بدون Parse
+        //        if (string.IsNullOrWhiteSpace(contentStr) || !(contentStr.StartsWith("{") || contentStr.StartsWith("[")))
+        //        {
+        //            return new ApiResultModel
+        //            {
+        //                Code = 500,
+        //                Message = "Iqama Issue: استجابة ليست JSON. المحتوى: " + contentStr,
+        //                Content = null
+        //            };
+        //        }
+
+        //        // الآن نقدر نعمل Deserialize بأمان
+        //        var raw = System.Text.Json.JsonSerializer.Deserialize<RawIssueIqamaResponse>(
+        //            contentStr,
+        //            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+        //        var mapped = _mapper.Map<IssueIqamaResponseDto>(raw);
+
+        //        return new ApiResultModel
+        //        {
+        //            Code = 0,
+        //            Message = "Iqama Issue: تمت العملية بنجاح.",
+        //            Content = mapped
+        //        };
+        //    }
+
+
+        //    return new ApiResultModel
+        //    {
+        //        Code = result?.Code ?? 500,
+        //        Message = $"Iqama Issue: {result?.Message ?? "فشل غير معروف"}",
+        //        Content = null
+        //    };
+        //}
         [HttpPost("Iqama/Transfer")]
         public async Task<ApiResultModel> TransferIqama([FromBody] TransferIqamaRequestDto dto = null)
             => await CallMuqeem(MuqeemEndpoint.Iqama_Transfer, dto, "Iqama Transfer");
