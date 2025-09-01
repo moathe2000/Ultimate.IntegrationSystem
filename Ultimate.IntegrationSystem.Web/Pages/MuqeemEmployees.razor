@@ -56,13 +56,14 @@
     <MudTabs Rounded="true" Dense="true" Elevation="2" Centered="true"
              Class="tabs-pills mt-4" @bind-ActivePanelIndex="_activeTab">
 
+        <!-- الإقامات -->
         <!-- ================== تبويب الإقامات ================== -->
         <MudTabPanel Icon="@Icons.Material.Filled.Assignment" Text="الإقامات">
             <MudPaper Class="pa-3 mb-3" Elevation="1">
                 <MudGrid Class="tight-toolbar" AlignItems="Center" Spacing="2">
-                    <MudItem xs="12" md="4" Class="d-flex justify-end">
+                    <MudItem xs="12" md="6" Class="d-flex justify-end">
                         <MudButton Variant="Variant.Outlined" Color="Color.Primary"
-                                   StartIcon="@Icons.Material.Filled.Task" OnClick="IssueResidence">
+                                   StartIcon="@Icons.Material.Filled.Task" OnClick="IssueResidence" Class="ml-2">
                             إصدار إقامة
                         </MudButton>
 
@@ -121,19 +122,205 @@
             </MudPaper>
         </MudTabPanel>
 
-        <!-- ================== تبويب جواز السفر ================== -->
+        <!-- جواز السفر -->
         <MudTabPanel Icon="@Icons.Material.Filled.Badge" Text="جواز السفر">
-            <!-- هنا نفس الجدول اللي عندك لجواز السفر -->
+            <MudPaper Elevation="1">
+                <MudTable Items="@FilteredPassports" Dense="true" Hover="true"
+                          RightToLeft="RightToLeft.Yes"
+                          RowsPerPage="@_passportRowsPerPage"
+                          Breakpoint="Breakpoint.None">
+                    <ToolBarContent>
+                        <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Print">
+                            طباعة
+                        </MudButton>
+                    </ToolBarContent>
+                    <HeaderContent>
+                        <MudTh>رقم الجواز</MudTh>
+                        <MudTh>اسم الموظف</MudTh>
+                        <MudTh>انتهاء سابق</MudTh>
+                        <MudTh>انتهاء جديد</MudTh>
+                        <MudTh>نوع الطلب</MudTh>
+                        <MudTh>PDF</MudTh>
+                        <MudTh>متخذ الإجراء</MudTh>
+                        <MudTh>وقت الإجراء</MudTh>
+                        <MudTh>الحالة</MudTh>
+                        <MudTh>الإجراءات</MudTh>
+                    </HeaderContent>
+
+                    <RowTemplate>
+                        <MudTd>@context.PassportNumber</MudTd>
+                        <MudTd>@context.EmployeeName</MudTd>
+                        <MudTd>@context.OldExpiry?.ToString("yyyy-MM-dd")</MudTd>
+                        <MudTd>@context.NewExpiry?.ToString("yyyy-MM-dd")</MudTd>
+                        <MudTd>@context.RequestType</MudTd>
+                        <MudTd>
+                            @if (string.IsNullOrWhiteSpace(context.PdfPath) || context.PdfPath == "-")
+                            {
+                                <span>-</span>
+                            }
+                            else
+                            {
+                                <MudLink Href="@context.PdfPath" Target="_blank">عرض</MudLink>
+                            }
+                        </MudTd>
+                        <MudTd>@context.ActionBy</MudTd>
+                        <MudTd>@context.ActionTime?.ToString("yyyy-MM-dd HH:mm")</MudTd>
+                        <MudTd>
+                            @switch (context.Status)
+                            {
+                                case "تم إتمامها":
+                                    <MudChip T="string" Color="Color.Success" Variant="Variant.Filled">تم إتمامها</MudChip>
+                                    break;
+                                case "تم رفضها":
+                                    <MudChip T="string" Color="Color.Error" Variant="Variant.Outlined">تم رفضها</MudChip>
+                                    break;
+                                default:
+                                    <MudChip T="string" Color="Color.Info" Variant="Variant.Outlined">بانتظار الرد</MudChip>
+                                    break;
+                            }
+                        </MudTd>
+                        <MudTd>
+                            <MudMenu OffsetY="true">
+                                <ActivatorContent><MudIconButton Icon="@Icons.Material.Filled.MoreVert" /></ActivatorContent>
+                                <ChildContent>
+                                    <MudMenuItem OnClick="@(() => ExtendPassport(context))">تمديد صلاحية</MudMenuItem>
+                                    <MudMenuItem OnClick="@(() => RenewPassport(context))">تجديد جواز</MudMenuItem>
+                                    <MudMenuItem OnClick="@(() => ReprintPassport(context))">إعادة الطباعة</MudMenuItem>
+                                </ChildContent>
+                            </MudMenu>
+                        </MudTd>
+                    </RowTemplate>
+                </MudTable>
+            </MudPaper>
         </MudTabPanel>
 
-        <!-- ================== تبويب الخروج والعودة ================== -->
+        <!-- الخروج والعودة -->
         <MudTabPanel Icon="@Icons.Material.Filled.FlightTakeoff" Text="الخروج والعودة">
-            <!-- هنا نفس الجدول اللي عندك للخروج والعودة -->
+            <MudPaper Elevation="1">
+                <MudTable Items="@FilteredExitReentry" Dense="true" Hover="true"
+                          RightToLeft="RightToLeft.Yes"
+                          RowsPerPage="@_visaRowsPerPage"
+                          Breakpoint="Breakpoint.None">
+                    <HeaderContent>
+                        <MudTh>تاريخ انتهاء الجواز</MudTh>
+                        <MudTh>تاريخ انتهاء الإقامة</MudTh>
+                        <MudTh>PDF</MudTh>
+                        <MudTh>متخذ الإجراء</MudTh>
+                        <MudTh>وقت الإجراء</MudTh>
+                        <MudTh>الحالة</MudTh>
+                        <MudTh>الإجراءات</MudTh>
+                    </HeaderContent>
+
+                    <RowTemplate>
+                        <MudTd>@context.PassportExpiry?.ToString("yyyy-MM-dd")</MudTd>
+                        <MudTd>@context.IqamaExpiry?.ToString("yyyy-MM-dd")</MudTd>
+                        <MudTd>
+                            @if (string.IsNullOrWhiteSpace(context.PdfPath))
+                            {
+                                <span>-</span>
+                            }
+                            else
+                            {
+                                <MudLink Href="@context.PdfPath" Target="_blank">عرض</MudLink>
+                            }
+                        </MudTd>
+                        <MudTd>@context.ActionBy</MudTd>
+                        <MudTd>@context.ActionTime?.ToString("yyyy-MM-dd HH:mm")</MudTd>
+                        <MudTd>
+                            @switch (context.MuqeemStatus)
+                            {
+                                case "تم إتمامها":
+                                    <MudChip T="string" Color="Color.Success" Variant="Variant.Filled">تم إتمامها</MudChip>
+                                    break;
+                                case "تم رفضها":
+                                    <MudChip T="string" Color="Color.Error" Variant="Variant.Outlined">تم رفضها</MudChip>
+                                    break;
+                                default:
+                                    <MudChip T="string" Color="Color.Info" Variant="Variant.Outlined">بانتظار الرد</MudChip>
+                                    break;
+                            }
+                        </MudTd>
+                        <MudTd>
+                            <MudMenu OffsetY="true">
+                                <ActivatorContent><MudIconButton Icon="@Icons.Material.Filled.MoreVert" /></ActivatorContent>
+                                <ChildContent>
+                                    <MudMenuItem OnClick="@(() => IssueExitReentry(context))">إصدار</MudMenuItem>
+                                    <MudMenuItem OnClick="@(() => CancelExitReentry(context))">إلغاء</MudMenuItem>
+                                    <MudMenuItem OnClick="@(() => ExtendExitReentry(context))">تمديد</MudMenuItem>
+                                    <MudMenuItem OnClick="@(() => ReprintExitReentry(context))">إعادة الطباعة</MudMenuItem>
+                                </ChildContent>
+                            </MudMenu>
+                        </MudTd>
+                    </RowTemplate>
+                </MudTable>
+            </MudPaper>
         </MudTabPanel>
 
-        <!-- ================== تبويب الخروج النهائي ================== -->
+        <!-- الخروج النهائي -->
         <MudTabPanel Icon="@Icons.Material.Filled.ExitToApp" Text="الخروج النهائي">
-            <!-- هنا نفس الجدول اللي عندك للخروج النهائي -->
+            <MudPaper Elevation="1">
+                <MudTable Items="@FilteredFinalExit" Dense="true" Hover="true"
+                          RightToLeft="RightToLeft.Yes"
+                          RowsPerPage="@_finalExitRowsPerPage"
+                          Breakpoint="Breakpoint.None">
+                    <HeaderContent>
+                        <MudTh>رقم الإقامة</MudTh>
+                        <MudTh>رقم الموظف</MudTh>
+                        <MudTh>اسم الموظف</MudTh>
+                        <MudTh>انتهاء الجواز</MudTh>
+                        <MudTh>انتهاء الإقامة</MudTh>
+                        <MudTh>PDF</MudTh>
+                        <MudTh>متخذ الإجراء</MudTh>
+                        <MudTh>وقت الإجراء</MudTh>
+                        <MudTh>الحالة</MudTh>
+                        <MudTh>الإجراءات</MudTh>
+                    </HeaderContent>
+
+                    <RowTemplate>
+                        <MudTd>@context.IqamaNumber</MudTd>
+                        <MudTd>@context.EmployeeNumber</MudTd>
+                        <MudTd>@context.EmployeeName</MudTd>
+                        <MudTd>@context.PassportExpiry?.ToString("yyyy-MM-dd")</MudTd>
+                        <MudTd>@context.IqamaExpiry?.ToString("yyyy-MM-dd")</MudTd>
+                        <MudTd>
+                            @if (string.IsNullOrWhiteSpace(context.PdfPath) || context.PdfPath == "-")
+                            {
+                                <span>-</span>
+                            }
+                            else
+                            {
+                                <MudLink Href="@context.PdfPath" Target="_blank">عرض</MudLink>
+                            }
+                        </MudTd>
+                        <MudTd>@context.ActionBy</MudTd>
+                        <MudTd>@context.ActionTime?.ToString("yyyy-MM-dd HH:mm")</MudTd>
+                        <MudTd>
+                            @switch (context.Status)
+                            {
+                                case "تم إتمامها":
+                                    <MudChip T="string" Color="Color.Success" Variant="Variant.Filled">تم إتمامها</MudChip>
+                                    break;
+                                case "تم رفضها":
+                                    <MudChip T="string" Color="Color.Error" Variant="Variant.Outlined">تم رفضها</MudChip>
+                                    break;
+                                default:
+                                    <MudChip T="string" Color="Color.Info" Variant="Variant.Outlined">بانتظار الرد</MudChip>
+                                    break;
+                            }
+                        </MudTd>
+                        <MudTd>
+                            <MudMenu OffsetY="true">
+                                <ActivatorContent><MudIconButton Icon="@Icons.Material.Filled.MoreVert" /></ActivatorContent>
+                                <ChildContent>
+                                    <MudMenuItem OnClick="@(() => IssueFinalExit(context))">إصدار خروج نهائي</MudMenuItem>
+                                    <MudMenuItem OnClick="@(() => CancelFinalExit(context))">إلغاء</MudMenuItem>
+                                    <MudMenuItem OnClick="@(() => ReprintFinalExit(context))">إعادة الطباعة</MudMenuItem>
+                                </ChildContent>
+                            </MudMenu>
+                        </MudTd>
+                    </RowTemplate>
+                </MudTable>
+            </MudPaper>
         </MudTabPanel>
 
     </MudTabs>
@@ -143,11 +330,25 @@
     private int _activeTab = 0;
     private EmployeeDto Employee = new();
 
+    // الإقامات
     private int _residencyRowsPerPage = 10;
     private List<ResidencyRow> _residencies = new();
+    private IEnumerable<ResidencyRow> FilteredResidencies => _residencies;
 
-    private IEnumerable<ResidencyRow> FilteredResidencies =>
-        _residencies;
+    // جواز السفر
+    private int _passportRowsPerPage = 10;
+    private List<PassportRow> _passports = new();
+    private IEnumerable<PassportRow> FilteredPassports => _passports;
+
+    // خروج وعودة
+    private int _visaRowsPerPage = 10;
+    private List<ExitReentryRow> _exitReentry = new();
+    private IEnumerable<ExitReentryRow> FilteredExitReentry => _exitReentry;
+
+    // خروج نهائي
+    private int _finalExitRowsPerPage = 10;
+    private List<FinalExitRow> _finalExitList = new();
+    private IEnumerable<FinalExitRow> FilteredFinalExit => _finalExitList;
 
     protected override void OnInitialized()
     {
@@ -158,6 +359,24 @@
             return;
         }
         Employee = SelectedState.Current;
+
+
+        // قيم افتراضية للتجربة
+        _residencies = new() {
+            new ResidencyRow { IqamaNumber="1234567890", EmployeeNumber="01", EmployeeName="أحمد محمد", ActionType="إصدار", IqamaProfession="مهندس", IssueNumber="1001", Nationality="مصري", Religion="مسلم", IssueDate=DateTime.Now, IqamaExpiryDateG=DateTime.Now.AddYears(1), IqamaExpiryDateH="1448-01-01" }
+        };
+
+        _passports = new() {
+            new PassportRow { PassportNumber="P123456", EmployeeName="خالد علي", OldExpiry=DateTime.Now.AddYears(-5), NewExpiry=DateTime.Now.AddYears(5), RequestType="تجديد", ActionBy="موظف النظام", ActionTime=DateTime.Now, Status="بانتظار الرد" }
+        };
+
+        _exitReentry = new() {
+            new ExitReentryRow { PassportExpiry=DateTime.Now.AddYears(5), IqamaExpiry=DateTime.Now.AddYears(1), ActionBy="موظف النظام", ActionTime=DateTime.Now, MuqeemStatus="تم إتمامها" }
+        };
+
+        _finalExitList = new() {
+            new FinalExitRow { IqamaNumber="9876543210", EmployeeNumber="02", EmployeeName="سارة علي", PassportExpiry=DateTime.Now.AddYears(5), IqamaExpiry=DateTime.Now.AddYears(1), ActionBy="موظف النظام", ActionTime=DateTime.Now, Status="تم رفضها" }
+        };
     }
 
     private string GetInitials(string? name)
@@ -167,7 +386,8 @@
         return p.Length == 1 ? p[0][0].ToString() : $"{p[0][0]}{p[^1][0]}";
     }
 
-    // ===== الإقامات =====
+    // دوال الإقامات
+    // ===== تجديد إقامة =====
     private async Task RenewResidence()
     {
         var prms = new DialogParameters
@@ -208,10 +428,11 @@
                 Nationality = info.Nationality?.Ar ?? "-",
                 Religion = info.Religion?.Ar ?? "-"
             });
-            Snackbar.Add("تم تجديد الإقامة بنجاح.", Severity.Success);
+            Snackbar.Add("✅ تم تجديد الإقامة بنجاح.", Severity.Success);
         }
     }
 
+    // ===== إصدار إقامة =====
     private async Task IssueResidence()
     {
         var prms = new DialogParameters
@@ -237,7 +458,7 @@
         if (result.Canceled) return;
         var x = result.Data as ApiResultModel;
         var info = JsonConvert.DeserializeObject<IqamaInfoDto>(x.Content.ToString());
-      //  if (items.l result.Data is ApiResultModel api && api.Content is IqamaInfoDto info)
+
         if (info != null)
         {
             _residencies.Add(new ResidencyRow
@@ -254,17 +475,29 @@
                 Nationality = info.Nationality?.Ar ?? "-",
                 Religion = info.Religion?.Ar ?? "-"
             });
-            Snackbar.Add("تم إصدار الإقامة بنجاح.", Severity.Success);
+            Snackbar.Add("✅ تم إصدار الإقامة بنجاح.", Severity.Success);
         }
     }
+    private void EditResidency(ResidencyRow r) => Snackbar.Add($"تعديل إقامة {r.IqamaNumber}", Severity.Info);
+    private void DeleteResidency(ResidencyRow r) => Snackbar.Add($"حذف إقامة {r.IqamaNumber}", Severity.Warning);
 
-    private void EditResidency(ResidencyRow r) =>
-        Snackbar.Add($"تعديل إقامة رقم {r.IqamaNumber}", Severity.Info);
+    // دوال الجواز
+    private void ExtendPassport(PassportRow r) => Snackbar.Add($"تمديد جواز {r.PassportNumber}", Severity.Info);
+    private void RenewPassport(PassportRow r) => Snackbar.Add($"تجديد جواز {r.PassportNumber}", Severity.Success);
+    private void ReprintPassport(PassportRow r) => Snackbar.Add($"إعادة طباعة جواز {r.PassportNumber}", Severity.Info);
 
-    private void DeleteResidency(ResidencyRow r) =>
-        Snackbar.Add($"حذف إقامة رقم {r.IqamaNumber}", Severity.Warning);
+    // دوال خروج وعودة
+    private void IssueExitReentry(ExitReentryRow r) => Snackbar.Add("إصدار خروج وعودة", Severity.Success);
+    private void CancelExitReentry(ExitReentryRow r) => Snackbar.Add("إلغاء خروج وعودة", Severity.Warning);
+    private void ExtendExitReentry(ExitReentryRow r) => Snackbar.Add("تمديد خروج وعودة", Severity.Info);
+    private void ReprintExitReentry(ExitReentryRow r) => Snackbar.Add("إعادة طباعة خروج وعودة", Severity.Info);
 
-    // ===== ResidencyRow محدث =====
+    // دوال خروج نهائي
+    private void IssueFinalExit(FinalExitRow r) => Snackbar.Add($"إصدار خروج نهائي {r.EmployeeName}", Severity.Success);
+    private void CancelFinalExit(FinalExitRow r) => Snackbar.Add($"إلغاء خروج نهائي {r.EmployeeName}", Severity.Warning);
+    private void ReprintFinalExit(FinalExitRow r) => Snackbar.Add("إعادة طباعة خروج نهائي", Severity.Info);
+
+    // Models
     private class ResidencyRow
     {
         public string IqamaNumber { get; set; } = "";
@@ -278,5 +511,41 @@
         public string? IqamaExpiryDateH { get; set; }
         public string Nationality { get; set; } = "";
         public string Religion { get; set; } = "";
+    }
+
+    private class PassportRow
+    {
+        public string PassportNumber { get; set; } = "";
+        public string EmployeeName { get; set; } = "";
+        public DateTime? OldExpiry { get; set; }
+        public DateTime? NewExpiry { get; set; }
+        public string RequestType { get; set; } = "";
+        public string? PdfPath { get; set; }
+        public string? ActionBy { get; set; }
+        public DateTime? ActionTime { get; set; }
+        public string Status { get; set; } = "بانتظار الرد";
+    }
+
+    private class ExitReentryRow
+    {
+        public DateTime? PassportExpiry { get; set; }
+        public DateTime? IqamaExpiry { get; set; }
+        public string? PdfPath { get; set; }
+        public string? ActionBy { get; set; }
+        public DateTime? ActionTime { get; set; }
+        public string MuqeemStatus { get; set; } = "بانتظار الرد";
+    }
+
+    private class FinalExitRow
+    {
+        public string IqamaNumber { get; set; } = "";
+        public string EmployeeNumber { get; set; } = "";
+        public string EmployeeName { get; set; } = "";
+        public DateTime? PassportExpiry { get; set; }
+        public DateTime? IqamaExpiry { get; set; }
+        public string? PdfPath { get; set; }
+        public string? ActionBy { get; set; }
+        public DateTime? ActionTime { get; set; }
+        public string Status { get; set; } = "بانتظار الرد";
     }
 }

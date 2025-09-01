@@ -1,0 +1,42 @@
+﻿@using MudBlazor
+@namespace Ultimate.IntegrationSystem.Web.Pages.Muqeem
+
+<MudDialogContent>
+    <MudStack Spacing="2">
+        <MudText Typo="Typo.subtitle1" Class="font-bold">@ServiceTitle</MudText>
+
+        <MudTextField T="string" Label="الموظف (رقم أو اسم)" @bind-Value="_employee" />
+        <MudTextField T="string" Label="رقم الإقامة" @bind-Value="_iqama" />
+        <MudSelect T="string" Label="نوع الإجراء" @bind-Value="_action">
+            <MudSelectItem T="string">إصدار</MudSelectItem>
+            <MudSelectItem T="string">تجديد</MudSelectItem>
+            <MudSelectItem T="string">إلغاء</MudSelectItem>
+        </MudSelect>
+        <MudSelect T="string" Label="المدة" @bind-Value="_duration">
+            <MudSelectItem T="string">6 أشهر</MudSelectItem>
+            <MudSelectItem T="string">12 شهر</MudSelectItem>
+            <MudSelectItem T="string">24 شهر</MudSelectItem>
+        </MudSelect>
+    </MudStack>
+</MudDialogContent>
+
+<MudDialogActions>
+    <MudButton Color="Color.Primary" OnClick="Submit">إرسال إلى مقيم</MudButton>
+    <MudButton Color="Color.Secondary" Variant="Variant.Text" OnClick="Cancel">إلغاء</MudButton>
+</MudDialogActions>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter] public string ServiceTitle { get; set; } = "";
+
+    private string _employee = "";
+    private string _iqama = "";
+    private string _action = "إصدار";
+    private string _duration = "12 شهر";
+
+    private void Submit()
+    {
+        MudDialog.Close(DialogResult.Ok($"{ServiceTitle} تم إرساله إلى مقيم"));
+    }
+    private void Cancel() => MudDialog.Cancel();
+}

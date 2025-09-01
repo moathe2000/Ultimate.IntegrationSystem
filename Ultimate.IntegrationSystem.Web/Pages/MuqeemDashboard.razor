@@ -1,0 +1,184 @@
+﻿@page "/MuqeemDashboard"
+
+@using MudBlazor
+
+<MudContainer MaxWidth="MaxWidth.False" Class="pa-4">
+
+    <!-- ===== Header ===== -->
+    <MudGrid>
+        <MudItem xs="12" md="6">
+            <MudText Typo="Typo.h5" Class="font-bold">خدمات مقيم</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">
+                إدارة الإقامات والتأشيرات عبر تكامل مقيم
+            </MudText>
+        </MudItem>
+    </MudGrid>
+
+    <!-- ===== Tabs ===== -->
+    <MudTabs Rounded="true" Elevated="true" Centered="true" Class="mt-4">
+        <MudTabPanel Text="الخدمات">
+            <MudGrid Spacing="2" Class="mt-2">
+
+                <!-- إصدار إقامة -->
+                <MudItem xs="12" md="4">
+                    <MudPaper Class="pa-4 card-service" Elevation="1" OnClick="@(() => OpenDrawer(ServiceType.IssueIqama))">
+                        <MudText Typo="Typo.subtitle1" Class="font-bold">إصدار إقامة</MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">إصدار إقامة لأحد موظفي المنشأة</MudText>
+                    </MudPaper>
+                </MudItem>
+
+                <!-- تجديد إقامة -->
+                <MudItem xs="12" md="4">
+                    <MudPaper Class="pa-4 card-service" Elevation="1" OnClick="@(() => OpenDrawer(ServiceType.RenewIqama))">
+                        <MudText Typo="Typo.subtitle1" Class="font-bold">تجديد إقامة</MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">تجديد إقامة أحد موظفي المنشأة</MudText>
+                    </MudPaper>
+                </MudItem>
+
+                <!-- نقل خدمات -->
+                <MudItem xs="12" md="4">
+                    <MudPaper Class="pa-4 card-service" Elevation="1" OnClick="@(() => OpenDrawer(ServiceType.TransferEmployee))">
+                        <MudText Typo="Typo.subtitle1" Class="font-bold">نقل خدمات عامل</MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">نقل خدمات موظف إلى منشأة أخرى</MudText>
+                    </MudPaper>
+                </MudItem>
+
+                <!-- تجديد جواز -->
+                <MudItem xs="12" md="4">
+                    <MudPaper Class="pa-4 card-service" Elevation="1" OnClick="@(() => OpenDrawer(ServiceType.PassportRenew))">
+                        <MudText Typo="Typo.subtitle1" Class="font-bold">تجديد جواز</MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">تجديد صلاحية جواز موظف</MudText>
+                    </MudPaper>
+                </MudItem>
+
+                <!-- تقرير مقيم -->
+                <MudItem xs="12" md="4">
+                    <MudPaper Class="pa-4 card-service" Elevation="1" OnClick="@(() => OpenDrawer(ServiceType.Report))">
+                        <MudText Typo="Typo.subtitle1" Class="font-bold">تقرير مقيم</MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">طباعة تقرير مقيم لأحد الموظفين</MudText>
+                    </MudPaper>
+                </MudItem>
+            </MudGrid>
+        </MudTabPanel>
+
+        <MudTabPanel Text="التأشيرات">
+            <MudText Typo="Typo.body1" Class="mt-2">هنا جدول التأشيرات (إصدار - إلغاء - تمديد)</MudText>
+        </MudTabPanel>
+
+        <MudTabPanel Text="تقرير العمليات">
+            <MudText Typo="Typo.body1" Class="mt-2">هنا تقرير العمليات مع الفلاتر والبحث</MudText>
+        </MudTabPanel>
+    </MudTabs>
+
+</MudContainer>
+
+
+<!-- ===== Drawer جانبي ===== -->
+<MudDrawer @bind-Open="_drawerOpen"
+           Anchor="Anchor.Right"
+           Elevation="1"
+           Variant="DrawerVariant.Temporary"
+           Class="drawer-form">
+
+    <MudDrawerHeader>
+        <MudText Typo="Typo.h6">عملية جديدة — @_currentServiceText</MudText>
+    </MudDrawerHeader>
+
+    <MudDrawerContent>
+        <MudStack Spacing="2">
+            <MudTextField T="string" Label="اسم / رقم الموظف" @bind-Value="_employee" />
+            <MudTextField T="string" Label="رقم الإقامة" @bind-Value="_iqama" />
+
+          
+
+           
+
+
+            <MudSelect T="string" Label="نوع الخدمة" @bind-Value="_serviceType">
+                <MudSelectItem Value='@("إصدار")'>إصدار</MudSelectItem>
+                <MudSelectItem Value='@("تجديد")'>تجديد</MudSelectItem>
+            </MudSelect>
+
+            <MudSelect T="string" Label="نوع الإجراء" @bind-Value="_actionType">
+                <MudSelectItem Value='@("إصدار")'>إصدار</MudSelectItem>
+                <MudSelectItem Value='@("إلغاء")'>إلغاء</MudSelectItem>
+            </MudSelect>
+
+            <MudSelect T="string" Label="مدة التجديد" @bind-Value="_duration">
+                <MudSelectItem Value='@("12")'>12 شهر</MudSelectItem>
+                <MudSelectItem Value='@("24")'>24 شهر</MudSelectItem>
+            </MudSelect>
+
+        </MudStack>
+    </MudDrawerContent>
+
+    <MudDrawerFooter>
+        <MudStack Direction="Row" Justify="Justify.SpaceBetween">
+            <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="SubmitService">إرسال إلى مقيم</MudButton>
+            <MudButton Color="Color.Secondary" Variant="Variant.Text" OnClick="CloseDrawer">إلغاء</MudButton>
+        </MudStack>
+    </MudDrawerFooter>
+</MudDrawer>
+
+
+@code {
+    private bool _drawerOpen = false;
+    private string _employee = string.Empty;
+    private string _iqama = string.Empty;
+    private string _serviceType = "إصدار";
+    private string _actionType = "إصدار";
+    private string _duration = "12";
+
+    private ServiceType _currentService = ServiceType.IssueIqama;
+    private string _currentServiceText => _currentService switch
+    {
+        ServiceType.IssueIqama => "إصدار إقامة",
+        ServiceType.RenewIqama => "تجديد إقامة",
+        ServiceType.TransferEmployee => "نقل خدمات",
+        ServiceType.PassportRenew => "تجديد جواز",
+        ServiceType.Report => "تقرير مقيم",
+        _ => "خدمة"
+    };
+
+    private enum ServiceType
+    {
+        IssueIqama,
+        RenewIqama,
+        TransferEmployee,
+        PassportRenew,
+        Report
+    }
+
+    private void OpenDrawer(ServiceType service)
+    {
+        _currentService = service;
+        _drawerOpen = true;
+    }
+
+    private void CloseDrawer() => _drawerOpen = false;
+
+    private void SubmitService()
+    {
+        _drawerOpen = false;
+        Console.WriteLine($"تم إرسال الطلب: {_currentServiceText} للموظف {_employee}, إقامة: {_iqama}, نوع خدمة: {_serviceType}, نوع إجراء: {_actionType}, المدة: {_duration} شهر");
+    }
+}
+
+<style>
+.card-service {
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
+.card-service:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,.15);
+    transform: translateY(-3px);
+}
+.drawer-form {
+    width: 420px;
+    padding: 16px;
+}
+.font-bold {
+    font-weight: 600;
+}
+</style>

@@ -1,7 +1,461 @@
 ﻿@page "/employees/new"
-<h3>New Employee</h3>
 
+
+@using MudBlazor
+@using System.Globalization
+@using Ultimate.IntegrationSystem.Web.Dto
+
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<MudContainer MaxWidth="MaxWidth.False" Class="px-2 py-2">
+
+    <!-- ===== Header / Connection Bar ===== -->
+    <MudPaper Class="mx-header" Elevation="1">
+        <MudGrid AlignItems="Center">
+            <MudItem xs="12" md="7">
+                <MudStack Spacing="1">
+                    <MudText Typo="Typo.h5" Class="font-bold">لوحة التحكم — خدمات مقيم</MudText>
+                    <MudText Typo="Typo.body2" Class="mx-sub">إدارة الربط والتنفيذ السريع لخدمات الإقامات، الجوازات، والخروج والعودة عبر تكامل واجهة برمجة التطبيقات.</MudText>
+                </MudStack>
+            </MudItem>
+
+            <MudItem xs="12" md="5" Class="d-flex justify-end">
+                <MudStack Direction="Row" Spacing="2" AlignItems="AlignItems.Center">
+                    <MudChip T="string" Color="@(_isConnected ? Color.Success : Color.Error)" Variant="Variant.Filled" StartIcon="@(_isConnected ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.Error)">
+                        @(_isConnected ? "متصل بمقيم" : "غير متصل")
+                    </MudChip>
+                    <MudText Typo="Typo.caption" Class="text-muted">آخر تزامن: @_lastSyncText</MudText>
+                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Bolt" OnClick="@TestPing">فحص الاتصال</MudButton>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Hub" OnClick="@OpenConnectWizard">بدء الإعداد</MudButton>
+                </MudStack>
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+
+    <!-- ===== Quick KPIs ===== -->
+    <MudGrid Class="mt-3" Spacing="2">
+        @foreach (var kpi in _kpis)
+        {
+            <MudItem xs="6" md="3">
+                <MudPaper Class="mx-kpi" Elevation="1">
+                    <MudStack Spacing="1">
+                        <MudText Typo="Typo.overline" Class="text-muted">@kpi.Label</MudText>
+                        <MudStack Direction="Row" AlignItems="AlignItems.End" Spacing="1">
+                           @*  FlexEnd *@
+                            <MudText Typo="Typo.h5" Class="font-bold">@kpi.Value</MudText>
+                            @if (!string.IsNullOrWhiteSpace(kpi.Sublabel))
+                            {
+                                <MudText Typo="Typo.caption" Class="text-muted">@kpi.Sublabel</MudText>
+                            }
+                        </MudStack>
+                    </MudStack>
+                </MudPaper>
+            </MudItem>
+        }
+    </MudGrid>
+
+    <!-- ===== Global Search + Quick Actions ===== -->
+    <MudPaper Class="mx-search mt-3" Elevation="1">
+        <MudGrid AlignItems="Center" Class="g-gap">
+            <MudItem xs="12" md="7">
+                <MudTextField T="string" @bind-Value="_search" Placeholder="ابحث بالاسم/الرقم…" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Immediate="true" Clearable="true" Class="w-100" />
+            </MudItem>
+            <MudItem xs="12" md="5" Class="d-flex justify-end">
+                <MudStack Direction="Row" Spacing="1">
+                    <MudButton Color="Color.Primary" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Task" OnClick="@(() => GoQuick(QuickFlow.IssueIqama))">إصدار إقامة</MudButton>
+                    <MudButton Color="Color.Secondary" Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Refresh" OnClick="@(() => GoQuick(QuickFlow.RenewIqama))">تجديد إقامة</MudButton>
+                    <MudMenu OffsetY="true">
+                        <ActivatorContent>
+                            <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.MoreHoriz">إجراءات أخرى</MudButton>
+                        </ActivatorContent>
+                        <ChildContent>
+                            <MudMenuItem OnClick="@(() => GoQuick(QuickFlow.ExitReentry))">خروج وعودة</MudMenuItem>
+                            <MudMenuItem OnClick="@(() => GoQuick(QuickFlow.FinalExit))">خروج نهائي</MudMenuItem>
+                            <MudMenuItem OnClick="@(() => GoQuick(QuickFlow.Passport))">الجوازات</MudMenuItem>
+                            <MudMenuItem OnClick="@(() => GoQuick(QuickFlow.Reports))">التقارير</MudMenuItem>
+                        </ChildContent>
+                    </MudMenu>
+                </MudStack>
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+
+    <!-- ===== Service Catalog ===== -->
+    <MudText Typo="Typo.subtitle1" Class="mt-4 mb-2 font-bold">الخدمات الشائعة</MudText>
+    <MudGrid Spacing="2">
+        @foreach (var svc in _services)
+        {
+            <MudItem xs="12" md="4">
+                <MudCard Class="mx-card h-100">
+                    <MudCardHeader>
+                        <CardHeaderContent>
+                            <MudStack Direction="Row" Spacing="1" AlignItems="AlignItems.Center">
+                                <MudIcon Icon="@svc.Icon" Size="Size.Medium" />
+                                <MudText Typo="Typo.subtitle1" Class="font-bold">@svc.Title</MudText>
+                            </MudStack>
+                        </CardHeaderContent>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudText Typo="Typo.body2" Class="text-muted">@svc.Description</MudText>
+                    </MudCardContent>
+                    <MudCardActions Class="pt-0">
+                        @foreach (var act in svc.Actions)
+                        {
+                            <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Primary" OnClick="@(() => DoService(svc.Key, act.Key))" StartIcon="@act.Icon">@act.Text</MudButton>
+                        }
+                    </MudCardActions>
+                </MudCard>
+            </MudItem>
+        }
+    </MudGrid>
+
+    <!-- ===== Recent Operations & Filters ===== -->
+    <MudGrid Class="mt-4" Spacing="2">
+        <MudItem xs="12" md="8">
+            <MudPaper Class="mx-panel" Elevation="1">
+                <MudStack Spacing="1">
+                    <MudStack Direction="Row" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                        <MudText Typo="Typo.subtitle1" Class="font-bold">العمليات الأخيرة</MudText>
+                        <MudStack Direction="Row" Spacing="1">
+                            <MudSelect T="string" @bind-Value="_filterService" Dense="true" Label="الخدمة" Class="w-24">
+                                <MudSelectItem T="string" Value="@Svc_All">@Svc_All</MudSelectItem>
+                                <MudSelectItem T="string" Value="@Svc_Residency">@Svc_Residency</MudSelectItem>
+                                <MudSelectItem T="string" Value="@Svc_ExitReentry">@Svc_ExitReentry</MudSelectItem>
+                                <MudSelectItem T="string" Value="@Svc_FinalExit">@Svc_FinalExit</MudSelectItem>
+                                <MudSelectItem T="string" Value="@Svc_Passports">@Svc_Passports</MudSelectItem>
+                            </MudSelect>
+                            <MudSelect T="string" @bind-Value="_filterStatus" Dense="true" Label="الحالة" Class="w-24">
+                                <MudSelectItem T="string" Value="@St_All">@St_All</MudSelectItem>
+                                <MudSelectItem T="string" Value="@St_Done">@St_Done</MudSelectItem>
+                                <MudSelectItem T="string" Value="@St_Rejected">@St_Rejected</MudSelectItem>
+                                <MudSelectItem T="string" Value="@St_Pending">@St_Pending</MudSelectItem>
+                            </MudSelect>
+                        </MudStack>
+                    </MudStack>
+
+                    <MudTable T="OperationRow" Items="@FilteredOps" Dense="true" Hover="true" RightToLeft="RightToLeft.Yes">
+                        <HeaderContent>
+                            <MudTh>الخدمة</MudTh>
+                            <MudTh>الموظف</MudTh>
+                            <MudTh>الإقامة</MudTh>
+                            <MudTh>الوقت</MudTh>
+                            <MudTh>الحالة</MudTh>
+                            <MudTh>الإجراءات</MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd>@context.Service</MudTd>
+                            <MudTd>@context.EmployeeName</MudTd>
+                            <MudTd>@(string.IsNullOrWhiteSpace(context.IqamaNumber) ? "-" : context.IqamaNumber)</MudTd>
+                            <MudTd>@context.Time.ToString("yyyy-MM-dd HH:mm")</MudTd>
+                            <MudTd>
+                                @if (context.Status == St_Done)
+                                {
+                                    <MudChip T="string" Color="Color.Success" Variant="Variant.Filled">@St_Done</MudChip>
+                                }
+                                else if (context.Status == St_Rejected)
+                                {
+                                    <MudChip T="string" Color="Color.Error" Variant="Variant.Outlined">@St_Rejected</MudChip>
+                                }
+                                else
+                                {
+                                    <MudChip T="string" Color="Color.Info" Variant="Variant.Outlined">@St_Pending</MudChip>
+                                }
+                            </MudTd>
+                            <MudTd>
+                                <MudIconButton Icon="@Icons.Material.Filled.Visibility" Size="Size.Small" OnClick="@(() => ViewOperation(context))" />
+                                @if (!string.IsNullOrWhiteSpace(context.PdfPath))
+                                {
+                                    <MudIconButton Icon="@Icons.Material.Filled.PictureAsPdf" Size="Size.Small" OnClick="@(() => OpenPdf(context.PdfPath!))" />
+                                }
+                            </MudTd>
+                        </RowTemplate>
+                        <PagerContent>
+                            <MudTablePager />
+                        </PagerContent>
+                    </MudTable>
+                </MudStack>
+            </MudPaper>
+        </MudItem>
+
+        <!-- ===== Setup / Checklist ===== -->
+        <MudItem xs="12" md="4">
+            <MudPaper Class="mx-panel" Elevation="1">
+                <MudText Typo="Typo.subtitle1" Class="font-bold mb-2">قائمة الإعداد السريع</MudText>
+                <MudList T="string" Dense="true">
+                    <MudListItem T="string">
+                        <MudListItemIcon><MudIcon Icon="@(_hasSubscription ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.RadioButtonUnchecked)" /></MudListItemIcon>
+                        <MudListItemText>تفعيل اشتراك مقيم (يدعم API)</MudListItemText>
+                    </MudListItem>
+                    <MudListItem T="string">
+                        <MudListItemIcon><MudIcon Icon="@(_hasKeys ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.RadioButtonUnchecked)" /></MudListItemIcon>
+                        <MudListItemText>إدخال المفاتيح/الرموز (ClientId/Secret)</MudListItemText>
+                    </MudListItem>
+                    <MudListItem T="string">
+                        <MudListItemIcon><MudIcon Icon="@(_hasMapping ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.RadioButtonUnchecked)" /></MudListItemIcon>
+                        <MudListItemText>مطابقة بيانات الموظفين (الهوية/الإقامة)</MudListItemText>
+                    </MudListItem>
+                    <MudListItem T="string">
+                        <MudListItemIcon><MudIcon Icon="@(_isConnected ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.RadioButtonUnchecked)" /></MudListItemIcon>
+                        <MudListItemText>اختبار الاتصال بنجاح</MudListItemText>
+                    </MudListItem>
+                </MudList>
+                <MudDivider Class="my-2" />
+                <MudButton FullWidth="true" Color="Color.Primary" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Hub" OnClick="@OpenConnectWizard">فتح معالج الإعداد</MudButton>
+                <MudButton FullWidth="true" Color="Color.Secondary" Variant="Variant.Text" StartIcon="@Icons.Material.Filled.HelpOutline" OnClick="@OpenHelp">مركز المساعدة</MudButton>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+
+</MudContainer>
 
 @code {
+    // == ثوابت عربية آمنة للاستخدام داخل الخصائص ==
+    private const string Svc_All         = "الكل";
+    private const string Svc_Residency   = "الإقامات";
+    private const string Svc_ExitReentry = "الخروج والعودة";
+    private const string Svc_FinalExit   = "الخروج النهائي";
+    private const string Svc_Passports   = "الجوازات";
 
+    private const string St_All      = "الكل";
+    private const string St_Done     = "تم إتمامها";
+    private const string St_Rejected = "تم رفضها";
+    private const string St_Pending  = "بانتظار الرد";
+
+    private bool _isConnected = true;
+    private DateTime? _lastSync = DateTime.Now.AddMinutes(-27);
+    private string _lastSyncText => _lastSync.HasValue ? _lastSync.Value.ToString("yyyy-MM-dd HH:mm") : "—";
+
+    private string _search = string.Empty;
+
+    private bool _hasSubscription = true;   // افتراضيًا: مفعّل
+    private bool _hasKeys = true;           // تم إدخال المفاتيح
+    private bool _hasMapping = false;       // لم يكتمل بعد
+
+    private string _filterService = Svc_All;
+    private string _filterStatus  = St_All;
+
+    // ===== KPIs =====
+    private class Kpi
+    {
+        public string Label { get; set; } = string.Empty;
+        public string Value { get; set; } = string.Empty;
+        public string? Sublabel { get; set; }
+    }
+
+    private List<Kpi> _kpis = new()
+    {
+        new Kpi{ Label = "عمليات اليوم", Value = "12" },
+        new Kpi{ Label = "بانتظار الرد", Value = "4" },
+        new Kpi{ Label = "الإقامات المنتهية (30 يوم)", Value = "7" },
+        new Kpi{ Label = "آخر فشل", Value = "لا يوجد", Sublabel = "—" }
+    };
+
+    // ===== Services Catalog =====
+    private class SvcAction
+    {
+        public string Key { get; set; } = string.Empty;
+        public string Text { get; set; } = string.Empty;
+        public string Icon { get; set; } = string.Empty;
+    }
+
+    private class Svc
+    {
+        public string Key { get; set; } = string.Empty;
+        public string Title { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public string Icon { get; set; } = string.Empty;
+        public List<SvcAction> Actions { get; set; } = new();
+    }
+
+    private List<Svc> _services = new()
+    {
+        new Svc{
+            Key = "residency",
+            Title = "الإقامات",
+            Description = "إصدار/تجديد الإقامة، تعديل المهنة والمنشأة، والتحقق من الصلاحية.",
+            Icon = Icons.Material.Filled.Assignment,
+            Actions = new List<SvcAction>{
+                new SvcAction{ Key = "issue", Text = "إصدار", Icon = Icons.Material.Filled.Task },
+                new SvcAction{ Key = "renew", Text = "تجديد", Icon = Icons.Material.Filled.Refresh }
+            }
+        },
+        new Svc{
+            Key = "exitreentry",
+            Title = "الخروج والعودة",
+            Description = "إصدار، إلغاء، تمديد، وإعادة طباعة تأشيرة الخروج والعودة.",
+            Icon = Icons.Material.Filled.FlightTakeoff,
+            Actions = new List<SvcAction>{
+                new SvcAction{ Key = "issue", Text = "إصدار", Icon = Icons.Material.Filled.Launch },
+                new SvcAction{ Key = "extend", Text = "تمديد", Icon = Icons.Material.Filled.CalendarMonth }
+            }
+        },
+        new Svc{
+            Key = "finalexit",
+            Title = "الخروج النهائي",
+            Description = "إصدار أو إلغاء وإعادة الطباعة لوثائق الخروج النهائي.",
+            Icon = Icons.Material.Filled.ExitToApp,
+            Actions = new List<SvcAction>{
+                new SvcAction{ Key = "issue", Text = "إصدار", Icon = Icons.Material.Filled.CheckCircle },
+                new SvcAction{ Key = "cancel", Text = "إلغاء", Icon = Icons.Material.Filled.Cancel }
+            }
+        },
+        new Svc{
+            Key = "passport",
+            Title = "الجوازات",
+            Description = "تجديد وتمديد صلاحية الجوازات وتتبّع المستندات.",
+            Icon = Icons.Material.Filled.Badge,
+            Actions = new List<SvcAction>{
+                new SvcAction{ Key = "renew", Text = "تجديد", Icon = Icons.Material.Filled.Restore },
+                new SvcAction{ Key = "extend", Text = "تمديد", Icon = Icons.Material.Filled.CalendarMonth }
+            }
+        },
+        new Svc{
+            Key = "visas",
+            Title = "التأشيرات",
+            Description = "إدارة الطلبات والتتبّع والحصص المتاحة.",
+            Icon = Icons.Material.Filled.Work,
+            Actions = new List<SvcAction>{
+                new SvcAction{ Key = "apply", Text = "طلب جديد", Icon = Icons.Material.Filled.NoteAdd },
+                new SvcAction{ Key = "report", Text = "التقارير", Icon = Icons.Material.Filled.Assessment }
+            }
+        },
+        new Svc{
+            Key = "reports",
+            Title = "التقارير",
+            Description = "تقارير العمليات والتدقيق وسجل الأخطاء.",
+            Icon = Icons.Material.Filled.Summarize,
+            Actions = new List<SvcAction>{
+                new SvcAction{ Key = "operations", Text = "عمليات", Icon = Icons.Material.Filled.List },
+                new SvcAction{ Key = "errors", Text = "الأخطاء", Icon = Icons.Material.Filled.ReportProblem }
+            }
+        }
+    };
+
+    // ===== Recent Operations (Mock) =====
+    private class OperationRow
+    {
+        public string Service { get; set; } = string.Empty;
+        public string EmployeeName { get; set; } = string.Empty;
+        public string? IqamaNumber { get; set; }
+        public DateTime Time { get; set; }
+        public string Status { get; set; } = St_Pending;
+        public string? PdfPath { get; set; }
+    }
+
+    private List<OperationRow> _ops = new()
+    {
+        new OperationRow{ Service = Svc_Residency,   EmployeeName = "أحمد محمد",  IqamaNumber = "2312312312", Time = DateTime.Now.AddMinutes(-10), Status = St_Done,     PdfPath = "/docs/iqama_2312.pdf" },
+        new OperationRow{ Service = Svc_ExitReentry, EmployeeName = "خالد علي",    IqamaNumber = "9988776655", Time = DateTime.Now.AddHours(-1),  Status = St_Pending },
+        new OperationRow{ Service = Svc_FinalExit,   EmployeeName = "سارة علي",    IqamaNumber = "1122334455", Time = DateTime.Now.AddHours(-3),  Status = St_Rejected },
+        new OperationRow{ Service = Svc_Passports,   EmployeeName = "محمد هادي",   Time = DateTime.Now.AddDays(-1), Status = St_Done, PdfPath = "/docs/passport_mh.pdf" },
+        new OperationRow{ Service = Svc_Residency,   EmployeeName = "وداد يحيى",   IqamaNumber = "5544332211", Time = DateTime.Now.AddDays(-2),  Status = St_Pending }
+    };
+
+    private IEnumerable<OperationRow> FilteredOps => _ops
+        .Where(o => _filterService == Svc_All || o.Service == _filterService)
+        .Where(o => _filterStatus  == St_All  || o.Status  == _filterStatus)
+        .OrderByDescending(o => o.Time);
+
+    // ===== Actions =====
+    private void TestPing()
+    {
+        if (_isConnected)
+        {
+            _lastSync = DateTime.Now;
+            Snackbar.Add("✅ الاتصال يعمل. تم تحديث وقت آخر تزامن.", Severity.Success);
+        }
+        else
+        {
+            Snackbar.Add("فشل الاتصال. تأكد من المفاتيح والاشتراك.", Severity.Error);
+        }
+    }
+
+    private enum QuickFlow { IssueIqama, RenewIqama, ExitReentry, FinalExit, Passport, Reports }
+
+    private void GoQuick(QuickFlow f)
+    {
+        switch (f)
+        {
+            case QuickFlow.IssueIqama:
+                Snackbar.Add("فتح نموذج إصدار إقامة…", Severity.Info);
+                Navigation.NavigateTo("/MuqeemEmployees");
+                break;
+            case QuickFlow.RenewIqama:
+                Snackbar.Add("فتح نموذج تجديد إقامة…", Severity.Info);
+                Navigation.NavigateTo("/MuqeemEmployees");
+                break;
+            case QuickFlow.ExitReentry:
+                Snackbar.Add("فتح إجراءات خروج وعودة…", Severity.Info);
+                break;
+            case QuickFlow.FinalExit:
+                Snackbar.Add("فتح إجراءات خروج نهائي…", Severity.Info);
+                break;
+            case QuickFlow.Passport:
+                Snackbar.Add("فتح إدارة الجوازات…", Severity.Info);
+                break;
+            case QuickFlow.Reports:
+                Snackbar.Add("فتح التقارير…", Severity.Info);
+                break;
+        }
+    }
+
+    private void DoService(string serviceKey, string actionKey)
+    {
+        Snackbar.Add($"تشغيل: {serviceKey} / {actionKey}", Severity.Info);
+        if (serviceKey == "residency" && actionKey == "issue") Navigation.NavigateTo("/MuqeemEmployees");
+    }
+
+    private void ViewOperation(OperationRow row)
+    {
+        Snackbar.Add($"عرض العملية: {row.Service} — {row.EmployeeName}", Severity.Normal);
+    }
+
+    private void OpenPdf(string path)
+    {
+        Navigation.NavigateTo(path, true);
+    }
+
+    private void OpenConnectWizard()
+    {
+        Snackbar.Add("⚙️ فتح معالج الربط بمقيم… (استبدل بـ Dialog فعلي)", Severity.Info);
+        // مثال: DialogService.Show<ConnectMuqeemDialog>("", new DialogParameters{ }, new DialogOptions{ MaxWidth = MaxWidth.Small });
+    }
+
+    private void OpenHelp()
+    {
+        Navigation.NavigateTo("/help/muqeem", true);
+    }
 }
+
+<style>
+:root{
+  --card-radius: 16px;
+  --shadow: 0 10px 30px rgba(0,0,0,.07);
+  --shadow-sm: 0 6px 18px rgba(0,0,0,.05);
+  --muted:#64748b;
+  --beige:#f5f2ea;
+}
+
+.mx-header{
+  padding: 14px 16px; border-radius: var(--card-radius);
+  background: linear-gradient(180deg, var(--beige) 0%, #fff 60%);
+  box-shadow: var(--shadow);
+}
+.mx-sub{ color: var(--muted); }
+
+.mx-kpi{ padding: 14px 16px; border-radius: 14px; box-shadow: var(--shadow-sm); background:#fff }
+.mx-search{ padding: 12px 14px; border-radius: 14px; box-shadow: var(--shadow-sm); background:#fff }
+.mx-card{ border-radius: 16px; box-shadow: var(--shadow-sm); }
+.mx-panel{ padding: 12px 14px; border-radius: 16px; box-shadow: var(--shadow-sm); background:#fff }
+
+.text-muted{ color: var(--muted) }
+.w-24{ width: 180px }
+.g-gap{ row-gap: 8px }
+
+/* Dark mode tweaks */
+.mud-theme-dark .mx-header{ background: linear-gradient(180deg, #0b1220 0%, #0e1525 60%); }
+.mud-theme-dark .mx-kpi, .mud-theme-dark .mx-search, .mud-theme-dark .mx-card, .mud-theme-dark .mx-panel{ background:#0f172a }
+.mud-theme-dark .text-muted{ color:#94a3b8 }
+</style>
