@@ -60,17 +60,17 @@
         <!-- ================== تبويب الإقامات ================== -->
         <MudTabPanel Icon="@Icons.Material.Filled.Assignment" Text="الإقامات">
             <MudPaper Class="pa-3 mb-3" Elevation="1">
-                <MudGrid Class="tight-toolbar" AlignItems="Center" Spacing="2">
+                <MudGrid Class="tight-toolbar"  Spacing="2" Justify="Justify.FlexStart">
                     <MudItem xs="12" md="6" Class="d-flex justify-end">
                         <MudButton Variant="Variant.Outlined" Color="Color.Primary"
                                    StartIcon="@Icons.Material.Filled.Task" OnClick="IssueResidence" Class="ml-2">
                             إصدار إقامة
                         </MudButton>
 
-                        <MudButton Variant="Variant.Outlined" Color="Color.Secondary"
+                      @*   <MudButton Variant="Variant.Outlined" Color="Color.Secondary"
                                    StartIcon="@Icons.Material.Filled.Refresh" OnClick="RenewResidence">
                             تجديد إقامة
-                        </MudButton>
+                        </MudButton> *@
                     </MudItem>
                 </MudGrid>
             </MudPaper>
@@ -107,12 +107,22 @@
                         <MudTd>@context.IssueDate?.ToString("yyyy-MM-dd")</MudTd>
                         <MudTd>@context.IqamaExpiryDateG?.ToString("yyyy-MM-dd")</MudTd>
                         <MudTd>@context.IqamaExpiryDateH</MudTd>
-                        <MudTd>
+                        @* <MudTd>
                             <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"
                                            OnClick="@(() => EditResidency(context))" />
                             <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
                                            OnClick="@(() => DeleteResidency(context))" />
+                        </MudTd> *@
+                        <MudTd>
+                            <MudIconButton Icon="@Icons.Material.Filled.Refresh"
+                                           Size="Size.Small"
+                                           Color="Color.Primary"
+                                           Variant="Variant.Filled"
+                                           Title="تجديد الإقامة"
+                                           OnClick="@(() => RenewResidencyRow(context))" />
+                          
                         </MudTd>
+
                     </RowTemplate>
 
                     <PagerContent>
@@ -327,8 +337,20 @@
 </MudContainer>
 
 @code {
+
+    [CascadingParameter] public IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter] public EmployeeDto Employee { get; set; } = new();
+    [Parameter] public bool IsRenew { get; set; } = false;
+
+    // ✅ الجديد: رقم الإقامة القادم من الصف
+    [Parameter] public string? IqamaNumberFromRow { get; set; }
+
+    private IqamaModel Model { get; set; } = new();
+
+   
     private int _activeTab = 0;
-    private EmployeeDto Employee = new();
+    
 
     // الإقامات
     private int _residencyRowsPerPage = 10;
@@ -378,7 +400,13 @@
             new FinalExitRow { IqamaNumber="9876543210", EmployeeNumber="02", EmployeeName="سارة علي", PassportExpiry=DateTime.Now.AddYears(5), IqamaExpiry=DateTime.Now.AddYears(1), ActionBy="موظف النظام", ActionTime=DateTime.Now, Status="تم رفضها" }
         };
     }
-
+    protected override void OnParametersSet()
+    {
+        if (IsRenew && !string.IsNullOrWhiteSpace(IqamaNumberFromRow))
+        {
+            Model.IqamaNumber = IqamaNumberFromRow;   // يملأ الحقل مباشرة
+        }
+    }
     private string GetInitials(string? name)
     {
         if (string.IsNullOrWhiteSpace(name)) return "؟";
@@ -388,48 +416,97 @@
 
     // دوال الإقامات
     // ===== تجديد إقامة =====
-    private async Task RenewResidence()
+    // private async Task RenewResidence()
+    // {
+    //     var prms = new DialogParameters
+    //     {
+    //         ["Employee"] = Employee,
+    //         ["IsRenew"] = true
+    //     };
+
+    //     var opts = new DialogOptions
+    //     {
+    //         CloseOnEscapeKey = true,
+    //         NoHeader = true,
+    //         CloseButton = false,
+    //         MaxWidth = MaxWidth.False,
+    //         FullWidth = false,
+    //         Position = DialogPosition.CenterRight,
+    //         BackgroundClass = "side-sheet-overlay",
+    //     };
+
+    //     var dialogRef = DialogService.Show<IssueIqamaDialog>(string.Empty, prms, opts);
+    //     var result = await dialogRef.Result;
+
+    //     if (result.Canceled) return;
+
+    //     if (result.Data is ApiResultModel api && api.Content is IqamaInfoDto info)
+    //     {
+    //         _residencies.Add(new ResidencyRow
+    //         {
+    //             IqamaNumber = info.IqamaNumber,
+    //             EmployeeNumber = Employee.Id.ToString() ?? "-",
+    //             EmployeeName = Employee.FullName ?? "-",
+    //             ActionType = "تجديد",
+    //             IqamaProfession = info.Occupation?.Ar ?? "-",
+    //             IssueNumber = info.OrganizationMOINumber ?? "-",
+    //             IssueDate = DateTime.Now,
+    //             IqamaExpiryDateG = info.IqamaExpiryDateG,
+    //             IqamaExpiryDateH = info.IqamaExpiryDateH,
+    //             Nationality = info.Nationality?.Ar ?? "-",
+    //             Religion = info.Religion?.Ar ?? "-"
+    //         });
+    //         Snackbar.Add("✅ تم تجديد الإقامة بنجاح.", Severity.Success);
+    //     }
+    // }
+    private async Task RenewResidencyRow(ResidencyRow r)
     {
         var prms = new DialogParameters
         {
             ["Employee"] = Employee,
-            ["IsRenew"] = true
+            ["IsRenew"] = true,
+            // ["IqamaNumber"] = r.IqamaNumber   // سنلتقطه داخل الدialog لعمل prefill
+            ["IqamaNumberFromRow"] = r.IqamaNumber
         };
 
         var opts = new DialogOptions
         {
             CloseOnEscapeKey = true,
-            NoHeader = true,
-            CloseButton = false,
-            MaxWidth = MaxWidth.False,
-            FullWidth = false,
-            Position = DialogPosition.CenterRight,
-            BackgroundClass = "side-sheet-overlay",
+                    NoHeader = true,
+                    CloseButton = false,
+                    MaxWidth = MaxWidth.False,
+                    FullWidth = false,
+                    Position = DialogPosition.CenterRight,
+                    BackgroundClass = "side-sheet-overlay",
+           
         };
 
         var dialogRef = DialogService.Show<IssueIqamaDialog>(string.Empty, prms, opts);
         var result = await dialogRef.Result;
-
         if (result.Canceled) return;
-
-        if (result.Data is ApiResultModel api && api.Content is IqamaInfoDto info)
+        if (result.Data is ApiResultModel api)
         {
-            _residencies.Add(new ResidencyRow
+            var info = JsonConvert.DeserializeObject<IqamaInfoDto>(api.Content?.ToString() ?? "");
+            if (info != null)
             {
-                IqamaNumber = info.IqamaNumber,
-                EmployeeNumber = Employee.Id.ToString() ?? "-",
-                EmployeeName = Employee.FullName ?? "-",
-                ActionType = "تجديد",
-                IqamaProfession = info.Occupation?.Ar ?? "-",
-                IssueNumber = info.OrganizationMOINumber ?? "-",
-                IssueDate = DateTime.Now,
-                IqamaExpiryDateG = info.IqamaExpiryDateG,
-                IqamaExpiryDateH = info.IqamaExpiryDateH,
-                Nationality = info.Nationality?.Ar ?? "-",
-                Religion = info.Religion?.Ar ?? "-"
-            });
-            Snackbar.Add("✅ تم تجديد الإقامة بنجاح.", Severity.Success);
+                _residencies.Add(new ResidencyRow
+                {
+                    IqamaNumber = info.IqamaNumber,
+                    EmployeeNumber = Employee.Id.ToString() ?? "-",
+                    EmployeeName = Employee.FullName ?? "-",
+                    ActionType = "تجديد",
+                    IqamaProfession = info.Occupation?.Ar ?? "-",
+                    IssueNumber = info.OrganizationMOINumber ?? "-",
+                    IssueDate = DateTime.Now,
+                    IqamaExpiryDateG = info.NewIqamaExpiryDateGre,
+                    IqamaExpiryDateH = info.NewIqamaExpiryDateHij,
+                    Nationality = info.Nationality?.Ar ?? "-",
+                    Religion = info.Religion?.Ar ?? "-"
+                });
+                Snackbar.Add("✅ تم تجديد الإقامة بنجاح.", Severity.Success);
+            }
         }
+       
     }
 
     // ===== إصدار إقامة =====
@@ -478,8 +555,7 @@
             Snackbar.Add("✅ تم إصدار الإقامة بنجاح.", Severity.Success);
         }
     }
-    private void EditResidency(ResidencyRow r) => Snackbar.Add($"تعديل إقامة {r.IqamaNumber}", Severity.Info);
-    private void DeleteResidency(ResidencyRow r) => Snackbar.Add($"حذف إقامة {r.IqamaNumber}", Severity.Warning);
+  
 
     // دوال الجواز
     private void ExtendPassport(PassportRow r) => Snackbar.Add($"تمديد جواز {r.PassportNumber}", Severity.Info);

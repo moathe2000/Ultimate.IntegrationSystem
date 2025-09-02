@@ -25,12 +25,12 @@ namespace Ultimate.IntegrationSystem.Web.Map
             };
         }
 
-        public static RenewIqamaRequestDto ToRenewIqama(EmployeeDto emp, int duration)
+        public static RenewIqamaRequestDto ToRenewIqama(EmployeeDto emp, int duration,string IqamaNumber)
         {
             return new RenewIqamaRequestDto
             {
                 EmployeeNumber = emp.Id.ToString(),
-                IqamaNumber =null,
+                IqamaNumber = IqamaNumber,
                 BorderNumber = emp.BorderId,
                 IqamaDuration = duration.ToString()
             };

@@ -16,6 +16,13 @@
 
         public string? ResidentName { get; set; }
         public string? TranslatedResidentName { get; set; }
+
+
+
+        public DateTime? NewIqamaExpiryDateGre { get; set; }
+        public string NewIqamaExpiryDateHij { get; set; }
+      
+        public string VersionNumber { get; set; }
     }
 
     /// <summary>
