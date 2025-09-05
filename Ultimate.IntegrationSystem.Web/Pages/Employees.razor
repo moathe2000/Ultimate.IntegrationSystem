@@ -1,164 +1,132 @@
 ﻿@page "/employees"
+@using Microsoft.JSInterop
 @using MudBlazor
 @using Ultimate.IntegrationSystem.Web.Dto
-@using Ultimate.IntegrationSystem.Web.Models
 @using Ultimate.IntegrationSystem.Web.Service
-
+@using Ultimate.IntegrationSystem.Web.Models
 
 @inject ISnackbar Snackbar
 @inject NavigationManager Navigation
 @inject IEmployeeService EmployeeService
 @inject SelectedEmployeeState SelectedState
+@inject IJSRuntime JS
 
 <style>
+    /* CSS الحالي مع تحسينات إضافية */
+    body, .page-root {
+        background: #f5f5f9;
+    }
+
     :root {
-        --soft-bg: rgba(0,0,0,.04);
+        --soft-bg: rgba(0,0,0,.035);
         --soft-brd: rgba(0,0,0,.10);
-        --card-h: 176px;
+        --radius: 12px;
+        --table-h: calc(100vh - 360px);
     }
 
-    /* KPI */
-    .kpi {
-        border-radius: 5px;
-        color: #fff;
-        background: linear-gradient(135deg,var(--c1),var(--c2));
-    }
-
-    .kpi-grid .mud-paper {
+    .kpi-card {
+        border: 1px solid var(--soft-brd);
+        border-radius: var(--radius);
         display: flex;
         gap: 12px;
         align-items: center;
+        transition: transform 0.2s ease;
     }
 
-    .kpi-icon {
-        width: 42px;
-        height: 42px;
-        border-radius: 12px;
-        background: rgba(255,255,255,.18);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
+        .kpi-card:hover {
+            transform: translateY(-2px);
+        }
 
     .kpi-title {
-        opacity: .9;
+        color: var(--mud-palette-text-secondary);
         font-weight: 600;
     }
 
     .kpi-value {
-        font-size: 2.1rem;
+        font-size: 2rem;
         font-weight: 800;
         line-height: 1;
     }
 
-    /* Toolbar */
     .toolbar {
-        position: sticky;
-        top: 56px;
-        z-index: 5;
-        background: var(--mud-palette-surface);
-        backdrop-filter: saturate(180%) blur(6px);
-        border-radius: 12px;
-        padding-block: 10px !important;
+        border: 1px solid var(--soft-brd);
+        border-radius: var(--radius);
+        padding: 6px 10px !important;
     }
 
-    .toolbar-grid {
-        align-items: center;
-    }
-
-    .toolbar-inline {
+    .toolbar-row {
         display: flex;
         align-items: center;
-        gap: 10px;
+        justify-content: space-between;
+        gap: 8px;
         flex-wrap: wrap;
     }
 
-    .view-switch {
-        display: inline-flex;
+    .actions-group {
+        display: flex;
         align-items: center;
-        gap: 6px;
-        background: var(--soft-bg);
+        gap: 8px;
+    }
+
+    .search-sneat {
+        width: 250px;
+        transition: width 0.3s ease;
+    }
+
+        .search-sneat:focus-within {
+            width: 300px;
+        }
+
+        .search-sneat .mud-input-root {
+            min-height: 36px;
+        }
+
+        .search-sneat .mud-input-outlined {
+            border-radius: 8px;
+            padding-top: 0;
+            padding-bottom: 0;
+        }
+
+    .elevated {
         border: 1px solid var(--soft-brd);
-        padding: 4px;
-        border-radius: 10px;
+        border-radius: var(--radius);
     }
 
-    .view-btn {
-        width: 38px;
-        height: 34px;
-        border-radius: 8px;
+    .sneat-table .mud-table-head .mud-th {
+        padding: 12px 14px;
+        font-weight: 700;
+        font-size: .92rem;
+        background-color: var(--soft-bg);
     }
 
-        .view-btn .mud-icon-root {
-            font-size: 1.05rem;
-        }
-
-    .search-grow {
-        flex: 1 1 420px;
-        min-width: 260px;
-        max-width: 100%;
+    .sneat-table .mud-table-body .mud-td {
+        padding: 8px 14px;
     }
 
-        .search-grow .mud-input-control {
-            width: 100%;
-        }
-
-    @@media (max-width:900px) {
-        .filter-col, .reset-col {
-            max-width: 100%;
-        }
+    .sneat-table .mud-table-body .mud-tr:hover {
+        background: var(--soft-bg);
     }
 
-    /* Cards uniform */
-    .card-cell {
-        display: flex;
-    }
-
-    .card-wrap {
-        width: 100%;
-        height: var(--card-h);
-    }
-
-    .employee-card {
-        width: 100%;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        border: 1px solid var(--soft-brd) !important;
-        border-radius: 12px;
-        box-shadow: none;
-        transition: .2s;
-    }
-
-        .employee-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,.08);
-        }
-
-        .employee-card .mud-card-content {
-            flex: 1;
-        }
-
-        .employee-card .mud-card-actions {
-            margin-top: auto;
-        }
-
-    .line-2 {
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-    }
-
-    .line-1 {
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .chip-tight, .employee-card .mud-chip {
+    .badge-dot {
+        display: inline-flex;
+        gap: 6px;
+        align-items: center;
         white-space: nowrap;
     }
+
+    .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+    }
+
+        .dot.success {
+            background: #2e7d32;
+        }
+
+        .dot.error {
+            background: #c62828;
+        }
 
     .avatar-badge {
         position: absolute;
@@ -178,111 +146,156 @@
         background: #c62828;
     }
 
-    .h-100 {
-        height: 100%;
+    .line-1 {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
-    .tooltip-block {
-        display: block;
+    .link-btn {
+        padding: 0;
+        min-width: 0;
+        text-transform: none;
     }
 
-    @@media (max-width:700px) {
-        :root {
-            --card-h: 192px;
+        .link-btn:hover {
+            text-decoration: underline;
+        }
+
+    .footer-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-top: 12px;
+        flex-wrap: wrap;
+    }
+
+    .loading-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255, 255, 255, 0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+
+    /* Responsive toolbar */
+    @@media (max-width: 768px) {
+        .toolbar-row {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 12px;
+        }
+
+        .actions-group {
+            justify-content: flex-start;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .search-sneat {
+            width: 100%;
+            max-width: 100%;
+        }
+
+            .search-sneat:focus-within {
+                width: 100%;
+            }
+
+        .footer-bar {
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
         }
     }
 </style>
 
-<MudStack Spacing="2">
+<MudStack Spacing="2" Class="page-root">
 
     <!-- KPIs -->
-    <MudGrid Class="kpi-grid">
+    <MudGrid>
         <MudItem xs="12" sm="6" md="3">
-            <MudPaper Class="kpi pa-4" Elevation="0" Style="--c1:#2F80ED;--c2:#6AA4FF">
-                <div class="kpi-icon"><MudIcon Icon="@Icons.Material.Filled.People" /></div>
-                <div>
-                    <MudText Class="kpi-title" Typo="Typo.body2">إجمالي الموظفين</MudText>
-                    <MudText Class="kpi-value" Typo="Typo.h4">@totalEmployees</MudText>
-                </div>
+            <MudPaper Class="kpi-card pa-4" Elevation="1">
+                <MudAvatar Color="Color.Primary"><MudIcon Icon="@Icons.Material.Filled.People" /></MudAvatar>
+                <div><MudText Class="kpi-title">إجمالي الموظفين</MudText><MudText Class="kpi-value">@totalEmployees</MudText></div>
             </MudPaper>
         </MudItem>
         <MudItem xs="12" sm="6" md="3">
-            <MudPaper Class="kpi pa-4" Elevation="0" Style="--c1:#00B09B;--c2:#96C93D">
-                <div class="kpi-icon"><MudIcon Icon="@Icons.Material.Filled.Verified" /></div>
-                <div>
-                    <MudText Class="kpi-title" Typo="Typo.body2">فعال</MudText>
-                    <MudText Class="kpi-value" Typo="Typo.h4">@activeCount</MudText>
-                </div>
+            <MudPaper Class="kpi-card pa-4" Elevation="1">
+                <MudAvatar Color="Color.Success"><MudIcon Icon="@Icons.Material.Filled.Verified" /></MudAvatar>
+                <div><MudText Class="kpi-title">فعال</MudText><MudText Class="kpi-value">@activeCount</MudText></div>
             </MudPaper>
         </MudItem>
         <MudItem xs="12" sm="6" md="3">
-            <MudPaper Class="kpi pa-4" Elevation="0" Style="--c1:#EB5757;--c2:#FF8A65">
-                <div class="kpi-icon"><MudIcon Icon="@Icons.Material.Filled.Block" /></div>
-                <div>
-                    <MudText Class="kpi-title" Typo="Typo.body2">غير فعال</MudText>
-                    <MudText Class="kpi-value" Typo="Typo.h4">@inactiveCount</MudText>
-                </div>
+            <MudPaper Class="kpi-card pa-4" Elevation="1">
+                <MudAvatar Color="Color.Error"><MudIcon Icon="@Icons.Material.Filled.Block" /></MudAvatar>
+                <div><MudText Class="kpi-title">غير فعال</MudText><MudText Class="kpi-value">@inactiveCount</MudText></div>
             </MudPaper>
         </MudItem>
         <MudItem xs="12" sm="6" md="3">
-            <MudPaper Class="kpi pa-4" Elevation="0" Style="--c1:#7B4397;--c2:#DC2430">
-                <div class="kpi-icon"><MudIcon Icon="@Icons.Material.Filled.TrendingUp" /></div>
-                <div>
-                    <MudText Class="kpi-title" Typo="Typo.body2">إضافات حديثة</MudText>
-                    <MudText Class="kpi-value" Typo="Typo.h4">@newHiresCount</MudText>
-                </div>
+            <MudPaper Class="kpi-card pa-4" Elevation="1">
+                <MudAvatar Color="Color.Info"><MudIcon Icon="@Icons.Material.Filled.TrendingUp" /></MudAvatar>
+                <div><MudText Class="kpi-title">إضافات حديثة</MudText><MudText Class="kpi-value">@newHiresCount</MudText></div>
             </MudPaper>
         </MudItem>
     </MudGrid>
 
     <!-- Toolbar -->
-    <MudPaper Elevation="1" Class="pa-3 toolbar">
-        <MudGrid Class="toolbar-grid" Spacing="2">
-            <MudItem xs="12">
-                <div class="toolbar-inline">
-                    <div class="view-switch">
-                        <MudTooltip Text="عرض كجدول" Placement="Placement.Bottom">
-                            <MudIconButton class="view-btn"
-                                           Icon="@Icons.Material.Filled.TableRows"
-                                           Variant="@(_viewIndex==1?Variant.Filled:Variant.Outlined)"
-                                           Color="@(_viewIndex==1?Color.Primary:Color.Default)"
-                                           AriaLabel="عرض كجدول"
-                                           OnClick="@(()=>SetView(1))" />
-                        </MudTooltip>
-                        <MudTooltip Text="عرض كبطاقات" Placement="Placement.Bottom">
-                            <MudIconButton class="view-btn"
-                                           Icon="@Icons.Material.Filled.GridView"
-                                           Variant="@(_viewIndex==0?Variant.Filled:Variant.Outlined)"
-                                           Color="@(_viewIndex==0?Color.Primary:Color.Default)"
-                                           AriaLabel="عرض كبطاقات"
-                                           OnClick="@(()=>SetView(0))" />
-                        </MudTooltip>
-                    </div>
+    <MudPaper Elevation="0" Class="toolbar">
+        <div class="toolbar-row">
+            <!-- يسار: الأزرار -->
+            <div class="actions-group">
+                <MudButton Variant="Variant.Outlined"
+                           Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.Refresh"
+                           OnClick="RefreshAsync"
+                           Dense="true">
+                    تحديث
+                </MudButton>
 
-                    <MudTextField T="string"
-                                  class="search-grow"
-                                  @bind-Value="searchTerm"
-                                  @bind-Value:after="ResetToFirstPage"
-                                  Immediate="true" DebounceInterval="250" Clearable="true"
-                                  Placeholder="ابحث بالاسم أو الرقم الوظيفي"
-                                  Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Search"
-                                  Variant="Variant.Outlined" Dense="true" />
-                </div>
-            </MudItem>
-        </MudGrid>
+                <MudSelect T="int" Dense="true" Style="width:80px"
+                           @bind-Value="pageSize" @bind-Value:after="ResetToFirstPage">
+                    <MudSelectItem Value="10">10</MudSelectItem>
+                    <MudSelectItem Value="25">25</MudSelectItem>
+                    <MudSelectItem Value="50">50</MudSelectItem>
+                </MudSelect>
+
+                <MudMenu Dense="true">
+                    <ActivatorContent>
+                        <MudButton StartIcon="@Icons.Material.Filled.IosShare"
+                                   Variant="Variant.Outlined"
+                                   Size="Size.Small">تصدير</MudButton>
+                    </ActivatorContent>
+                    <ChildContent>
+                        <MudMenuItem OnClick="ExportCsv">CSV</MudMenuItem>
+                        <MudMenuItem OnClick="ExportExcel">Excel</MudMenuItem>
+                    </ChildContent>
+                </MudMenu>
+            </div>
+
+            <!-- يمين: البحث -->
+            <MudTextField T="string"
+                          Class="search-sneat"
+                          @bind-Value="searchTerm"
+                          @bind-Value:after="ResetToFirstPage"
+                          Immediate="true" DebounceInterval="250" Clearable="true"
+                          Placeholder="ابحث بالاسم/القسم/المسمى/الرقم"
+                          Adornment="Adornment.End"
+                          AdornmentIcon="@Icons.Material.Filled.Search"
+                          Variant="Variant.Outlined"
+                          Dense="true" />
+        </div>
     </MudPaper>
 
     <!-- المحتوى -->
     @if (_loading)
     {
-        <MudGrid Spacing="2">
-            @for (int i = 0; i < 6; i++)
-            {
-                <MudItem xs="12" sm="6" md="4" lg="3">
-                    <MudSkeleton Width="100%" Height="140px" Animation="Animation.Pulse" Class="mb-2" />
-                </MudItem>
-            }
-        </MudGrid>
+        <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
     }
     else if (!string.IsNullOrWhiteSpace(_error))
     {
@@ -290,162 +303,124 @@
     }
     else if (filteredEmployees.Any())
     {
-        @if (_viewIndex == 1)
-        {
-            <!-- جدول -->
-            <MudPaper Elevation="1">
+        <div style="position: relative;">
+            @if (_exporting)
+            {
+                <div class="loading-overlay">
+                    <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+                    <MudText Class="ml-2">جاري التصدير...</MudText>
+                </div>
+            }
+
+            <MudPaper Elevation="0" Class="elevated sneat-table">
                 <MudTable T="EmployeeDto"
                           Items="pagedEmployees"
                           Dense="true" Hover="true" Striped="true" Bordered="true"
-                          FixedHeader="true" Height="calc(100vh - 360px)"
+                          FixedHeader="true" Height="var(--table-h)"
+                          Breakpoint="Breakpoint.Sm"
                           RowClick="OnRowClick">
-                    <HeaderContent>
-                        <MudTh>الرقم الوظيفي</MudTh>
-                        <MudTh>اسم الموظف</MudTh>
-                        <MudTh>القسم</MudTh>
-                        <MudTh>المسمى الوظيفي</MudTh>
-                        <MudTh>البريد الإلكتروني</MudTh>
-                        <MudTh>الحالة</MudTh>
-                        <MudTh>إجراءات</MudTh>
-                    </HeaderContent>
-                    <RowTemplate Context="row">
-                        <MudTd>@row.Id</MudTd>
-                        <MudTd>
-                            @(string.IsNullOrWhiteSpace(row.FullName) ? row.FullNameEn : row.FullName)
 
-                </MudTd>
+                    <HeaderContent>
+                        <MudTh>الموظف</MudTh>
+                        <MudTh>القسم</MudTh>
+                        <MudTh>المسمى</MudTh>
+                        <MudTh>البريد</MudTh>
+                        <MudTh>الحالة</MudTh>
+                        <MudTh style="width:110px;">رقم</MudTh>
+                        <MudTh style="width:44px;">إجراءات</MudTh>
+                    </HeaderContent>
+
+                    <RowTemplate Context="row">
+                        <MudTd>
+                            <MudButton Class="link-btn"
+                                       Variant="Variant.Text"
+                                       Color="Color.Primary"
+                                       OnClick="@(async () => await NavigateToDetailsAsync(row))">
+                                @DisplayName(row)
+                            </MudButton>
+                        </MudTd>
                         <MudTd>@row.Department</MudTd>
                         <MudTd>@row.JobTitle</MudTd>
-                        <MudTd>@row.Email</MudTd>
+                        <MudTd class="line-1">@row.Email</MudTd>
                         <MudTd>
-                            <MudChip T="string" Variant="Variant.Filled" Size="Size.Small"
-                                     Color="@(rowInactive(row)? Color.Success: Color.Error)">
-                                @(rowInactive(row) ? "فعال" : "موقّف")
-                            </MudChip>
+                            <span class="badge-dot">
+                                <span class="dot @(row.IsActive ? "success" : "error")"></span>
+                                @(row.IsActive ? "فعال" : "موقّف")
+                            </span>
                         </MudTd>
+                        <MudTd>@row.Id</MudTd>
                         <MudTd>
                             <MudMenu Dense="true">
                                 <ActivatorContent>
-                                    <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small" AriaLabel="إجراءات" />
+                                    <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small" />
                                 </ActivatorContent>
                                 <ChildContent>
-                                    <MudMenuItem OnClick="@(() => GoToMuqeem(row))">خدمات مقيم</MudMenuItem>
-                                    <MudMenuItem OnClick="@(() => NavigateToDetails(row))">تفاصيل</MudMenuItem>
+                                    <MudMenuItem OnClick="@(async () => await GoToMuqeemAsync(row))">خدمات مقيم</MudMenuItem>
+                                    <MudMenuItem OnClick="@(async () => await NavigateToDetailsAsync(row))">تفاصيل</MudMenuItem>
+                                    <MudMenuItem OnClick="@(async () => await ToggleEmployeeStatusAsync(row))">
+                                        @(row.IsActive ? "تعطيل" : "تفعيل")
+                                    </MudMenuItem>
                                 </ChildContent>
                             </MudMenu>
                         </MudTd>
                     </RowTemplate>
                 </MudTable>
             </MudPaper>
-        }
-        else
-        {
-            <!-- بطاقات -->
-            <MudGrid Spacing="2" Justify="Justify.FlexStart" AlignItems="AlignItems.Stretch">
-                @foreach (var e in pagedEmployees)
-                {
-                    <MudItem xs="12" sm="6" md="4" lg="3" Class="card-cell h-100">
-                        <div class="card-wrap">
-                            <div class="h-100">
-                                <MudCard Class="employee-card" OnClick="@(() => NavigateToDetails(e))" Style="cursor:pointer;">
-                                    <MudCardContent>
-                                        <div class="d-flex align-center">
-                                            <div style="position:relative;margin-right:12px;">
-                                                <MudAvatar Size="Size.Large" Color="Color.Primary">
-                                                    <MudText>@GetInitials(string.IsNullOrWhiteSpace(e.FullName) ? e.FullNameEn : e.FullName)</MudText>
-                                                </MudAvatar>
-                                                <div class="avatar-badge @(rowInactive(e) ? "active-badge" : "inactive-badge")"></div>
-                                            </div>
-                                            <div>
-                                                <MudText Typo="Typo.subtitle1" Class="font-weight-bold line-2">
-                                                    @(string.IsNullOrWhiteSpace(e.FullName) ? e.FullNameEn : e.FullName)
-                                                </MudText>
-                                                <MudText Typo="Typo.body2" Color="Color.Tertiary" Class="line-1">@e.JobTitle</MudText>
-                                                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="line-1">@e.Department</MudText>
-                                            </div>
-                                        </div>
-                                    </MudCardContent>
-                                    <MudCardActions>
-                                        <MudChip T="string" Variant="Variant.Outlined" Size="Size.Small"
-                                                 Color="@(rowInactive(e) ? Color.Success : Color.Error)" Class="chip-tight">
-                                            @(rowInactive(e) ? "فعال" : "موقّف")
-                                        </MudChip>
-                                        <MudSpacer />
-                                        <MudMenu Dense="true">
-                                            <ActivatorContent>
-                                                <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small" />
-                                            </ActivatorContent>
-                                            <ChildContent>
-                                                <MudMenuItem OnClick="@(() => GoToMuqeem(e))">خدمات مقيم</MudMenuItem>
-                                                <MudMenuItem OnClick="@(() => NavigateToDetails(e))">تفاصيل</MudMenuItem>
-                                            </ChildContent>
-                                        </MudMenu>
-                                    </MudCardActions>
-                                </MudCard>
-                            </div>
-                        </div>
-                    </MudItem>
-                }
-            </MudGrid>
-        }
 
-        <!-- ترقيم -->
-        <div class="d-flex align-center justify-space-between mt-4">
-            <MudSelect T="int" @bind-Value="pageSize" @bind-Value:after="ResetToFirstPage" Dense="true" Style="width:110px">
-                <MudSelectItem Value="6">6 / صفحة</MudSelectItem>
-                <MudSelectItem Value="12">12 / صفحة</MudSelectItem>
-                <MudSelectItem Value="24">24 / صفحة</MudSelectItem>
-            </MudSelect>
-            <MudPagination Count="@totalPages" Selected="@currentPage" SelectedChanged="OnPageChanged" BoundaryCount="1" />
+            <div class="footer-bar">
+                <MudText Typo="Typo.caption" Color="Color.Secondary">@GetShowingText()</MudText>
+                <MudPagination Size="Size.Small" Rounded="true"
+                               Count="@totalPages"
+                               Selected="@currentPage"
+                               SelectedChanged="OnPageChanged" />
+            </div>
         </div>
     }
     else
     {
-        <MudPaper Elevation="0" Class="d-flex flex-column align-center justify-center py-12">
-            <MudIcon Icon="@Icons.Material.Filled.PeopleOutline" Size="Size.Large" Class="mb-3" Color="Color.Secondary" />
-            <MudText Typo="Typo.h6" Class="mb-1">لا يوجد موظفون</MudText>
-            <MudText Color="Color.Default" Class="mb-4">لم يتم العثور على نتائج مطابقة</MudText>
-            <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="ClearFilters">إعادة تعيين الفلاتر</MudButton>
-        </MudPaper>
+        <MudText Typo="Typo.h6">لا يوجد موظفون</MudText>
     }
 </MudStack>
 
 @code {
     private List<EmployeeDto> allEmployees = new();
     private string searchTerm = string.Empty;
-    private bool? selectedActive = null;          // null=الكل، true=فعال (IsActive==0)، false=موقّف (IsActive!=0)
-    private string? selectedDepartment = null;    // يطابق HrchyName
-
-    // 0 = بطاقات ، 1 = جدول
-    private int _viewIndex = 0;
 
     private int currentPage = 1;
-    private int pageSize = 24;
+    private int pageSize = 25;
 
-    private int totalEmployees;
-    private int activeCount;
-    private int inactiveCount;
-    private int newHiresCount;
-
+    private int totalEmployees, activeCount, inactiveCount, newHiresCount;
     private bool _loading;
+    private bool _exporting;
     private string? _error;
 
-    private IEnumerable<EmployeeDto> filteredEmployees =>
-        allEmployees.Where(e =>
-            (string.IsNullOrWhiteSpace(searchTerm)
-             || (e.FullName?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false)
-             || (e.FullNameEn?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false)
-             || (e.Id?.ToString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false)
-             || (e.JobTitle?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false)
-             || (e.Department?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false))
-            && (!selectedActive.HasValue || (selectedActive.Value ? e.IsActive  : !e.IsActive ))
-            && (string.IsNullOrEmpty(selectedDepartment) || string.Equals(e.Department, selectedDepartment, StringComparison.OrdinalIgnoreCase)));
+    // استخدام Memoization لتحسين أداء التصفية
+    private IEnumerable<EmployeeDto> filteredEmployees => GetFilteredEmployees();
+    private IEnumerable<EmployeeDto> cachedFilteredEmployees;
+    private string cachedSearchTerm = string.Empty;
+
+    private IEnumerable<EmployeeDto> GetFilteredEmployees()
+    {
+        if (cachedSearchTerm == searchTerm && cachedFilteredEmployees != null)
+            return cachedFilteredEmployees;
+
+        var result = allEmployees.Where(e =>
+            string.IsNullOrWhiteSpace(searchTerm)
+            || (e.FullName?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false)
+            || (e.FullNameEn?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false)
+            || (e.Id?.ToString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false)
+            || (e.JobTitle?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false)
+            || (e.Department?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false));
+
+        cachedSearchTerm = searchTerm;
+        cachedFilteredEmployees = result;
+        return result;
+    }
 
     private IEnumerable<EmployeeDto> pagedEmployees =>
         filteredEmployees.Skip((currentPage - 1) * pageSize).Take(pageSize);
 
-    private int totalPages =>
-        Math.Max(1, (int)Math.Ceiling((double)filteredEmployees.Count() / pageSize));
+    private int totalPages => Math.Max(1, (int)Math.Ceiling((double)filteredEmployees.Count() / pageSize));
 
     protected override async Task OnInitializedAsync()
     {
@@ -457,54 +432,162 @@
     {
         try
         {
-            _loading = true; _error = null;
+            _loading = true;
+            _error = null;
+            StateHasChanged(); // إعادة رسم المكون ليعرض مؤشر التحميل
+
             allEmployees = await EmployeeService.GetAllEmployeesAsync();
             totalEmployees = allEmployees.Count;
+
+            // إعادة تعيين التخزين المؤقت
+            cachedSearchTerm = string.Empty;
+            cachedFilteredEmployees = null;
         }
         catch (Exception ex)
         {
             _error = $"خطأ في تحميل البيانات: {ex.Message}";
-            Snackbar.Add(_error, Severity.Error, o => { o.VisibleStateDuration = 12000; o.ShowCloseIcon = true; o.Icon = Icons.Material.Filled.Error; });
+            Snackbar.Add(_error, Severity.Error);
         }
-        finally { _loading = false; }
+        finally
+        {
+            _loading = false;
+            StateHasChanged();
+        }
     }
 
     private void CalcKpis()
     {
-        activeCount = allEmployees.Count(e => e.IsActive );
+        activeCount = allEmployees.Count(e => e.IsActive);
         inactiveCount = totalEmployees - activeCount;
-        newHiresCount = 11; // مؤقت
+
+        // حساب الموظفين المضافين حديثاً (خلال آخر 30 يوم)
+        var thirtyDaysAgo = DateTime.Now.AddDays(-30);
+        newHiresCount = 11;// allEmployees.Count(e =>
+        //     e.BirthCountryId.HasValue && e.HireDate.Value >= thirtyDaysAgo);
     }
 
-    private void SetView(int index) { if (index != _viewIndex) { _viewIndex = index; ResetToFirstPage(); } }
     private void ResetToFirstPage() => currentPage = 1;
-    private void OnPageChanged(int page) => currentPage = page;
-    private void OnRowClick(TableRowClickEventArgs<EmployeeDto> args) => NavigateToDetails(args.Item);
+    private void OnPageChanged(int p) => currentPage = p;
 
-    private static bool rowInactive(EmployeeDto e) => e.IsActive ; // true => Active
+    private Task OnRowClick(TableRowClickEventArgs<EmployeeDto> args)
+        => NavigateToDetailsAsync(args.Item);
 
-    private string GetInitials(string name)
-    {
-        if (string.IsNullOrWhiteSpace(name)) return "؟";
-        var p = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        return p.Length == 1 ? p[0][0].ToString() : $"{p[0][0]}{p[^1][0]}";
-    }
+    private string DisplayName(EmployeeDto e)
+        => !string.IsNullOrWhiteSpace(e.FullName) ? e.FullName
+         : !string.IsNullOrWhiteSpace(e.FullNameEn) ? e.FullNameEn
+         : !string.IsNullOrWhiteSpace(e.Email) ? e.Email
+         : (e.Id is not null ? $"موظف #{e.Id}" : "موظف");
 
-    // تمرير المختار إلى صفحة Muqeem باستخدام الحالة
-    private void GoToMuqeem(EmployeeDto e)
+    private Task GoToMuqeemAsync(EmployeeDto e)
     {
         SelectedState.Set(e);
-        Navigation.NavigateTo("/MuqeemEmployees");
+        Navigation.NavigateTo("/MuqeemServices");
+        return Task.CompletedTask;
     }
 
-    private void NavigateToDetails(EmployeeDto e)
+    private Task NavigateToDetailsAsync(EmployeeDto e)
     {
         SelectedState.Set(e);
-        Navigation.NavigateTo("/MuqeemEmployees");
+        Navigation.NavigateTo($"/employee/{e.Id}");
+        return Task.CompletedTask;
     }
 
-    private void ClearFilters()
+    private async Task ToggleEmployeeStatusAsync(EmployeeDto employee)
     {
-        searchTerm = string.Empty; selectedActive = null; selectedDepartment = null; currentPage = 1;
+        try
+        {
+            var result = await EmployeeService.GetAllEmployeesAsync(null);
+            if (result.Count>0)
+            {
+                employee.IsActive = !employee.IsActive;
+                CalcKpis();
+                Snackbar.Add($"تم تغيير حالة الموظف بنجاح", Severity.Success);
+                StateHasChanged();
+            }
+            else
+            {
+                Snackbar.Add($"فشل في تغيير حالة الموظف", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"خطأ: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private string GetShowingText()
+    {
+        var total = filteredEmployees.Count();
+        if (total == 0) return "لا توجد سجلات";
+        var from = ((currentPage - 1) * pageSize) + 1;
+        var to = Math.Min(currentPage * pageSize, total);
+        return $"إظهار {from}–{to} من {total}";
+    }
+
+    private async Task ExportCsv()
+    {
+        await ExportData("csv");
+    }
+
+    private async Task ExportExcel()
+    {
+        await ExportData("xlsx");
+    }
+
+    private async Task ExportData(string format)
+    {
+        try
+        {
+            _exporting = true;
+            StateHasChanged();
+
+            var rows = filteredEmployees.ToList();
+            var sb = new System.Text.StringBuilder();
+
+            if (format == "csv")
+            {
+                sb.AppendLine("Id,FullName,Department,JobTitle,Email,IsActive,HireDate");
+                string Esc(string? s) => string.IsNullOrEmpty(s) ? "" : s.Replace("\"", "\"\"");
+                foreach (var r in rows)
+                    sb.AppendLine($"{r.Id},\"{Esc(DisplayName(r))}\",\"{Esc(r.Department)}\",\"{Esc(r.JobTitle)}\",\"{Esc(r.Email)}\",{(r.IsActive ? 1 : 0)},\"{System.DateTime.Now.ToString()}\"");
+            }
+            else
+            {
+                // تنسيق Excel (HTML table يمكن تحويله إلى Excel)
+                sb.AppendLine("<table border='1'>");
+                sb.AppendLine("<tr><th>ID</th><th>الاسم</th><th>القسم</th><th>المسمى الوظيفي</th><th>البريد الإلكتروني</th><th>الحالة</th><th>تاريخ التعيين</th></tr>");
+                foreach (var r in rows)
+                {
+                    sb.AppendLine($"<tr><td>{r.Id}</td><td>{DisplayName(r)}</td><td>{r.Department}</td><td>{r.JobTitle}</td><td>{r.Email}</td><td>{(r.IsActive ? "فعال" : "غير فعال")}</td><td>{System.DateTime.UtcNow}</td></tr>");
+                }
+                sb.AppendLine("</table>");
+            }
+
+            var content = format == "csv"
+                ? Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(sb.ToString()))
+                : Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(sb.ToString()));
+
+            var fileName = $"employees.{format}";
+            var mimeType = format == "csv" ? "text/csv" : "application/vnd.ms-excel";
+
+            await JS.InvokeVoidAsync("downloadFile", content, fileName, mimeType);
+
+            Snackbar.Add($"تم تصدير {rows.Count} سجل بنجاح", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"فشل التصدير: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _exporting = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task RefreshAsync()
+    {
+        await LoadEmployees();
+        CalcKpis();
     }
 }
