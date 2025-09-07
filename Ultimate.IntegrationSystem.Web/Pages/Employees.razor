@@ -92,7 +92,7 @@
 
     /* Select صغير ومقوّس */
     .select-sneat .mud-input-root {
-        min-height: 40px;
+        min-height: 38px;
         width: 84px;
         border-radius: 10px;
     }
@@ -113,42 +113,42 @@
             padding-bottom: 0;
         }
 
-    /* توحيد الارتفاعات لجميع عناصر الشريط (40px) */
+    /* توحيد الارتفاعات لجميع عناصر الشريط (38px) */
     .u-ctrl .mud-input-root,
     .u-ctrl .mud-button-root,
     .u-ctrl .mud-select .mud-input-root {
-        min-height: 40px !important;
-        height: 40px !important;
+        min-height: 38px !important;
+        height: 38px !important;
         display: flex;
         align-items: center;
     }
 
-    /* تثبيت ارتفاع حقل البحث بدقة = 40px */
-    .fix-40 .mud-input-root,
-    .fix-40 .mud-input-root .mud-input-slot,
-    .fix-40 .mud-input-root input,
-    .fix-40 .mud-input-root textarea {
-        height: 40px !important;
-        min-height: 40px !important;
-        line-height: 40px !important;
+    /* تثبيت ارتفاع حقل البحث بدقة = 38px */
+    .fix-38 .mud-input-root,
+    .fix-38 .mud-input-root .mud-input-slot,
+    .fix-38 .mud-input-root input,
+    .fix-38 .mud-input-root textarea {
+        height: 38px !important;
+        min-height: 38px !important;
+        line-height: 38px !important;
         display: flex;
         align-items: center;
         box-sizing: border-box;
     }
 
-    .fix-40 .mud-input-outlined {
+    .fix-38 .mud-input-outlined {
         padding-top: 0 !important;
         padding-bottom: 0 !important;
     }
 
-    .fix-40 .mud-input-root input,
-    .fix-40 .mud-input-root textarea {
+    .fix-38 .mud-input-root input,
+    .fix-38 .mud-input-root textarea {
         padding-top: 0 !important;
         padding-bottom: 0 !important;
     }
 
     .search-sneat .mud-input-adornment {
-        height: 40px;
+        height: 38px;
         display: flex;
         align-items: center;
     }
@@ -372,7 +372,7 @@
             <!-- يمين: البحث -->
             <div class="sneat-search u-ctrl">
                 <MudTextField T="string"
-                              Class="search-sneat fix-40"
+                              Class="search-sneat fix-38"
                               @bind-Value="searchTerm"
                               @bind-Value:after="ResetToFirstPage"
                               Placeholder="ابحث بالاسم/القسم/المسمى/الرقم"

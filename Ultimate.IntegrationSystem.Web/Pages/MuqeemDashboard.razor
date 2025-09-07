@@ -1,394 +1,353 @@
 ﻿@page "/MuqeemDashboard"
 @using MudBlazor
+@using Microsoft.AspNetCore.Components.Web
 @using System.Globalization
-@using System.Diagnostics
+@implements IAsyncDisposable
 
 <MudThemeProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
 
-<MudLayout>
-    @* <MudAppBar Elevation="4" Fixed="true" Color="Color.Primary">
-        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" />
-        <MudSpacer />
-        <MudText Typo="Typo.h6" Class="ml-3">خدمات مقيم</MudText>
-        <MudSpacer />
-        <MudIconButton Icon="@Icons.Material.Filled.Notifications" Color="Color.Inherit" />
-        <MudAvatar Size="Size.Small" Class="ml-3" />
-    </MudAppBar>
- *@
-    <MudMainContent>
-        <MudContainer MaxWidth="MaxWidth.ExtraExtraLarge" Class="pa-4 mt-12">
+<style>
+    /* نفس خلفية employees */
+    body, .page-root {
+        background: #f5f5f9;
+    }
 
-            <!-- ===== Header ===== -->
-            <MudGrid Class="mb-6">
-                <MudItem xs="12" md="6">
-                    <MudText Typo="Typo.h4" Class="font-weight-bold" Color="Color.Primary">خدمات مقيم</MudText>
-                    <MudText Typo="Typo.body1" Color="Color.Secondary">
-                        إدارة الإقامات والتأشيرات عبر تكامل مقيم
-                    </MudText>
-                </MudItem>
-                <MudItem xs="12" md="6" Class="d-flex justify-end align-center">
-                    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add">
-                        طلب جديد
-                    </MudButton>
-                </MudItem>
-            </MudGrid>
+    :root {
+        --soft-bg: rgba(0,0,0,.035);
+        --soft-brd: rgba(0,0,0,.10);
+        --radius: 12px;
+    }
 
-            <!-- ===== KPIs ===== -->
-            <MudGrid Class="mb-6">
-                <MudItem xs="12" sm="6" md="3">
-                    <MudPaper Class="pa-4 kpi-card" Elevation="1">
-                        <div class="d-flex align-center">
-                            <MudAvatar Color="Color.Primary" Size="Size.Small" Class="mr-3">
-                                <MudIcon Icon="@Icons.Material.Filled.Assignment" />
-                            </MudAvatar>
-                            <div>
-                                <MudText Typo="Typo.h4" Class="font-weight-bold">@totalRequests</MudText>
-                                <MudText Typo="Typo.body2" Color="Color.Secondary">إجمالي الطلبات</MudText>
-                            </div>
-                        </div>
-                        <MudText Typo="Typo.caption" Color="Color.Success" Class="mt-2">
-                            <MudIcon Icon="@Icons.Material.Filled.ArrowUpward" Size="Size.Small" />
-                            +12% عن الشهر الماضي
-                        </MudText>
-                    </MudPaper>
-                </MudItem>
+    /* KPI نفس employees */
+    .kpi-card {
+        border: 1px solid var(--soft-brd);
+        border-radius: var(--radius);
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        transition: transform .2s ease;
+    }
+    .kpi-card:hover { transform: translateY(-2px); }
 
-                <MudItem xs="12" sm="6" md="3">
-                    <MudPaper Class="pa-4 kpi-card" Elevation="1">
-                        <div class="d-flex align-center">
-                            <MudAvatar Color="Color.Success" Size="Size.Small" Class="mr-3">
-                                <MudIcon Icon="@Icons.Material.Filled.CheckCircle" />
-                            </MudAvatar>
-                            <div>
-                                <MudText Typo="Typo.h4" Class="font-weight-bold">@completedRequests</MudText>
-                                <MudText Typo="Typo.body2" Color="Color.Secondary">مكتملة</MudText>
-                            </div>
-                        </div>
-                        <MudText Typo="Typo.caption" Color="Color.Success" Class="mt-2">
-                            <MudIcon Icon="@Icons.Material.Filled.ArrowUpward" Size="Size.Small" />
-                            +8% عن الشهر الماضي
-                        </MudText>
-                    </MudPaper>
-                </MudItem>
+    .kpi-title { color: var(--mud-palette-text-secondary); font-weight: 600; }
+    .kpi-value { font-size: 2rem; font-weight: 800; line-height: 1; }
 
-                <MudItem xs="12" sm="6" md="3">
-                    <MudPaper Class="pa-4 kpi-card" Elevation="1">
-                        <div class="d-flex align-center">
-                            <MudAvatar Color="Color.Warning" Size="Size.Small" Class="mr-3">
-                                <MudIcon Icon="@Icons.Material.Filled.Pending" />
-                            </MudAvatar>
-                            <div>
-                                <MudText Typo="Typo.h4" Class="font-weight-bold">@pendingRequests</MudText>
-                                <MudText Typo="Typo.body2" Color="Color.Secondary">قيد المعالجة</MudText>
-                            </div>
-                        </div>
-                        <MudText Typo="Typo.caption" Color="Color.Warning" Class="mt-2">
-                            <MudIcon Icon="@Icons.Material.Filled.Remove" Size="Size.Small" />
-                            بدون تغيير
-                        </MudText>
-                    </MudPaper>
-                </MudItem>
+    .card-soft { border: 1px solid var(--soft-brd); border-radius: var(--radius); background: #fff; }
 
-                <MudItem xs="12" sm="6" md="3">
-                    <MudPaper Class="pa-4 kpi-card" Elevation="1">
-                        <div class="d-flex align-center">
-                            <MudAvatar Color="Color.Error" Size="Size.Small" Class="mr-3">
-                                <MudIcon Icon="@Icons.Material.Filled.Cancel" />
-                            </MudAvatar>
-                            <div>
-                                <MudText Typo="Typo.h4" Class="font-weight-bold">@rejectedRequests</MudText>
-                                <MudText Typo="Typo.body2" Color="Color.Secondary">مرفوضة</MudText>
-                            </div>
-                        </div>
-                        <MudText Typo="Typo.caption" Color="Color.Error" Class="mt-2">
-                            <MudIcon Icon="@Icons.Material.Filled.ArrowDownward" Size="Size.Small" />
-                            -3% عن الشهر الماضي
-                        </MudText>
-                    </MudPaper>
-                </MudItem>
-            </MudGrid>
+    /* كرت تفاعلي للخدمات */
+    .card-click { cursor: pointer; transition: background .2s, box-shadow .2s, transform .08s; }
+    .card-click:hover { background: #f7f9ff; box-shadow: 0 6px 16px rgba(0,0,0,.08); border-color: #cfe0ff; }
+    .card-click:active { transform: translateY(1px); }
 
-            <!-- ===== Tabs ===== -->
-            <MudPaper Elevation="1" Class="pa-4">
-                <MudTabs @bind-ActivePanelIndex="activeTabIndex" Rounded="true" Centered="true">
-                    <MudTabPanel Text="الخدمات">
-                        <MudGrid Spacing="2" Class="mt-4">
-                            <!-- إصدار إقامة -->
-                            <MudItem xs="12" md="4">
-                                <MudCard Class="h-100" OnClick="@(() => OpenDrawer(ServiceType.IssueIqama))">
-                                    <MudCardContent>
-                                        <div class="d-flex align-center mb-4">
-                                            <MudAvatar Color="Color.Primary" Size="Size.Small">
-                                                <MudIcon Icon="@Icons.Material.Filled.Badge" />
-                                            </MudAvatar>
-                                            <MudText Typo="Typo.h6" Class="ml-3">إصدار إقامة</MudText>
-                                        </div>
-                                        <MudText Typo="Typo.body2" Color="Color.Secondary">
-                                            إصدار إقامة جديدة لأحد موظفي المنشأة
-                                        </MudText>
-                                    </MudCardContent>
-                                </MudCard>
-                            </MudItem>
+   
+    .mud-table-cell { text-align: right; }
+    /* اتجاه التبويبات: نص RTL لكن ترتيب Flex طبيعي */
+    .mud-tabs {
+        direction: rtl;
+    }
 
-                            <!-- تجديد إقامة -->
-                            <MudItem xs="12" md="4">
-                                <MudCard Class="h-100" OnClick="@(() => OpenDrawer(ServiceType.RenewIqama))">
-                                    <MudCardContent>
-                                        <div class="d-flex align-center mb-4">
-                                            <MudAvatar Color="Color.Success" Size="Size.Small">
-                                                <MudIcon Icon="@Icons.Material.Filled.Autorenew" />
-                                            </MudAvatar>
-                                            <MudText Typo="Typo.h6" Class="ml-3">تجديد إقامة</MudText>
-                                        </div>
-                                        <MudText Typo="Typo.body2" Color="Color.Secondary">
-                                            تجديد إقامة منتهية الصلاحية لأحد الموظفين
-                                        </MudText>
-                                    </MudCardContent>
-                                </MudCard>
-                            </MudItem>
+        .mud-tabs .mud-tab {
+            text-align: right;
+        }
 
-                            <!-- نقل خدمات -->
-                            <MudItem xs="12" md="4">
-                                <MudCard Class="h-100" OnClick="@(() => OpenDrawer(ServiceType.TransferEmployee))">
-                                    <MudCardContent>
-                                        <div class="d-flex align-center mb-4">
-                                            <MudAvatar Color="Color.Warning" Size="Size.Small">
-                                                <MudIcon Icon="@Icons.Material.Filled.SwitchAccount" />
-                                            </MudAvatar>
-                                            <MudText Typo="Typo.h6" Class="ml-3">نقل خدمات عامل</MudText>
-                                        </div>
-                                        <MudText Typo="Typo.body2" Color="Color.Secondary">
-                                            نقل خدمات موظف إلى منشأة أخرى
-                                        </MudText>
-                                    </MudCardContent>
-                                </MudCard>
-                            </MudItem>
+    /* اصطفاف التبويبات لليمين بدون قلب الاتجاه */
+    .mud-tabs-toolbar {
+        justify-content: flex-end !important;
+    }
 
-                            <!-- تجديد جواز -->
-                            <MudItem xs="12" md="4">
-                                <MudCard Class="h-100" OnClick="@(() => OpenDrawer(ServiceType.PassportRenew))">
-                                    <MudCardContent>
-                                        <div class="d-flex align-center mb-4">
-                                            <MudAvatar Color="Color.Info" Size="Size.Small">
-                                                <MudIcon Icon="@Icons.Material.Filled.LibraryBooks" />
-                                            </MudAvatar>
-                                            <MudText Typo="Typo.h6" Class="ml-3">تجديد جواز</MudText>
-                                        </div>
-                                        <MudText Typo="Typo.body2" Color="Color.Secondary">
-                                            تجديد صلاحية جواز سفر أحد الموظفين
-                                        </MudText>
-                                    </MudCardContent>
-                                </MudCard>
-                            </MudItem>
+    /* تأكيد صريح إننا مش بنقلب الاتجاه (يسحق أي rule قديم) */
+    .mud-tabs-toolbar {
+        flex-direction: row !important;
+    }
 
-                            <!-- تقرير مقيم -->
-                            <MudItem xs="12" md="4">
-                                <MudCard Class="h-100" OnClick="@(() => OpenDrawer(ServiceType.Report))">
-                                    <MudCardContent>
-                                        <div class="d-flex align-center mb-4">
-                                            <MudAvatar Color="Color.Secondary" Size="Size.Small">
-                                                <MudIcon Icon="@Icons.Material.Filled.Assignment" />
-                                            </MudAvatar>
-                                            <MudText Typo="Typo.h6" Class="ml-3">تقرير مقيم</MudText>
-                                        </div>
-                                        <MudText Typo="Typo.body2" Color="Color.Secondary">
-                                            طباعة تقرير مقيم مفصل لأحد الموظفين
-                                        </MudText>
-                                    </MudCardContent>
-                                </MudCard>
-                            </MudItem>
-                        </MudGrid>
-                    </MudTabPanel>
+</style>
 
-                    <MudTabPanel Text="التأشيرات">
-                        <div class="mt-4">
-                            <MudGrid Class="mb-4">
-                                <MudItem xs="12" md="4">
-                                    <MudTextField @bind-Value="visaSearch" Placeholder="بحث باسم الموظف"
-                                                  Variant="Variant.Outlined" Adornment="Adornment.Start"
-                                                  AdornmentIcon="@Icons.Material.Filled.Search" />
-                                </MudItem>
-                              
-                              
-                            </MudGrid>
+<MudContainer MaxWidth="MaxWidth.False" Class="pa-4 page-root">
 
-                            <MudTable Items="@FilteredVisas" Hover="true" Striped="true" Elevation="1">
-                                <HeaderContent>
-                                    <MudTh>اسم الموظف</MudTh>
-                                    <MudTh>رقم التأشيرة</MudTh>
-                                    <MudTh>نوع التأشيرة</MudTh>
-                                    <MudTh>تاريخ الإصدار</MudTh>
-                                    <MudTh>تاريخ الانتهاء</MudTh>
-                                    <MudTh>الحالة</MudTh>
-                                    <MudTh>الإجراءات</MudTh>
-                                </HeaderContent>
-                                <RowTemplate>
-                                    <MudTd>@context.EmployeeName</MudTd>
-                                    <MudTd>@context.VisaNumber</MudTd>
-                                    <MudTd>@context.Type</MudTd>
-                                    <MudTd>@context.IssueDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)</MudTd>
-                                    <MudTd>@context.ExpiryDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)</MudTd>
-                                    <MudTd>
-                                        <MudChip T="string" Color="@GetStatusColor(context.Status)"
-                                                 Variant="Variant.Filled" Size="Size.Small">
-                                            @context.Status
-                                        </MudChip>
-                                    </MudTd>
-                                    <MudTd>
-                                        <MudIconButton Icon="@Icons.Material.Filled.Autorenew" Color="Color.Success"
-                                                       Size="Size.Small" Title="تمديد" />
-                                        <MudIconButton Icon="@Icons.Material.Filled.Cancel" Color="Color.Error"
-                                                       Size="Size.Small" Class="mr-2" Title="إلغاء" />
-                                    </MudTd>
-                                </RowTemplate>
-                            </MudTable>
-                        </div>
-                    </MudTabPanel>
+    <!-- Header -->
+    <MudGrid Class="mb-6">
+        <MudItem xs="12" md="8">
+            <MudText Typo="Typo.h4" Class="font-weight-bold" Color="Color.Primary">خدمات مُقيم</MudText>
+            <MudText Typo="Typo.body1" Color="Color.Secondary">إدارة الإقامات والتأشيرات عبر تكامل مقيم</MudText>
+        </MudItem>
+    </MudGrid>
 
-                    <MudTabPanel Text="تقرير العمليات">
-                        <div class="mt-4">
-                            <MudGrid Class="mb-4">
-                                <MudItem xs="12" md="3">
-                                    <MudDatePicker T="DateTime?" Label="من تاريخ" @bind-Date="reportStartDate"
-                                                   Variant="Variant.Outlined" />
-                                </MudItem>
-                                <MudItem xs="12" md="3">
-                                    <MudDatePicker T="DateTime?" Label="إلى تاريخ" @bind-Date="reportEndDate"
-                                                   Variant="Variant.Outlined" />
-                                </MudItem>
-                                
-                                    
-                                <MudItem xs="12" md="3" Class="d-flex align-center">
-                                    <MudButton Variant="Variant.Filled" Color="Color.Primary"
-                                               EndIcon="@Icons.Material.Filled.GetApp" Class="mt-4">
-                                        تصدير التقرير
-                                    </MudButton>
-                                </MudItem>
-                            </MudGrid>
-
-                            <MudTable Items="@FilteredReports" Hover="true" Striped="true" Elevation="1">
-                                <HeaderContent>
-                                    <MudTh>رقم العملية</MudTh>
-                                    <MudTh>نوع الخدمة</MudTh>
-                                    <MudTh>اسم الموظف</MudTh>
-                                    <MudTh>تاريخ الطلب</MudTh>
-                                    <MudTh>الحالة</MudTh>
-                                    <MudTh>رقم المرجع</MudTh>
-                                </HeaderContent>
-                                <RowTemplate>
-                                    <MudTd>@context.OperationId</MudTd>
-                                    <MudTd>@context.ServiceType</MudTd>
-                                    <MudTd>@context.EmployeeName</MudTd>
-                                    <MudTd>@context.RequestDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)</MudTd>
-                                    <MudTd>
-                                        <MudChip T="string" Color="@GetReportStatusColor(context.Status)"
-                                                 Variant="Variant.Filled" Size="Size.Small">
-                                            @context.Status
-                                        </MudChip>
-                                    </MudTd>
-                                    <MudTd>@context.ReferenceNumber</MudTd>
-                                </RowTemplate>
-                            </MudTable>
-                        </div>
-                    </MudTabPanel>
-                </MudTabs>
+    <!-- KPIs (نفس employees) -->
+    <MudGrid Class="mb-6">
+        <MudItem xs="12" sm="6" md="3">
+            <MudPaper Class="kpi-card pa-4" Elevation="1">
+                <MudAvatar Color="Color.Info"><MudIcon Icon="@Icons.Material.Filled.Assignment" /></MudAvatar>
+                <div>
+                    <MudText Class="kpi-title">إجمالي الطلبات</MudText>
+                    <MudText Class="kpi-value">@totalRequests</MudText>
+                </div>
             </MudPaper>
-        </MudContainer>
-    </MudMainContent>
-</MudLayout>
+        </MudItem>
+        <MudItem xs="12" sm="6" md="3">
+            <MudPaper Class="kpi-card pa-4" Elevation="1">
+                <MudAvatar Color="Color.Success"><MudIcon Icon="@Icons.Material.Filled.Verified" /></MudAvatar>
+                <div>
+                    <MudText Class="kpi-title">مكتملة</MudText>
+                    <MudText Class="kpi-value">@completedRequests</MudText>
+                </div>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" sm="6" md="3">
+            <MudPaper Class="kpi-card pa-4" Elevation="1">
+                <MudAvatar Color="Color.Warning"><MudIcon Icon="@Icons.Material.Filled.Pending" /></MudAvatar>
+                <div>
+                    <MudText Class="kpi-title">قيد المعالجة</MudText>
+                    <MudText Class="kpi-value">@pendingRequests</MudText>
+                </div>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" sm="6" md="3">
+            <MudPaper Class="kpi-card pa-4" Elevation="1">
+                <MudAvatar Color="Color.Error"><MudIcon Icon="@Icons.Material.Filled.Block" /></MudAvatar>
+                <div>
+                    <MudText Class="kpi-title">مرفوضة</MudText>
+                    <MudText Class="kpi-value">@rejectedRequests</MudText>
+                </div>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
 
-<!-- Drawer الجانبي -->
-<MudDrawer @bind-Open="_drawerOpen" Anchor="Anchor.Right" Elevation="2" Width="450px">
-    <MudAppBar Elevation="0" Color="Color.Primary">
-        <MudText Typo="Typo.h6" Class="ml-3" Color="Color.Inherit">عملية جديدة — @_currentServiceText</MudText>
-        <MudSpacer />
-        <MudIconButton Icon="@Icons.Material.Filled.Close" Color="Color.Inherit" OnClick="CloseDrawer" />
-    </MudAppBar>
-    
-    <MudCardContent>
-        <MudStack Spacing="3">
-            <MudTextField T="string" Label="اسم / رقم الموظف" @bind-Value="_employee"
-                          Variant="Variant.Outlined" InputId="employee-field" />
-            <MudTextField T="string" Label="رقم الإقامة" @bind-Value="_iqama"
-                          Variant="Variant.Outlined" InputId="iqama-field" />
-
-            
+    <!-- Tabs -->
 
 
+    <MudPaper Elevation="1" Class="pa-4 card-soft">
+      @*   <MudTabs @bind-ActivePanelIndex="activeTabIndex" Rounded="true" Align="Right"> *@
+            <MudTabs @bind-ActivePanelIndex="activeTabIndex" Rounded="true" Justify="End">
 
+            <!-- Tab: الخدمات -->
+            <MudTabPanel Text="الخدمات">
+                <MudGrid Spacing="2" Class="mt-4">
 
-        </MudStack>
-    </MudCardContent>
-    
-    <MudCardActions>
-        <MudSpacer />
-        <MudButton Color="Color.Secondary" Variant="Variant.Text" OnClick="CloseDrawer" Class="mr-2">
-            إلغاء
-        </MudButton>
-        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="SubmitService">
-            إرسال إلى مقيم
-        </MudButton>
-    </MudCardActions>
-</MudDrawer>
+                    <MudItem xs="12" md="4">
+                        <MudCard Class="h-100 card-soft card-click" Hover="true" Elevation="0" OnClick="OpenIssueCard">
+                            <MudRipple />
+                            <MudCardContent>
+                                <div class="d-flex align-center mb-4">
+                                    <MudAvatar Color="Color.Primary" Size="Size.Small">
+                                        <MudIcon Icon="@Icons.Material.Filled.Badge" />
+                                    </MudAvatar>
+                                    <MudText Typo="Typo.h6" Class="ml-3">إصدار إقامة</MudText>
+                                </div>
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                    إصدار إقامة جديدة لأحد موظفي المنشأة
+                                </MudText>
+                            </MudCardContent>
+                        </MudCard>
+                    </MudItem>
+
+                    <MudItem xs="12" md="4">
+                        <MudCard Class="h-100 card-soft card-click" Hover="true" Elevation="0" OnClick="OpenRenewCard">
+                            <MudRipple />
+                            <MudCardContent>
+                                <div class="d-flex align-center mb-4">
+                                    <MudAvatar Color="Color.Success" Size="Size.Small">
+                                        <MudIcon Icon="@Icons.Material.Filled.Autorenew" />
+                                    </MudAvatar>
+                                    <MudText Typo="Typo.h6" Class="ml-3">تجديد إقامة</MudText>
+                                </div>
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                    تجديد إقامة منتهية الصلاحية لأحد الموظفين
+                                </MudText>
+                            </MudCardContent>
+                        </MudCard>
+                    </MudItem>
+
+                    <MudItem xs="12" md="4">
+                        <MudCard Class="h-100 card-soft card-click" Hover="true" Elevation="0" OnClick="OpenTransferCard">
+                            <MudRipple />
+                            <MudCardContent>
+                                <div class="d-flex align-center mb-4">
+                                    <MudAvatar Color="Color.Warning" Size="Size.Small">
+                                        <MudIcon Icon="@Icons.Material.Filled.SwitchAccount" />
+                                    </MudAvatar>
+                                    <MudText Typo="Typo.h6" Class="ml-3">نقل خدمات عامل</MudText>
+                                </div>
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                    نقل خدمات موظف إلى منشأة أخرى
+                                </MudText>
+                            </MudCardContent>
+                        </MudCard>
+                    </MudItem>
+
+                </MudGrid>
+            </MudTabPanel>
+
+            <!-- Tab: التأشيرات -->
+            <MudTabPanel Text="التأشيرات">
+                <div class="mt-4">
+                    <MudGrid Class="mb-4">
+                        <MudItem xs="12" md="4">
+                            <MudTextField @bind-Value="visaSearch"
+                                          Placeholder="بحث باسم الموظف"
+                                          Variant="Variant.Outlined"
+                                          Adornment="Adornment.Start"
+                                          AdornmentIcon="@Icons.Material.Filled.Search" />
+                        </MudItem>
+                        <MudItem xs="12" md="4">
+                            <MudSelect T="string" Label="نوع التأشيرة" @bind-Value="visaType" Variant="Variant.Outlined">
+                                <MudSelectItem T="string" Value='@("all")'>جميع أنواع التأشيرات</MudSelectItem>
+                                <MudSelectItem T="string" Value='@("عمل")'>تأشيرة عمل</MudSelectItem>
+                                <MudSelectItem T="string" Value='@("زيارة")'>تأشيرة زيارة</MudSelectItem>
+                            </MudSelect>
+                        </MudItem>
+                        <MudItem xs="12" md="4">
+                            <MudSelect T="string" Label="الحالة" @bind-Value="visaStatus" Variant="Variant.Outlined">
+                                <MudSelectItem T="string" Value='@("all")'>جميع الحالات</MudSelectItem>
+                                <MudSelectItem T="string" Value='@("نشطة")'>نشطة</MudSelectItem>
+                                <MudSelectItem T="string" Value='@("منتهية")'>منتهية</MudSelectItem>
+                                <MudSelectItem T="string" Value='@("ملغاة")'>ملغاة</MudSelectItem>
+                            </MudSelect>
+                        </MudItem>
+                    </MudGrid>
+
+                    <MudTable Items="@FilteredVisas" Hover="true" Striped="true" Elevation="1" Class="card-soft">
+                        <HeaderContent>
+                            <MudTh>اسم الموظف</MudTh>
+                            <MudTh>رقم التأشيرة</MudTh>
+                            <MudTh>نوع التأشيرة</MudTh>
+                            <MudTh>تاريخ الإصدار</MudTh>
+                            <MudTh>تاريخ الانتهاء</MudTh>
+                            <MudTh>الحالة</MudTh>
+                            <MudTh>الإجراءات</MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd>@context.EmployeeName</MudTd>
+                            <MudTd>@context.VisaNumber</MudTd>
+                            <MudTd>@context.Type</MudTd>
+                            <MudTd>@context.IssueDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)</MudTd>
+                            <MudTd>@context.ExpiryDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)</MudTd>
+                            <MudTd>
+                                <MudChip T="string" Color="@GetStatusColor(context.Status)"
+                                         Variant="Variant.Filled" Size="Size.Small">
+                                    @context.Status
+                                </MudChip>
+                            </MudTd>
+                            <MudTd>
+                                <MudIconButton Icon="@Icons.Material.Filled.Autorenew" Color="Color.Success" Size="Size.Small" Title="تمديد" />
+                                <MudIconButton Icon="@Icons.Material.Filled.Cancel" Color="Color.Error" Size="Size.Small" Class="mr-2" Title="إلغاء" />
+                            </MudTd>
+                        </RowTemplate>
+                    </MudTable>
+                </div>
+            </MudTabPanel>
+
+            <!-- Tab: تقرير العمليات -->
+            <MudTabPanel Text="تقرير العمليات">
+                <div class="mt-4">
+                    <MudGrid Class="mb-4">
+                        <MudItem xs="12" md="3">
+                            <MudDatePicker T="DateTime?" Label="من تاريخ" @bind-Date="reportStartDate" Variant="Variant.Outlined" />
+                        </MudItem>
+                        <MudItem xs="12" md="3">
+                            <MudDatePicker T="DateTime?" Label="إلى تاريخ" @bind-Date="reportEndDate" Variant="Variant.Outlined" />
+                        </MudItem>
+                        <MudItem xs="12" md="3">
+                            <MudSelect T="string" Label="نوع الخدمة" @bind-Value="reportServiceType" Variant="Variant.Outlined">
+                                <MudSelectItem T="string" Value='@("all")'>جميع الخدمات</MudSelectItem>
+                                <MudSelectItem T="string" Value='@("إصدار إقامة")'>إصدار إقامة</MudSelectItem>
+                                <MudSelectItem T="string" Value='@("تجديد إقامة")'>تجديد إقامة</MudSelectItem>
+                                <MudSelectItem T="string" Value='@("نقل خدمات")'>نقل خدمات</MudSelectItem>
+                            </MudSelect>
+                        </MudItem>
+                        <MudItem xs="12" md="3" Class="d-flex align-center">
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" EndIcon="@Icons.Material.Filled.GetApp" Class="mt-4">
+                                تصدير التقرير
+                            </MudButton>
+                        </MudItem>
+                    </MudGrid>
+
+                    <MudTable Items="@FilteredReports" Hover="true" Striped="true" Elevation="1" Class="card-soft">
+                        <HeaderContent>
+                            <MudTh>رقم العملية</MudTh>
+                            <MudTh>نوع الخدمة</MudTh>
+                            <MudTh>اسم الموظف</MudTh>
+                            <MudTh>تاريخ الطلب</MudTh>
+                            <MudTh>الحالة</MudTh>
+                            <MudTh>رقم المرجع</MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd>@context.OperationId</MudTd>
+                            <MudTd>@context.ServiceType</MudTd>
+                            <MudTd>@context.EmployeeName</MudTd>
+                            <MudTd>@context.RequestDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)</MudTd>
+                            <MudTd>
+                                <MudChip T="string" Color="@GetReportStatusColor(context.Status)"
+                                         Variant="Variant.Filled" Size="Size.Small">
+                                    @context.Status
+                                </MudChip>
+                            </MudTd>
+                            <MudTd>@context.ReferenceNumber</MudTd>
+                        </RowTemplate>
+                    </MudTable>
+                </div>
+            </MudTabPanel>
+
+        </MudTabs>
+    </MudPaper>
+
+    <!-- Drawer -->
+    <MudDrawer @bind-Open="_drawerOpen" Anchor="Anchor.Right" Elevation="2" Width="450px">
+        <MudAppBar Elevation="0" Color="Color.Primary">
+            <MudText Typo="Typo.h6" Class="ml-3" Color="Color.Inherit">عملية جديدة — @_currentServiceText</MudText>
+            <MudSpacer />
+            <MudIconButton Icon="@Icons.Material.Filled.Close" Color="Color.Inherit" OnClick="CloseDrawer" />
+        </MudAppBar>
+
+        <MudCardContent>
+            <MudStack Spacing="3">
+                <MudTextField T="string" Label="اسم / رقم الموظف" @bind-Value="_employee" Variant="Variant.Outlined" />
+                <MudTextField T="string" Label="رقم الإقامة" @bind-Value="_iqama" Variant="Variant.Outlined" />
+
+                <MudSelect T="string" Label="نوع الخدمة" @bind-Value="_serviceType" Variant="Variant.Outlined">
+                    <MudSelectItem T="string" Value='@("إصدار")'>إصدار</MudSelectItem>
+                    <MudSelectItem T="string" Value='@("تجديد")'>تجديد</MudSelectItem>
+                </MudSelect>
+
+                <MudSelect T="string" Label="نوع الإجراء" @bind-Value="_actionType" Variant="Variant.Outlined">
+                    <MudSelectItem T="string" Value='@("إصدار")'>إصدار</MudSelectItem>
+                    <MudSelectItem T="string" Value='@("إلغاء")'>إلغاء</MudSelectItem>
+                </MudSelect>
+
+                <MudSelect T="string" Label="مدة التجديد" @bind-Value="_duration" Variant="Variant.Outlined">
+                    <MudSelectItem T="string" Value='@("12")'>12 شهر</MudSelectItem>
+                    <MudSelectItem T="string" Value='@("24")'>24 شهر</MudSelectItem>
+                </MudSelect>
+            </MudStack>
+        </MudCardContent>
+
+        <MudCardActions>
+            <MudSpacer />
+            <MudButton Color="Color.Secondary" Variant="Variant.Text" OnClick="CloseDrawer" Class="mr-2">إلغاء</MudButton>
+            <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="SubmitService">إرسال إلى مقيم</MudButton>
+        </MudCardActions>
+    </MudDrawer>
+
+</MudContainer>
 
 @code {
-    // إضافة المتغيرات للـ KPIs
-    private int totalRequests = 128;
-    private int completedRequests = 86;
-    private int pendingRequests = 24;
-    private int rejectedRequests = 18;
+    // KPIs
+    private int totalRequests = 0;
+    private int completedRequests = 0;
+    private int pendingRequests = 0;
+    private int rejectedRequests = 0;
     private int activeTabIndex = 0;
 
-    // باقي الكود
+    // Drawer
     private bool _drawerOpen = false;
     private string _employee = string.Empty;
     private string _iqama = string.Empty;
     private string _serviceType = "إصدار";
     private string _actionType = "إصدار";
-    private int _duration = 12;
+    private string _duration = "12";
 
-    // بيانات التأشيرات
-    private string visaSearch = "";
-    private string visaType = "all";
-    private string visaStatus = "all";
-    private List<VisaItem> visas = new()
-    {
-        new VisaItem { EmployeeName = "أحمد محمد", VisaNumber = "VSA-2023-001", Type = "عمل",
-                      IssueDate = new DateTime(2023, 5, 15), ExpiryDate = new DateTime(2024, 5, 15), Status = "نشطة" },
-        new VisaItem { EmployeeName = "فاطمة عبدالله", VisaNumber = "VSA-2023-002", Type = "زيارة",
-                      IssueDate = new DateTime(2023, 6, 20), ExpiryDate = new DateTime(2023, 12, 20), Status = "نشطة" },
-        new VisaItem { EmployeeName = "خالد سعيد", VisaNumber = "VSA-2023-003", Type = "عمل",
-                      IssueDate = new DateTime(2023, 1, 10), ExpiryDate = new DateTime(2024, 1, 10), Status = "نشطة" }
-    };
-
-    // بيانات التقارير
-    private DateTime? reportStartDate;
-    private DateTime? reportEndDate;
-    private string reportServiceType = "all";
-    private List<ReportItem> reports = new()
-    {
-        new ReportItem { OperationId = "OPR-2023-1001", ServiceType = "إصدار إقامة", EmployeeName = "أحمد محمد",
-                        RequestDate = new DateTime(2023, 7, 15), Status = "مكتمل", ReferenceNumber = "REF-789456" },
-        new ReportItem { OperationId = "OPR-2023-1002", ServiceType = "تجديد إقامة", EmployeeName = "فاطمة عبدالله",
-                        RequestDate = new DateTime(2023, 7, 18), Status = "قيد المعالجة", ReferenceNumber = "REF-789457" },
-        new ReportItem { OperationId = "OPR-2023-1003", ServiceType = "نقل خدمات", EmployeeName = "خالد سعيد",
-                        RequestDate = new DateTime(2023, 7, 20), Status = "مرفوض", ReferenceNumber = "REF-789458" }
-    };
-
-    private IEnumerable<VisaItem> FilteredVisas =>
-        visas.Where(v =>
-            (string.IsNullOrEmpty(visaSearch) || v.EmployeeName.Contains(visaSearch, StringComparison.OrdinalIgnoreCase)) &&
-            (visaType == "all" || v.Type == visaType) &&
-            (visaStatus == "all" || v.Status == visaStatus));
-
-    private IEnumerable<ReportItem> FilteredReports =>
-        reports.Where(r =>
-            (reportServiceType == "all" || r.ServiceType == reportServiceType) &&
-            (!reportStartDate.HasValue || r.RequestDate >= reportStartDate.Value) &&
-            (!reportEndDate.HasValue || r.RequestDate <= reportEndDate.Value));
-
+    private enum ServiceType { IssueIqama, RenewIqama, TransferEmployee, PassportRenew, Report }
     private ServiceType _currentService = ServiceType.IssueIqama;
     private string _currentServiceText => _currentService switch
     {
@@ -400,82 +359,94 @@
         _ => "خدمة"
     };
 
-    private Color GetStatusColor(string status)
+    // تأشيرات
+    private string visaSearch = "";
+    private string visaType = "all";
+    private string visaStatus = "all";
+    private List<VisaItem> visas = new()
     {
-        return status switch
-        {
-            "نشطة" => Color.Success,
-            "منتهية" => Color.Warning,
-            "ملغاة" => Color.Error,
-            _ => Color.Default
-        };
-    }
+        new VisaItem { EmployeeName = "أحمد محمد",   VisaNumber = "VSA-2023-001", Type = "عمل",
+                       IssueDate = new DateTime(2023,5,15), ExpiryDate = new DateTime(2024,5,15), Status = "نشطة" },
+        new VisaItem { EmployeeName = "فاطمة عبدالله", VisaNumber = "VSA-2023-002", Type = "زيارة",
+                       IssueDate = new DateTime(2023,6,20), ExpiryDate = new DateTime(2023,12,20), Status = "نشطة" },
+        new VisaItem { EmployeeName = "خالد سعيد",    VisaNumber = "VSA-2023-003", Type = "عمل",
+                       IssueDate = new DateTime(2023,1,10), ExpiryDate = new DateTime(2024,1,10), Status = "نشطة" }
+    };
 
-    private Color GetReportStatusColor(string status)
+    private IEnumerable<VisaItem> FilteredVisas =>
+        visas.Where(v =>
+            (string.IsNullOrEmpty(visaSearch) || v.EmployeeName.Contains(visaSearch, StringComparison.OrdinalIgnoreCase)) &&
+            (visaType == "all" || v.Type == visaType) &&
+            (visaStatus == "all" || v.Status == visaStatus));
+
+    // تقارير
+    private DateTime? reportStartDate;
+    private DateTime? reportEndDate;
+    private string reportServiceType = "all";
+    private List<ReportItem> reports = new()
     {
-        return status switch
-        {
-            "مكتمل" => Color.Success,
-            "قيد المعالجة" => Color.Warning,
-            "مرفوض" => Color.Error,
-            _ => Color.Default
-        };
-    }
+        new ReportItem { OperationId = "OPR-2023-1001", ServiceType = "إصدار إقامة",
+                         EmployeeName = "أحمد محمد", RequestDate = new DateTime(2023,7,15),
+                         Status = "مكتمل", ReferenceNumber = "REF-789456" },
+        new ReportItem { OperationId = "OPR-2023-1002", ServiceType = "تجديد إقامة",
+                         EmployeeName = "فاطمة عبدالله", RequestDate = new DateTime(2023,7,18),
+                         Status = "قيد المعالجة", ReferenceNumber = "REF-789457" },
+        new ReportItem { OperationId = "OPR-2023-1003", ServiceType = "نقل خدمات",
+                         EmployeeName = "خالد سعيد", RequestDate = new DateTime(2023,7,20),
+                         Status = "مرفوض", ReferenceNumber = "REF-789458" }
+    };
 
-    private enum ServiceType
+    private IEnumerable<ReportItem> FilteredReports =>
+        reports.Where(r =>
+            (reportServiceType == "all" || r.ServiceType == reportServiceType) &&
+            (!reportStartDate.HasValue || r.RequestDate >= reportStartDate.Value) &&
+            (!reportEndDate.HasValue || r.RequestDate <= reportEndDate.Value));
+
+    /* دوال الألوان — كانت مفقودة */
+    private Color GetStatusColor(string status) => status switch
     {
-        IssueIqama,
-        RenewIqama,
-        TransferEmployee,
-        PassportRenew,
-        Report
-    }
+        "نشطة" => Color.Success,
+        "منتهية" => Color.Warning,
+        "ملغاة" => Color.Error,
+        _ => Color.Default
+    };
 
-    private void OpenDrawer(ServiceType service)
+    private Color GetReportStatusColor(string status) => status switch
     {
-        _currentService = service;
-        _drawerOpen = true;
-    }
+        "مكتمل" => Color.Success,
+        "قيد المعالجة" => Color.Warning,
+        "مرفوض" => Color.Error,
+        _ => Color.Default
+    };
 
+    /* معالجات الضغط بدل لامبدا لتجنّب CS1662 */
+    private void OpenIssueCard()    => OpenDrawer(ServiceType.IssueIqama);
+    private void OpenRenewCard()    => OpenDrawer(ServiceType.RenewIqama);
+    private void OpenTransferCard() => OpenDrawer(ServiceType.TransferEmployee);
+
+    private void OpenDrawer(ServiceType s) { _currentService = s; _drawerOpen = true; }
     private void CloseDrawer() => _drawerOpen = false;
+    private void SubmitService() => _drawerOpen = false;
 
-    private void SubmitService()
-    {
-        _drawerOpen = false;
-        // هنا يمكنك إضافة منطق إرسال الطلب إلى الخادم
-    }
+    public ValueTask DisposeAsync() => ValueTask.CompletedTask;
 
     public class VisaItem
     {
         public string EmployeeName { get; set; } = "";
-        public string VisaNumber { get; set; } = "";
-        public string Type { get; set; } = "";
-        public DateTime IssueDate { get; set; }
+        public string VisaNumber   { get; set; } = "";
+        public string Type         { get; set; } = "";
+        public DateTime IssueDate  { get; set; }
         public DateTime ExpiryDate { get; set; }
-        public string Status { get; set; } = "";
+        public string Status       { get; set; } = "";
     }
 
     public class ReportItem
     {
-        public string OperationId { get; set; } = "";
-        public string ServiceType { get; set; } = "";
-        public string EmployeeName { get; set; } = "";
-        public DateTime RequestDate { get; set; }
-        public string Status { get; set; } = "";
+        public string OperationId     { get; set; } = "";
+        public string ServiceType     { get; set; } = "";
+        public string EmployeeName    { get; set; } = "";
+        public DateTime RequestDate   { get; set; }
+        public string Status          { get; set; } = "";
         public string ReferenceNumber { get; set; } = "";
     }
 }
-
-<style>
-    .kpi-card {
-        border-radius: 12px;
-        transition: all 0.3s ease;
-        border: 1px solid rgba(0,0,0,0.1);
-        cursor: pointer;
-    }
-
-    .kpi-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    }
-</style>
