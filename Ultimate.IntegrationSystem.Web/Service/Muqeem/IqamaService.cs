@@ -1,6 +1,6 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
-using Ultimate.IntegrationSystem.Api.Dto.Muqeem.Requests;
+using Ultimate.IntegrationSystem.Web.Dto.Muqeem;
 using Ultimate.IntegrationSystem.Web.Models;
 
 namespace Ultimate.IntegrationSystem.Web.Service.Muqeem
@@ -23,8 +23,8 @@ namespace Ultimate.IntegrationSystem.Web.Service.Muqeem
         public Task<ApiResultModel> IssueAsync(IssueIqamaRequestDto dto, CancellationToken ct = default)
             => Post("api/Muqeem/Iqama/Issue", dto, ct);
 
-        public Task<ApiResultModel> TransferAsync(TransferIqamaRequestDto dto, CancellationToken ct = default)
-            => Post("api/Muqeem/Iqama/Transfer", dto, ct);
+        //public Task<ApiResultModel> TransferAsync(TransferIqamaRequestDto dto, CancellationToken ct = default)
+        //    => Post("api/Muqeem/Iqama/Transfer", dto, ct);
 
         private async Task<ApiResultModel> Post<TReq>(string url, TReq dto, CancellationToken ct)
         {

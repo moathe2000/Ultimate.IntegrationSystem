@@ -1,4 +1,5 @@
 ﻿@page "/employees"
+@using Microsoft.AspNetCore.Components.Web
 @using Microsoft.JSInterop
 @using MudBlazor
 @using Ultimate.IntegrationSystem.Web.Dto
@@ -12,7 +13,7 @@
 @inject IJSRuntime JS
 
 <style>
-    /* CSS الحالي مع تحسينات إضافية */
+    /* خلفية عامة */
     body, .page-root {
         background: #f5f5f9;
     }
@@ -24,13 +25,14 @@
         --table-h: calc(100vh - 360px);
     }
 
+    /* بطاقات المؤشرات */
     .kpi-card {
         border: 1px solid var(--soft-brd);
         border-radius: var(--radius);
         display: flex;
         gap: 12px;
         align-items: center;
-        transition: transform 0.2s ease;
+        transition: transform .2s ease;
     }
 
         .kpi-card:hover {
@@ -48,45 +50,110 @@
         line-height: 1;
     }
 
+    /* شريط الأدوات العام */
     .toolbar {
         border: 1px solid var(--soft-brd);
         border-radius: var(--radius);
         padding: 6px 10px !important;
     }
 
-    .toolbar-row {
+    /* شريط Sneat */
+    .sneat-toolbar-row {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 8px;
+        gap: 12px;
         flex-wrap: wrap;
+        direction: ltr; /* يبقي البحث يمين */
     }
 
-    .actions-group {
+    .sneat-actions {
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 10px;
     }
 
+    .sneat-search {
+        display: flex;
+        align-items: center;
+    }
+
+    /* زر رئيسي و Export */
+    .btn-sneat-main {
+        border-radius: 10px;
+        padding-inline: 14px;
+        font-weight: 600;
+    }
+
+    .btn-sneat-ghost, .btn-sneat-ghost .mud-button-root {
+        border-radius: 10px !important;
+        border-color: var(--soft-brd) !important;
+    }
+
+    /* Select صغير ومقوّس */
+    .select-sneat .mud-input-root {
+        min-height: 40px;
+        width: 84px;
+        border-radius: 10px;
+    }
+
+    /* البحث */
     .search-sneat {
-        width: 250px;
-        transition: width 0.3s ease;
+        width: 340px;
+        transition: width .25s ease;
     }
 
         .search-sneat:focus-within {
-            width: 300px;
-        }
-
-        .search-sneat .mud-input-root {
-            min-height: 36px;
+            width: 400px;
         }
 
         .search-sneat .mud-input-outlined {
-            border-radius: 8px;
+            border-radius: 10px;
             padding-top: 0;
             padding-bottom: 0;
         }
 
+    /* توحيد الارتفاعات لجميع عناصر الشريط (40px) */
+    .u-ctrl .mud-input-root,
+    .u-ctrl .mud-button-root,
+    .u-ctrl .mud-select .mud-input-root {
+        min-height: 40px !important;
+        height: 40px !important;
+        display: flex;
+        align-items: center;
+    }
+
+    /* تثبيت ارتفاع حقل البحث بدقة = 40px */
+    .fix-40 .mud-input-root,
+    .fix-40 .mud-input-root .mud-input-slot,
+    .fix-40 .mud-input-root input,
+    .fix-40 .mud-input-root textarea {
+        height: 40px !important;
+        min-height: 40px !important;
+        line-height: 40px !important;
+        display: flex;
+        align-items: center;
+        box-sizing: border-box;
+    }
+
+    .fix-40 .mud-input-outlined {
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+    }
+
+    .fix-40 .mud-input-root input,
+    .fix-40 .mud-input-root textarea {
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+    }
+
+    .search-sneat .mud-input-adornment {
+        height: 40px;
+        display: flex;
+        align-items: center;
+    }
+
+    /* عناصر عامة للجدول */
     .elevated {
         border: 1px solid var(--soft-brd);
         border-radius: var(--radius);
@@ -96,7 +163,7 @@
         padding: 12px 14px;
         font-weight: 700;
         font-size: .92rem;
-        background-color: var(--soft-bg);
+        background: var(--soft-bg);
     }
 
     .sneat-table .mud-table-body .mud-td {
@@ -173,45 +240,46 @@
 
     .loading-overlay {
         position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(255, 255, 255, 0.8);
+        inset: 0;
+        background: rgba(255,255,255,.8);
         display: flex;
         justify-content: center;
         align-items: center;
         z-index: 1000;
     }
 
-    /* Responsive toolbar */
-    @@media (max-width: 768px) {
-        .toolbar-row {
-            flex-direction: column;
-            align-items: stretch;
-            gap: 12px;
-        }
+    /* Responsive */
+    @@media (max-width:768px) {
+        .sneat-toolbar-row
 
-        .actions-group {
-            justify-content: flex-start;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
+    {
+        flex-direction: column;
+        align-items: stretch;
+    }
 
-        .search-sneat {
+    .sneat-actions {
+        order: 2;
+        flex-wrap: wrap;
+    }
+
+    .sneat-search {
+        order: 1;
+    }
+
+    .search-sneat {
+        width: 100%;
+    }
+
+        .search-sneat:focus-within {
             width: 100%;
-            max-width: 100%;
         }
 
-            .search-sneat:focus-within {
-                width: 100%;
-            }
+    .footer-bar {
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+    }
 
-        .footer-bar {
-            flex-direction: column;
-            align-items: center;
-            gap: 12px;
-        }
     }
 </style>
 
@@ -245,50 +313,78 @@
         </MudItem>
     </MudGrid>
 
-    <!-- Toolbar -->
-    <MudPaper Elevation="0" Class="toolbar">
-        <div class="toolbar-row">
+    <!-- Toolbar - Sneat style -->
+    <MudPaper Elevation="0" Class="toolbar sneat-toolbar">
+        <div class="sneat-toolbar-row">
+
             <!-- يسار: الأزرار -->
-            <div class="actions-group">
-                <MudButton Variant="Variant.Outlined"
-                           Color="Color.Primary"
+            <div class="sneat-actions u-ctrl">
+                <!-- زر رئيسي: تحديث -->
+                <MudButton Color="Color.Primary"
+                           Variant="Variant.Filled"
                            StartIcon="@Icons.Material.Filled.Refresh"
-                           OnClick="RefreshAsync"
-                           Dense="true">
+                           Class="btn-sneat-main"
+                           Dense="true"
+                           OnClick="RefreshAsync">
                     تحديث
                 </MudButton>
 
-                <MudSelect T="int" Dense="true" Style="width:80px"
+                <!-- Export -->
+                <MudMenu Dense="true" Class="btn-sneat-ghost">
+                    <ActivatorContent>
+                        <MudButton Variant="Variant.Outlined"
+                                   StartIcon="@Icons.Material.Outlined.IosShare"
+                                   EndIcon="@Icons.Material.Filled.KeyboardArrowDown"
+                                   Dense="true">
+                            تصدير
+                        </MudButton>
+                    </ActivatorContent>
+                    <ChildContent>
+                        <MudMenuItem OnClick="ExportCsv">
+                            <MudIcon Icon="@Icons.Material.Filled.TableView" Class="mr-2" /> Csv
+                        </MudMenuItem>
+                        <MudMenuItem OnClick="ExportExcel">
+                            <MudIcon Icon="@Icons.Material.Filled.GridOn" Class="mr-2" /> Excel
+                        </MudMenuItem>
+                        <MudMenuItem>
+                            <MudIcon Icon="@Icons.Material.Filled.PictureAsPdf" Class="mr-2" /> Pdf
+                        </MudMenuItem>
+                        <MudMenuItem>
+                            <MudIcon Icon="@Icons.Material.Filled.ContentCopy" Class="mr-2" /> Copy
+                        </MudMenuItem>
+                        <MudMenuItem>
+                            <MudIcon Icon="@Icons.Material.Filled.Print" Class="mr-2" /> Print
+                        </MudMenuItem>
+                    </ChildContent>
+                </MudMenu>
+
+                <!-- حجم الصفحة -->
+                <MudSelect T="int"
+                           Class="select-sneat"
+                           Dense="true"
                            @bind-Value="pageSize" @bind-Value:after="ResetToFirstPage">
                     <MudSelectItem Value="10">10</MudSelectItem>
                     <MudSelectItem Value="25">25</MudSelectItem>
                     <MudSelectItem Value="50">50</MudSelectItem>
                 </MudSelect>
-
-                <MudMenu Dense="true">
-                    <ActivatorContent>
-                        <MudButton StartIcon="@Icons.Material.Filled.IosShare"
-                                   Variant="Variant.Outlined"
-                                   Size="Size.Small">تصدير</MudButton>
-                    </ActivatorContent>
-                    <ChildContent>
-                        <MudMenuItem OnClick="ExportCsv">CSV</MudMenuItem>
-                        <MudMenuItem OnClick="ExportExcel">Excel</MudMenuItem>
-                    </ChildContent>
-                </MudMenu>
             </div>
 
             <!-- يمين: البحث -->
-            <MudTextField T="string"
-                          Class="search-sneat"
-                          @bind-Value="searchTerm"
-                          @bind-Value:after="ResetToFirstPage"
-                          Immediate="true" DebounceInterval="250" Clearable="true"
-                          Placeholder="ابحث بالاسم/القسم/المسمى/الرقم"
-                          Adornment="Adornment.End"
-                          AdornmentIcon="@Icons.Material.Filled.Search"
-                          Variant="Variant.Outlined"
-                          Dense="true" />
+            <div class="sneat-search u-ctrl">
+                <MudTextField T="string"
+                              Class="search-sneat fix-40"
+                              @bind-Value="searchTerm"
+                              @bind-Value:after="ResetToFirstPage"
+                              Placeholder="ابحث بالاسم/القسم/المسمى/الرقم"
+                              Variant="Variant.Outlined"
+                              Adornment="Adornment.End"
+                              AdornmentIcon="@Icons.Material.Filled.Search"
+                              OnAdornmentClick="ApplySearch"
+                              Immediate="true" DebounceInterval="250"
+                              Clearable="true"
+                              Dense="true" />
+            </div>
+
         </div>
     </MudPaper>
 
@@ -405,12 +501,12 @@
             return cachedFilteredEmployees;
 
         var result = allEmployees.Where(e =>
-            string.IsNullOrWhiteSpace(searchTerm)
-            || (e.FullName?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false)
-            || (e.FullNameEn?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false)
-            || (e.Id?.ToString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false)
-            || (e.JobTitle?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false)
-            || (e.Department?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false));
+          string.IsNullOrWhiteSpace(searchTerm)
+          || (e.FullName?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false)
+          || (e.FullNameEn?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false)
+          || (e.Id?.ToString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false)
+          || (e.JobTitle?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false)
+          || (e.Department?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false));
 
         cachedSearchTerm = searchTerm;
         cachedFilteredEmployees = result;
@@ -434,12 +530,11 @@
         {
             _loading = true;
             _error = null;
-            StateHasChanged(); // إعادة رسم المكون ليعرض مؤشر التحميل
+            StateHasChanged();
 
             allEmployees = await EmployeeService.GetAllEmployeesAsync();
             totalEmployees = allEmployees.Count;
 
-            // إعادة تعيين التخزين المؤقت
             cachedSearchTerm = string.Empty;
             cachedFilteredEmployees = null;
         }
@@ -460,23 +555,32 @@
         activeCount = allEmployees.Count(e => e.IsActive);
         inactiveCount = totalEmployees - activeCount;
 
-        // حساب الموظفين المضافين حديثاً (خلال آخر 30 يوم)
         var thirtyDaysAgo = DateTime.Now.AddDays(-30);
-        newHiresCount = 11;// allEmployees.Count(e =>
-        //     e.BirthCountryId.HasValue && e.HireDate.Value >= thirtyDaysAgo);
+        newHiresCount = 11; // مثال ثابت
     }
 
     private void ResetToFirstPage() => currentPage = 1;
     private void OnPageChanged(int p) => currentPage = p;
 
+    private void ApplySearch()
+    {
+        ResetToFirstPage();
+        StateHasChanged();
+    }
+
+    private void OnSearchKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") ApplySearch();
+    }
+
     private Task OnRowClick(TableRowClickEventArgs<EmployeeDto> args)
-        => NavigateToDetailsAsync(args.Item);
+      => NavigateToDetailsAsync(args.Item);
 
     private string DisplayName(EmployeeDto e)
-        => !string.IsNullOrWhiteSpace(e.FullName) ? e.FullName
-         : !string.IsNullOrWhiteSpace(e.FullNameEn) ? e.FullNameEn
-         : !string.IsNullOrWhiteSpace(e.Email) ? e.Email
-         : (e.Id is not null ? $"موظف #{e.Id}" : "موظف");
+      => !string.IsNullOrWhiteSpace(e.FullName) ? e.FullName
+       : !string.IsNullOrWhiteSpace(e.FullNameEn) ? e.FullNameEn
+       : !string.IsNullOrWhiteSpace(e.Email) ? e.Email
+       : (e.Id is not null ? $"موظف #{e.Id}" : "موظف");
 
     private Task GoToMuqeemAsync(EmployeeDto e)
     {
@@ -497,7 +601,7 @@
         try
         {
             var result = await EmployeeService.GetAllEmployeesAsync(null);
-            if (result.Count>0)
+            if (result.Count > 0)
             {
                 employee.IsActive = !employee.IsActive;
                 CalcKpis();
@@ -524,15 +628,8 @@
         return $"إظهار {from}–{to} من {total}";
     }
 
-    private async Task ExportCsv()
-    {
-        await ExportData("csv");
-    }
-
-    private async Task ExportExcel()
-    {
-        await ExportData("xlsx");
-    }
+    private async Task ExportCsv() => await ExportData("csv");
+    private async Task ExportExcel() => await ExportData("xlsx");
 
     private async Task ExportData(string format)
     {
@@ -549,27 +646,20 @@
                 sb.AppendLine("Id,FullName,Department,JobTitle,Email,IsActive,HireDate");
                 string Esc(string? s) => string.IsNullOrEmpty(s) ? "" : s.Replace("\"", "\"\"");
                 foreach (var r in rows)
-                    sb.AppendLine($"{r.Id},\"{Esc(DisplayName(r))}\",\"{Esc(r.Department)}\",\"{Esc(r.JobTitle)}\",\"{Esc(r.Email)}\",{(r.IsActive ? 1 : 0)},\"{System.DateTime.Now.ToString()}\"");
+                    sb.AppendLine($"{r.Id},\"{Esc(DisplayName(r))}\",\"{Esc(r.Department)}\",\"{Esc(r.JobTitle)}\",\"{Esc(r.Email)}\",{(r.IsActive ? 1 : 0)},\"{System.DateTime.Now:yyyy-MM-dd}\"");
             }
             else
             {
-                // تنسيق Excel (HTML table يمكن تحويله إلى Excel)
                 sb.AppendLine("<table border='1'>");
                 sb.AppendLine("<tr><th>ID</th><th>الاسم</th><th>القسم</th><th>المسمى الوظيفي</th><th>البريد الإلكتروني</th><th>الحالة</th><th>تاريخ التعيين</th></tr>");
                 foreach (var r in rows)
-                {
-                    sb.AppendLine($"<tr><td>{r.Id}</td><td>{DisplayName(r)}</td><td>{r.Department}</td><td>{r.JobTitle}</td><td>{r.Email}</td><td>{(r.IsActive ? "فعال" : "غير فعال")}</td><td>{System.DateTime.UtcNow}</td></tr>");
-                }
+                    sb.AppendLine($"<tr><td>{r.Id}</td><td>{DisplayName(r)}</td><td>{r.Department}</td><td>{r.JobTitle}</td><td>{r.Email}</td><td>{(r.IsActive ? "فعال" : "غير فعال")}</td><td>{System.DateTime.UtcNow:yyyy-MM-dd}</td></tr>");
                 sb.AppendLine("</table>");
             }
 
-            var content = format == "csv"
-                ? Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(sb.ToString()))
-                : Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(sb.ToString()));
-
+            var content = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(sb.ToString()));
             var fileName = $"employees.{format}";
             var mimeType = format == "csv" ? "text/csv" : "application/vnd.ms-excel";
-
             await JS.InvokeVoidAsync("downloadFile", content, fileName, mimeType);
 
             Snackbar.Add($"تم تصدير {rows.Count} سجل بنجاح", Severity.Success);

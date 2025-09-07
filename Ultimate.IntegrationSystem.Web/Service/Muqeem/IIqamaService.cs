@@ -1,4 +1,5 @@
-﻿using Ultimate.IntegrationSystem.Api.Dto.Muqeem.Requests;
+﻿
+using Ultimate.IntegrationSystem.Web.Dto.Muqeem;
 using Ultimate.IntegrationSystem.Web.Models;
 
 namespace Ultimate.IntegrationSystem.Web.Service.Muqeem
@@ -7,6 +8,6 @@ namespace Ultimate.IntegrationSystem.Web.Service.Muqeem
     {
         Task<ApiResultModel> RenewAsync(RenewIqamaRequestDto dto, CancellationToken ct = default);
         Task<ApiResultModel> IssueAsync(IssueIqamaRequestDto dto, CancellationToken ct = default);
-        Task<ApiResultModel> TransferAsync(TransferIqamaRequestDto dto, CancellationToken ct = default);
+      //  Task<ApiResultModel> TransferAsync(TransferIqamaRequestDto dto, CancellationToken ct = default);
     }
 }

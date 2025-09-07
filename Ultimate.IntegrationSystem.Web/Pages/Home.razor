@@ -1,15 +1,14 @@
 ﻿@page "/"
 @using MudBlazor
-
 @inject NavigationManager Nav
 
-<MudContainer MaxWidth="MaxWidth.False" Class="py-6">
+<MudContainer MaxWidth="MaxWidth.False" Class="py-6" Style="background-color:#f5f2ed; min-height:100vh;">
 
     <!-- Header -->
     <MudStack Spacing="2" Class="mb-4">
         <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
-            <MudText Typo="Typo.h5">Home</MudText>
-            <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center">
+            <MudText Typo="Typo.h5" Class="text-dark">Home</MudText>
+         @*    <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center" Wrap="Wrap.Wrap">
                 <MudChip T="string" Color="Color.Success" Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.CheckCircle">
                     @($"Connected: {Cards.Count(c => c.Status == IntegrationStatus.Connected)}")
                 </MudChip>
@@ -19,13 +18,13 @@
                 <MudChip T="string" Color="Color.Warning" Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Info">
                     @($"Not configured: {Cards.Count(c => c.Status == IntegrationStatus.NotConfigured)}")
                 </MudChip>
-            </MudStack>
+            </MudStack> *@
         </MudStack>
 
         <!-- Toolbar -->
         <MudPaper Class="px-3 py-2" Elevation="0" Outlined="true">
             <MudGrid Spacing="2" AlignItems="AlignItems.Center">
-                <MudItem xs="12" md="4">
+                <MudItem xs="12" sm="6" md="4">
                     <MudTextField @bind-Value="_search"
                                   Placeholder="بحث... (الاسم أو الوصف)"
                                   Adornment="Adornment.Start"
@@ -34,9 +33,9 @@
                                   Variant="Variant.Outlined" />
                 </MudItem>
 
-                <MudItem xs="12" md="4">
+                <MudItem xs="12" sm="6" md="4">
                     <!-- فلتر الحالة -->
-                    <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center">
+                    <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center" Wrap="Wrap.Wrap">
                         <MudText Class="mr-2">الحالة:</MudText>
                         <MudChip T="string" Variant="Variant.Filled"
                                  Color="@(_statusFilter is null ? Color.Primary : Color.Default)"
@@ -61,11 +60,11 @@
                     </MudStack>
                 </MudItem>
 
-                <MudItem xs="12" md="4">
-                    <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center" Justify="Justify.FlexEnd">
-                        <MudSelect T="string" @bind-Value="_sortBy" Variant="Variant.Outlined" Style="min-width:160px">
-                            <MudSelectItem T="string" >ترتيب: الاسم</MudSelectItem>
-                            <MudSelectItem T="string" >ترتيب: الحالة</MudSelectItem>
+                <MudItem xs="12" sm="12" md="4">
+                    <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center" Justify="Justify.FlexEnd" Wrap="Wrap.Wrap">
+                        <MudSelect T="string" @bind-Value="_sortBy" Variant="Variant.Outlined" Style="min-width:140px">
+                            <MudSelectItem T="string">ترتيب: الاسم</MudSelectItem>
+                            <MudSelectItem T="string">ترتيب: الحالة</MudSelectItem>
                         </MudSelect>
 
                         <MudIconButton Icon="@(_sortAsc? Icons.Material.Filled.South : Icons.Material.Filled.North)"
@@ -75,7 +74,6 @@
 
                         <MudSwitch @bind-Value="_onlyFavorites" Color="Color.Primary" Label="المفضّلة" />
 
-                        <!-- تبديل طريقة العرض (للمستقبل) -->
                         <MudButtonGroup Variant="Variant.Outlined" Color="Color.Primary">
                             <MudButton StartIcon="@Icons.Material.Filled.Dashboard" Disabled="true">شبكة</MudButton>
                             <MudButton StartIcon="@Icons.Material.Filled.ViewList" Disabled="true">قائمة</MudButton>
@@ -93,25 +91,24 @@
             <MudItem xs="12" sm="6" md="4" lg="3">
                 <MudCard Class="home-card" Elevation="1" Style="@($"--accent:{card.AccentCss}")">
                     <div class="accent"></div>
-
                     <MudCardContent Class="card-content">
                         @if (!string.IsNullOrWhiteSpace(card.LogoUrl))
                         {
-                            <MudAvatar Class="card-icon" Size="Size.Large" Variant="Variant.Filled">
+                            <MudAvatar Class="card-icon" Size="Size.Medium" Variant="Variant.Filled">
                                 <img src="@card.LogoUrl" alt="@card.Title" style="width:100%;height:100%;object-fit:contain;" />
                             </MudAvatar>
                         }
                         else
                         {
-                            <MudAvatar Class="card-icon" Size="Size.Large" Variant="Variant.Filled">
-                                <MudIcon Icon="@card.Icon" Size="Size.Large" />
+                            <MudAvatar Class="card-icon" Size="Size.Medium" Variant="Variant.Filled">
+                                <MudIcon Icon="@card.Icon" Size="Size.Medium" />
                             </MudAvatar>
                         }
 
                         <div class="card-body">
                             <MudStack Spacing="0">
                                 <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
-                                    <MudText Typo="Typo.h6" Class="mb-0">@card.Title</MudText>
+                                    <MudText Typo="Typo.subtitle1" Class="mb-0 text-dark">@card.Title</MudText>
                                     <MudIconButton Icon="@(card.IsFavorite? Icons.Material.Filled.Star : Icons.Material.Filled.StarBorder)"
                                                    Color="@(card.IsFavorite ? Color.Warning : Color.Default)"
                                                    Size="Size.Small"
@@ -119,7 +116,7 @@
                                                    OnClick="@(()=> ToggleFavorite(card))" />
                                 </MudStack>
 
-                                <MudText Class="mb-2" Color="Color.Default">@card.Description</MudText>
+                                <MudText Class="mb-2 text-dark" Color="Color.Default" Typo="Typo.body2">@card.Description</MudText>
 
                                 <MudChip T="string"
                                          Color="@GetStatusColor(card.Status)"
@@ -132,7 +129,7 @@
                         </div>
                     </MudCardContent>
 
-                    <MudCardActions Class="px-5 pb-4">
+                    <MudCardActions Class="px-3 pb-3">
                         <MudButton Variant="Variant.Filled"
                                    Color="Color.Primary"
                                    StartIcon="@Icons.Material.Filled.Link"
@@ -175,11 +172,28 @@
     {
         <MudPaper Class="d-flex flex-column align-center justify-center py-12 mt-6" Elevation="0">
             <MudIcon Icon="@Icons.Material.Filled.SearchOff" Size="Size.Large" Color="Color.Secondary" />
-            <MudText Typo="Typo.h6" Class="mt-2">لا توجد نتائج مطابقة</MudText>
+            <MudText Typo="Typo.h6" Class="mt-2 text-dark">لا توجد نتائج مطابقة</MudText>
             <MudText Color="Color.Default">جرّب تعديل معايير البحث أو الفلاتر.</MudText>
         </MudPaper>
     }
 </MudContainer>
+
+<style>
+    .home-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        cursor: pointer;
+        border-radius: 14px;
+    }
+
+        .home-card:hover {
+            transform: translateY(-5px) scale(1.03);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+    .text-dark {
+        color: #333;
+    }
+</style>
 
 @code {
     private enum IntegrationStatus { Connected, Offline, NotConfigured }
@@ -198,81 +212,21 @@
         bool IsFavorite = false
     );
 
-    // بيانات الكروت
     private readonly List<IntegrationCard> Cards = new()
-    {// Muqeem
-        new(
-            Title: "Muqeem Integration",
-            Description: "الإصدار/الإلغاء للخروج والعودة والخروج النهائي، تحديث الإقامة والجواز، وحالة المعاملات عبر منصة مقيم.",
-            Icon: Icons.Material.Filled.Badge,
-            Link: "/integrations/muqeem",
-            ConnectLink: "/integrations/muqeem/connect",
-            SettingsLink: "/integrations/muqeem/settings",
-            DocsLink: "/docs/muqeem",
-            AccentCss: "linear-gradient(90deg,#6a85b6,#bac8e0)",
-            Status: IntegrationStatus.Connected
-        ),
-        // Bosta
-        new(
-            Title: "Bosta Shipping Integration",
-            Description: "شحن وتتبع وإدارة الاستلامات مع منصة بوسطة. إنشاء شحنات وتتبع حالتها واسترجاع معدل الشحن.",
-            Icon: Icons.Material.Filled.LocalShipping,
-            Link: "/integrations/bosta",
-            ConnectLink: "/integrations/muqeem/connect",
-            SettingsLink: "/integrations/bosta/settings",
-            DocsLink: "https://bosta.co/ar-eg/home",
-            AccentCss: "linear-gradient(90deg,#7f00ff,#e100ff)",
-            Status: IntegrationStatus.Offline
-        ),
-        // Onyx
-        new(
-            Title: "Onyx Station Management",
-            Description: "Manage fuel stations efficiently and sync data with Cashin and the Onyx ERP.",
-            Icon: Icons.Material.Filled.LocalGasStation,
-            Link: "/integrations/onyx",
-            ConnectLink: "/integrations/onyx/connect",
-            SettingsLink: "/integrations/onyx/settings",
-            DocsLink: "/docs/onyx",
-            AccentCss: "linear-gradient(90deg,#6a11cb,#2575fc)",
-            Status: IntegrationStatus.Connected,
-            IsFavorite: true
-        ),
-        
-        // // AI Bot
-        // new(
-        //     Title: "AI Bot Integration",
-        //     Description: "Enable intelligent automation using AI services and bots like ChatGPT, WhatsApp, and Telegram.",
-        //     Icon: Icons.Material.Filled.Psychology,
-        //     Link: "/integrations/ai-bot",
-        //     ConnectLink: "/integrations/ai-bot/connect",
-        //     SettingsLink: "/integrations/ai-bot/settings",
-        //     DocsLink: "/docs/ai-bot",
-        //     AccentCss: "linear-gradient(90deg,#ff512f,#f09819)",
-        //     Status: IntegrationStatus.Connected
-        // ),
-        // BTMBox
-        new(
-            Title: "BTMBox Devices Integration",
-            Description: "Synchronize pricing, fuel terminals, hotels and HR systems with BTMBox devices.",
-            Icon: Icons.Material.Filled.DevicesOther,
-            Link: "/integrations/btmbox",
-            ConnectLink: "/integrations/btmbox/connect",
-            SettingsLink: "/integrations/btmbox/settings",
-            DocsLink: "/docs/btmbox",
-            AccentCss: "linear-gradient(90deg,#ff5f6d,#ffc371)",
-            Status: IntegrationStatus.Offline
-        ),
+    {
+        new("Muqeem Integration","الإصدار/الإلغاء للخروج والعودة والخروج النهائي، تحديث الإقامة والجواز، وحالة المعاملات عبر منصة مقيم.",Icons.Material.Filled.Badge,"/integrations/muqeem","/integrations/muqeem/connect","/integrations/muqeem/settings","/docs/muqeem","linear-gradient(90deg,#6a85b6,#bac8e0)",IntegrationStatus.Connected),
+        new("Bosta Shipping Integration","شحن وتتبع وإدارة الاستلامات مع منصة بوسطة. إنشاء شحنات وتتبع حالتها واسترجاع معدل الشحن.",Icons.Material.Filled.LocalShipping,"/integrations/bosta","/integrations/muqeem/connect","/integrations/bosta/settings","https://bosta.co/ar-eg/home","linear-gradient(90deg,#7f00ff,#e100ff)",IntegrationStatus.Offline),
+        new("Onyx Station Management","Manage fuel stations efficiently and sync data with Cashin and the Onyx ERP.",Icons.Material.Filled.LocalGasStation,"/integrations/onyx","/integrations/onyx/connect","/integrations/onyx/settings","/docs/onyx","linear-gradient(90deg,#6a11cb,#2575fc)",IntegrationStatus.Connected,null,true),
+        new("BTMBox Devices Integration","Synchronize pricing, fuel terminals, hotels and HR systems with BTMBox devices.",Icons.Material.Filled.DevicesOther,"/integrations/btmbox","/integrations/btmbox/connect","/integrations/btmbox/settings","/docs/btmbox","linear-gradient(90deg,#ff5f6d,#ffc371)",IntegrationStatus.Offline)
     };
 
-    // حالة واجهة الاستخدام
     private string _search = string.Empty;
     private IntegrationStatus? _statusFilter = null;
     private string _sortBy = "title";
     private bool _sortAsc = true;
     private bool _onlyFavorites = false;
 
-    private IEnumerable<IntegrationCard> FilteredAndSorted
-        => Sort(Filter(Cards));
+    private IEnumerable<IntegrationCard> FilteredAndSorted => Sort(Filter(Cards));
 
     private IEnumerable<IntegrationCard> Filter(IEnumerable<IntegrationCard> q)
     {
@@ -283,13 +237,8 @@
                 (!string.IsNullOrEmpty(c.Title) && c.Title.Contains(s, StringComparison.OrdinalIgnoreCase)) ||
                 (!string.IsNullOrEmpty(c.Description) && c.Description.Contains(s, StringComparison.OrdinalIgnoreCase)));
         }
-
-        if (_statusFilter.HasValue)
-            q = q.Where(c => c.Status == _statusFilter.Value);
-
-        if (_onlyFavorites)
-            q = q.Where(c => c.IsFavorite);
-
+        if (_statusFilter.HasValue) q = q.Where(c => c.Status == _statusFilter.Value);
+        if (_onlyFavorites) q = q.Where(c => c.IsFavorite);
         return q;
     }
 
@@ -300,7 +249,6 @@
             "status" => q.OrderBy(c => c.Status),
             _ => q.OrderBy(c => c.Title, StringComparer.OrdinalIgnoreCase)
         };
-
         return _sortAsc ? q : q.Reverse();
     }
 
@@ -308,7 +256,6 @@
 
     private void ToggleFavorite(IntegrationCard card)
     {
-        // record immutable — نستبدل العنصر بآخر
         var idx = Cards.FindIndex(c => c.Title == card.Title);
         if (idx >= 0)
         {
@@ -344,4 +291,3 @@
         _ => Icons.Material.Filled.Help
     };
 }
-

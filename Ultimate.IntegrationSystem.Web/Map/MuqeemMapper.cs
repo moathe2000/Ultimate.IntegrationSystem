@@ -1,6 +1,6 @@
 ﻿
-using Ultimate.IntegrationSystem.Api.Dto.Muqeem.Requests;
 using Ultimate.IntegrationSystem.Web.Dto;
+using Ultimate.IntegrationSystem.Web.Dto.Muqeem;
 
 namespace Ultimate.IntegrationSystem.Web.Map
 {

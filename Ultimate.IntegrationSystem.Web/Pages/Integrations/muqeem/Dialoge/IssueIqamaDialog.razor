@@ -321,8 +321,8 @@
             if (IsRenew)
             {
                 // مرّر رقم الإقامة القادم من الحقل (أوثق مصدر)
-                var dto = MuqeemMapper.ToRenewIqama(Employee, Model.IqamaDuration, Model.IqamaNumber);
-                api = await IqamaSrv.RenewAsync(dto);
+                var dto1 = MuqeemMapper.ToRenewIqama(Employee, Model.IqamaDuration, Model.IqamaNumber);
+                api = await IqamaSrv.RenewAsync(dto1);
             }
             else
             {

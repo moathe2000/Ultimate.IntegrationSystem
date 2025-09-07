@@ -1,8 +1,6 @@
-﻿
-
-namespace Ultimate.IntegrationSystem.Web.Dto.Muqeem
+﻿namespace Ultimate.IntegrationSystem.Web.Dto.Muqeem
 {
-    public class IqamaIssueDto
+    public class IssueIqamaRequestDto
     {
         public string BorderNumber { get; set; }
         public string IqamaDuration { get; set; }
@@ -17,5 +15,3 @@ namespace Ultimate.IntegrationSystem.Web.Dto.Muqeem
         public string EmployeeNumber { get; set; }
     }
 }
-
-   
