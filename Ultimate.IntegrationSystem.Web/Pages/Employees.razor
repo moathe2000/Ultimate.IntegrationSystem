@@ -13,7 +13,7 @@
 @inject IJSRuntime JS
 
 <style>
-    /* خلفية عامة */
+    /* خلفية عامة مثل بقية الصفحات */
     body, .page-root {
         background: #f5f5f9;
     }
@@ -25,7 +25,7 @@
         --table-h: calc(100vh - 360px);
     }
 
-    /* بطاقات المؤشرات */
+    /* KPI Cards (نفس الروح) */
     .kpi-card {
         border: 1px solid var(--soft-brd);
         border-radius: var(--radius);
@@ -50,21 +50,20 @@
         line-height: 1;
     }
 
-    /* شريط الأدوات العام */
+    /* شريط Sneat */
     .toolbar {
         border: 1px solid var(--soft-brd);
         border-radius: var(--radius);
         padding: 6px 10px !important;
     }
 
-    /* شريط Sneat */
     .sneat-toolbar-row {
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: 12px;
         flex-wrap: wrap;
-        direction: ltr; /* يبقي البحث يمين */
+        direction: ltr;
     }
 
     .sneat-actions {
@@ -78,7 +77,6 @@
         align-items: center;
     }
 
-    /* زر رئيسي و Export */
     .btn-sneat-main {
         border-radius: 10px;
         padding-inline: 14px;
@@ -90,14 +88,12 @@
         border-color: var(--soft-brd) !important;
     }
 
-    /* Select صغير ومقوّس */
     .select-sneat .mud-input-root {
         min-height: 38px;
         width: 84px;
         border-radius: 10px;
     }
 
-    /* البحث */
     .search-sneat {
         width: 340px;
         transition: width .25s ease;
@@ -113,7 +109,7 @@
             padding-bottom: 0;
         }
 
-    /* توحيد الارتفاعات لجميع عناصر الشريط (38px) */
+    /* توحيد الارتفاعات 38px */
     .u-ctrl .mud-input-root,
     .u-ctrl .mud-button-root,
     .u-ctrl .mud-select .mud-input-root {
@@ -123,7 +119,6 @@
         align-items: center;
     }
 
-    /* تثبيت ارتفاع حقل البحث بدقة = 38px */
     .fix-38 .mud-input-root,
     .fix-38 .mud-input-root .mud-input-slot,
     .fix-38 .mud-input-root input,
@@ -153,7 +148,7 @@
         align-items: center;
     }
 
-    /* عناصر عامة للجدول */
+    /* جدول */
     .elevated {
         border: 1px solid var(--soft-brd);
         border-radius: var(--radius);
@@ -248,38 +243,53 @@
         z-index: 1000;
     }
 
+    /* بطاقات العرض */
+    .employee-card {
+        transition: .2s;
+        border: 1px solid rgba(0,0,0,.06);
+        border-radius: 12px;
+    }
+
+        .employee-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 18px rgba(0,0,0,.08);
+        }
+
+    /* تبويب اختيار العرض */
+    .view-tabs .mud-tab {
+        min-width: auto;
+        padding-inline: 10px;
+    }
+
     /* Responsive */
     @@media (max-width:768px) {
-        .sneat-toolbar-row
+        .sneat-toolbar-row {
+            flex-direction: column;
+            align-items: stretch;
+        }
 
-    {
-        flex-direction: column;
-        align-items: stretch;
-    }
+        .sneat-actions {
+            order: 2;
+            flex-wrap: wrap;
+        }
 
-    .sneat-actions {
-        order: 2;
-        flex-wrap: wrap;
-    }
+        .sneat-search {
+            order: 1;
+        }
 
-    .sneat-search {
-        order: 1;
-    }
-
-    .search-sneat {
-        width: 100%;
-    }
-
-        .search-sneat:focus-within {
+        .search-sneat {
             width: 100%;
         }
 
-    .footer-bar {
-        flex-direction: column;
-        align-items: center;
-        gap: 12px;
-    }
+            .search-sneat:focus-within {
+                width: 100%;
+            }
 
+        .footer-bar {
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
     }
 </style>
 
@@ -313,23 +323,19 @@
         </MudItem>
     </MudGrid>
 
-    <!-- Toolbar - Sneat style -->
+    <!-- Toolbar -->
     <MudPaper Elevation="0" Class="toolbar sneat-toolbar">
         <div class="sneat-toolbar-row">
 
-            <!-- يسار: الأزرار -->
+            <!-- يسار: أزرار -->
             <div class="sneat-actions u-ctrl">
-                <!-- زر رئيسي: تحديث -->
-                <MudButton Color="Color.Primary"
-                           Variant="Variant.Filled"
+                <MudButton Color="Color.Primary" Variant="Variant.Filled"
                            StartIcon="@Icons.Material.Filled.Refresh"
-                           Class="btn-sneat-main"
-                           Dense="true"
+                           Class="btn-sneat-main" Dense="true"
                            OnClick="RefreshAsync">
                     تحديث
                 </MudButton>
 
-                <!-- Export -->
                 <MudMenu Dense="true" Class="btn-sneat-ghost">
                     <ActivatorContent>
                         <MudButton Variant="Variant.Outlined"
@@ -340,28 +346,12 @@
                         </MudButton>
                     </ActivatorContent>
                     <ChildContent>
-                        <MudMenuItem OnClick="ExportCsv">
-                            <MudIcon Icon="@Icons.Material.Filled.TableView" Class="mr-2" /> Csv
-                        </MudMenuItem>
-                        <MudMenuItem OnClick="ExportExcel">
-                            <MudIcon Icon="@Icons.Material.Filled.GridOn" Class="mr-2" /> Excel
-                        </MudMenuItem>
-                        <MudMenuItem>
-                            <MudIcon Icon="@Icons.Material.Filled.PictureAsPdf" Class="mr-2" /> Pdf
-                        </MudMenuItem>
-                        <MudMenuItem>
-                            <MudIcon Icon="@Icons.Material.Filled.ContentCopy" Class="mr-2" /> Copy
-                        </MudMenuItem>
-                        <MudMenuItem>
-                            <MudIcon Icon="@Icons.Material.Filled.Print" Class="mr-2" /> Print
-                        </MudMenuItem>
+                        <MudMenuItem OnClick="ExportCsv"><MudIcon Icon="@Icons.Material.Filled.TableView" Class="mr-2" /> Csv</MudMenuItem>
+                        <MudMenuItem OnClick="ExportExcel"><MudIcon Icon="@Icons.Material.Filled.GridOn" Class="mr-2" /> Excel</MudMenuItem>
                     </ChildContent>
                 </MudMenu>
 
-                <!-- حجم الصفحة -->
-                <MudSelect T="int"
-                           Class="select-sneat"
-                           Dense="true"
+                <MudSelect T="int" Class="select-sneat" Dense="true"
                            @bind-Value="pageSize" @bind-Value:after="ResetToFirstPage">
                     <MudSelectItem Value="10">10</MudSelectItem>
                     <MudSelectItem Value="25">25</MudSelectItem>
@@ -369,8 +359,8 @@
                 </MudSelect>
             </div>
 
-            <!-- يمين: البحث -->
-            <div class="sneat-search u-ctrl">
+            <!-- يمين: البحث + تبديل العرض -->
+            <div class="sneat-search u-ctrl" style="gap:12px;">
                 <MudTextField T="string"
                               Class="search-sneat fix-38"
                               @bind-Value="searchTerm"
@@ -381,8 +371,11 @@
                               AdornmentIcon="@Icons.Material.Filled.Search"
                               OnAdornmentClick="ApplySearch"
                               Immediate="true" DebounceInterval="250"
-                              Clearable="true"
-                              Dense="true" />
+                              Clearable="true" Dense="true" />
+                <MudTabs Class="view-tabs" @bind-ActivePanelIndex="_viewIndex" Rounded="true" Elevation="0" Dense="true">
+                    <MudTabPanel Text="بطاقات" Icon="@Icons.Material.Filled.ViewModule" />
+                    <MudTabPanel Text="جدول" Icon="@Icons.Material.Filled.TableRows" />
+                </MudTabs>
             </div>
 
         </div>
@@ -399,7 +392,7 @@
     }
     else if (filteredEmployees.Any())
     {
-        <div style="position: relative;">
+        <div style="position:relative;">
             @if (_exporting)
             {
                 <div class="loading-overlay">
@@ -408,60 +401,109 @@
                 </div>
             }
 
-            <MudPaper Elevation="0" Class="elevated sneat-table">
-                <MudTable T="EmployeeDto"
-                          Items="pagedEmployees"
-                          Dense="true" Hover="true" Striped="true" Bordered="true"
-                          FixedHeader="true" Height="var(--table-h)"
-                          Breakpoint="Breakpoint.Sm"
-                          RowClick="OnRowClick">
+            @if (_viewIndex == 0)
+            {
+                <!-- بطاقات -->
+                <MudGrid Spacing="2">
+                    @foreach (var e in pagedEmployees)
+                    {
+                        <MudItem xs="12" sm="6" md="4" lg="3">
+                            <MudCard Class="employee-card">
+                                <MudCardContent>
+                                    <div class="d-flex align-center">
+                                        <div class="position-relative mr-3">
+                                            <MudAvatar Size="Size.Large" Color="Color.Primary">
+                                                <MudText>@GetInitials(e.FullName)</MudText>
+                                            </MudAvatar>
+                                            <div class="avatar-badge @(e.IsActive ? "active-badge" : "inactive-badge")"></div>
+                                        </div>
+                                        <div>
+                                            <MudText Typo="Typo.subtitle1" Class="font-weight-bold">@e.FullName</MudText>
+                                            <MudText Typo="Typo.body2" Color="Color.Default">@e.JobTitle</MudText>
+                                            <MudText Typo="Typo.caption" Color="Color.Secondary">@e.Department</MudText>
+                                        </div>
+                                    </div>
+                                </MudCardContent>
+                                <MudCardActions>
+                                    <MudChip T="string" Variant="Variant.Outlined"
+                                             Color="@(e.IsActive? Color.Success : Color.Error)"
+                                             Size="Size.Small">
+                                        @(e.IsActive ? "نشط" : "غير نشط")
+                                    </MudChip>
+                                    <MudSpacer />
+                                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"/>
+                                    <MudMenu Dense="true">
+                                        <ActivatorContent>
+                                            <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small" />
+                                        </ActivatorContent>
+                                       <ChildContent>
+                                            <MudMenuItem OnClick="@(async () => await GoToMuqeemAsync(e))">خدمات مقيم</MudMenuItem>
+                                            <MudMenuItem OnClick="@(async () => await NavigateToDetailsAsync(e))">تفاصيل</MudMenuItem>
+                                           
+                                        </ChildContent> 
+                                    </MudMenu>
+                                </MudCardActions>
+                            </MudCard>
+                        </MudItem>
+                    }
+                </MudGrid>
+            }
+            else
+            {
+                <!-- جدول -->
+                <MudPaper Elevation="0" Class="elevated sneat-table">
+                    <MudTable T="EmployeeDto"
+                              Items="pagedEmployees"
+                              Dense="true" Hover="true" Striped="true" Bordered="true"
+                              FixedHeader="true" Height="var(--table-h)"
+                              Breakpoint="Breakpoint.Sm"
+                              RowClick="OnRowClick">
 
-                    <HeaderContent>
-                        <MudTh>الموظف</MudTh>
-                        <MudTh>القسم</MudTh>
-                        <MudTh>المسمى</MudTh>
-                        <MudTh>البريد</MudTh>
-                        <MudTh>الحالة</MudTh>
-                        <MudTh style="width:110px;">رقم</MudTh>
-                        <MudTh style="width:44px;">إجراءات</MudTh>
-                    </HeaderContent>
+                        <HeaderContent>
+                            <MudTh>الموظف</MudTh>
+                            <MudTh>القسم</MudTh>
+                            <MudTh>المسمى</MudTh>
+                            <MudTh>البريد</MudTh>
+                            <MudTh>الحالة</MudTh>
+                            <MudTh style="width:110px;">رقم</MudTh>
+                            <MudTh style="width:44px;">إجراءات</MudTh>
+                        </HeaderContent>
 
-                    <RowTemplate Context="row">
-                        <MudTd>
-                            <MudButton Class="link-btn"
-                                       Variant="Variant.Text"
-                                       Color="Color.Primary"
-                                       OnClick="@(async () => await NavigateToDetailsAsync(row))">
-                                @DisplayName(row)
-                            </MudButton>
-                        </MudTd>
-                        <MudTd>@row.Department</MudTd>
-                        <MudTd>@row.JobTitle</MudTd>
-                        <MudTd class="line-1">@row.Email</MudTd>
-                        <MudTd>
-                            <span class="badge-dot">
-                                <span class="dot @(row.IsActive ? "success" : "error")"></span>
-                                @(row.IsActive ? "فعال" : "موقّف")
-                            </span>
-                        </MudTd>
-                        <MudTd>@row.Id</MudTd>
-                        <MudTd>
-                            <MudMenu Dense="true">
-                                <ActivatorContent>
-                                    <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small" />
-                                </ActivatorContent>
-                                <ChildContent>
-                                    <MudMenuItem OnClick="@(async () => await GoToMuqeemAsync(row))">خدمات مقيم</MudMenuItem>
-                                    <MudMenuItem OnClick="@(async () => await NavigateToDetailsAsync(row))">تفاصيل</MudMenuItem>
-                                    <MudMenuItem OnClick="@(async () => await ToggleEmployeeStatusAsync(row))">
-                                        @(row.IsActive ? "تعطيل" : "تفعيل")
-                                    </MudMenuItem>
-                                </ChildContent>
-                            </MudMenu>
-                        </MudTd>
-                    </RowTemplate>
-                </MudTable>
-            </MudPaper>
+                        <RowTemplate Context="row">
+                            <MudTd>
+                                <MudButton Class="link-btn" Variant="Variant.Text" Color="Color.Primary"
+                                           OnClick="@(async () => await NavigateToDetailsAsync(row))">
+                                    @DisplayName(row)
+                                </MudButton>
+                            </MudTd>
+                            <MudTd>@row.Department</MudTd>
+                            <MudTd>@row.JobTitle</MudTd>
+                            <MudTd class="line-1">@row.Email</MudTd>
+                            <MudTd>
+                                <span class="badge-dot">
+                                    <span class="dot @(row.IsActive ? "success" : "error")"></span>
+                                    @(row.IsActive ? "فعال" : "موقّف")
+                                </span>
+                            </MudTd>
+                            <MudTd>@row.Id</MudTd>
+                            <MudTd>
+                                <MudMenu Dense="true">
+                                    <ActivatorContent>
+                                        <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small" />
+                                    </ActivatorContent>
+                                    <ChildContent>
+                                        <MudMenuItem OnClick="@(async () => await GoToMuqeemAsync(row))">خدمات مقيم</MudMenuItem>
+                                        <MudMenuItem OnClick="@(async () => await NavigateToDetailsAsync(row))">تفاصيل</MudMenuItem>
+                                       @*  <MudMenuItem OnClick="@(async () => await ToggleEmployeeStatusAsync(row))">
+                                            @(row.IsActive ? "تعطيل" : "تفعيل")
+                                        </MudMenuItem> *@
+                                    </ChildContent>
+                                </MudMenu>
+                            </MudTd>
+                        </RowTemplate>
+                    </MudTable>
+                </MudPaper>
+            }
 
             <div class="footer-bar">
                 <MudText Typo="Typo.caption" Color="Color.Secondary">@GetShowingText()</MudText>
@@ -482,6 +524,9 @@
     private List<EmployeeDto> allEmployees = new();
     private string searchTerm = string.Empty;
 
+    // تبديل العرض: 0 بطاقات | 1 جدول
+    private int _viewIndex = 1;
+
     private int currentPage = 1;
     private int pageSize = 25;
 
@@ -490,9 +535,9 @@
     private bool _exporting;
     private string? _error;
 
-    // استخدام Memoization لتحسين أداء التصفية
+    // Memoized filtering
     private IEnumerable<EmployeeDto> filteredEmployees => GetFilteredEmployees();
-    private IEnumerable<EmployeeDto> cachedFilteredEmployees;
+    private IEnumerable<EmployeeDto>? cachedFilteredEmployees;
     private string cachedSearchTerm = string.Empty;
 
     private IEnumerable<EmployeeDto> GetFilteredEmployees()
@@ -528,15 +573,10 @@
     {
         try
         {
-            _loading = true;
-            _error = null;
-            StateHasChanged();
-
+            _loading = true; _error = null; StateHasChanged();
             allEmployees = await EmployeeService.GetAllEmployeesAsync();
             totalEmployees = allEmployees.Count;
-
-            cachedSearchTerm = string.Empty;
-            cachedFilteredEmployees = null;
+            cachedSearchTerm = string.Empty; cachedFilteredEmployees = null;
         }
         catch (Exception ex)
         {
@@ -554,38 +594,28 @@
     {
         activeCount = allEmployees.Count(e => e.IsActive);
         inactiveCount = totalEmployees - activeCount;
-
         var thirtyDaysAgo = DateTime.Now.AddDays(-30);
-        newHiresCount = 11; // مثال ثابت
+        newHiresCount = allEmployees.Count(e => ( DateTime.MinValue) >= thirtyDaysAgo);
     }
 
     private void ResetToFirstPage() => currentPage = 1;
     private void OnPageChanged(int p) => currentPage = p;
 
-    private void ApplySearch()
-    {
-        ResetToFirstPage();
-        StateHasChanged();
-    }
-
-    private void OnSearchKeyDown(KeyboardEventArgs e)
-    {
-        if (e.Key == "Enter") ApplySearch();
-    }
+    private void ApplySearch() { ResetToFirstPage(); StateHasChanged(); }
 
     private Task OnRowClick(TableRowClickEventArgs<EmployeeDto> args)
-      => NavigateToDetailsAsync(args.Item);
+        => NavigateToDetailsAsync(args.Item);
 
     private string DisplayName(EmployeeDto e)
-      => !string.IsNullOrWhiteSpace(e.FullName) ? e.FullName
-       : !string.IsNullOrWhiteSpace(e.FullNameEn) ? e.FullNameEn
-       : !string.IsNullOrWhiteSpace(e.Email) ? e.Email
-       : (e.Id is not null ? $"موظف #{e.Id}" : "موظف");
+        => !string.IsNullOrWhiteSpace(e.FullName) ? e.FullName
+         : !string.IsNullOrWhiteSpace(e.FullNameEn) ? e.FullNameEn
+         : !string.IsNullOrWhiteSpace(e.Email) ? e.Email
+         : (e.Id is not null ? $"موظف #{e.Id}" : "موظف");
 
     private Task GoToMuqeemAsync(EmployeeDto e)
     {
         SelectedState.Set(e);
-        Navigation.NavigateTo("/MuqeemServices");
+        Navigation.NavigateTo("/MuqeemEmployees");
         return Task.CompletedTask;
     }
 
@@ -608,10 +638,7 @@
                 Snackbar.Add($"تم تغيير حالة الموظف بنجاح", Severity.Success);
                 StateHasChanged();
             }
-            else
-            {
-                Snackbar.Add($"فشل في تغيير حالة الموظف", Severity.Error);
-            }
+            else Snackbar.Add($"فشل في تغيير حالة الموظف", Severity.Error);
         }
         catch (Exception ex)
         {
@@ -635,9 +662,7 @@
     {
         try
         {
-            _exporting = true;
-            StateHasChanged();
-
+            _exporting = true; StateHasChanged();
             var rows = filteredEmployees.ToList();
             var sb = new System.Text.StringBuilder();
 
@@ -670,8 +695,7 @@
         }
         finally
         {
-            _exporting = false;
-            StateHasChanged();
+            _exporting = false; StateHasChanged();
         }
     }
 
@@ -679,5 +703,12 @@
     {
         await LoadEmployees();
         CalcKpis();
+    }
+
+    private string GetInitials(string? name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return "؟";
+        var p = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        return p.Length == 1 ? p[0][0].ToString() : $"{p[0][0]}{p[^1][0]}";
     }
 }

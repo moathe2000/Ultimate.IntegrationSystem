@@ -110,7 +110,7 @@ namespace Ultimate.IntegrationSystem.Api.Services
             _con = new OracleConnection(string.Format(connectionString, _currentSchema));
            using var cmd = new OracleCommand(@"
             BEGIN
-              :p0 := HR_INTEGRATE_PLATFORMS.GET_EMPLOYEE_JSON(
+              :p0 := HRS_INTEGRATE_PLATFORMS.GET_EMPLOYEE_JSON(
                 P_EMP_NO       => :P_EMP_NO,
                 P_EMP_NO_FROM  => :P_EMP_NO_FROM,
                 P_EMP_NO_TO    => :P_EMP_NO_TO,
@@ -151,7 +151,7 @@ namespace Ultimate.IntegrationSystem.Api.Services
 
         using var cmd = new OracleCommand(@"
             BEGIN
-              :p0 := HR_INTEGRATE_PLATFORMS.GET_EMP_DOC_LIST_CUR(
+              :p0 := HRS_INTEGRATE_PLATFORMS.GET_EMP_DOC_LIST_CUR(
                 P_EMP_NO        => :P_EMP_NO,
                 P_CODE_NO       => :P_CODE_NO,
                 P_DCMNT_TYP_NO  => :P_DCMNT_TYP_NO,
@@ -191,18 +191,81 @@ namespace Ultimate.IntegrationSystem.Api.Services
     }
 
 
-  
 
 
 
-    
 
 
 
-     
 
-    
-       
+        public async Task<string> GetDocsAndRnwlAsJson(
+    // فلاتر جدول HRS_EMP_DOC_DTL
+    decimal? P_EMP_NO = null,
+    decimal? P_CODE_NO = null,
+    decimal? P_DCMNT_TYP_NO = null,
+    string P_DOC_NO = null,          // DOC_NO في جدولك VARCHAR2(60)
+    decimal? P_SUB_CODE_NO = null,
+    int? P_ONLY_ACTIVE = 1,        // 1=Active فقط, 0=الكل
+
+    // فلاتر جدول HRS_RNWL_EMP_DOC_DTL
+    decimal? P_RNWL_DOC_TYP = 810,     // غالباً 810 لمسار التجديد
+    decimal? P_RNWL_DOC_NO = null,
+    decimal? P_RNWL_DOC_SRL = null
+)
+        {
+            using var _con = new OracleConnection(string.Format(connectionString, _currentSchema));
+
+            using var cmd = new OracleCommand(@"
+        BEGIN
+          :p0 := HRS_INTEGRATE_PLATFORMS.GET_DOCS_AND_RNWL_JSON(
+            P_EMP_NO        => :P_EMP_NO,
+            P_CODE_NO       => :P_CODE_NO,
+            P_DCMNT_TYP_NO  => :P_DCMNT_TYP_NO,
+            P_DOC_NO        => :P_DOC_NO,
+            P_SUB_CODE_NO   => :P_SUB_CODE_NO,
+            P_ONLY_ACTIVE   => :P_ONLY_ACTIVE,
+            P_RNWL_DOC_TYP  => :P_RNWL_DOC_TYP,
+            P_RNWL_DOC_NO   => :P_RNWL_DOC_NO,
+            P_RNWL_DOC_SRL  => :P_RNWL_DOC_SRL
+          );
+        END;", _con);
+
+            cmd.BindByName = true;
+
+            // قيمة الإرجاع (CLOB)
+            var p0 = cmd.Parameters.Add("p0", OracleDbType.Clob, ParameterDirection.ReturnValue);
+
+            // معاملات الإدخال — لاحظ استخدام DBNull.Value عندما تكون null
+            cmd.Parameters.Add("P_EMP_NO", OracleDbType.Decimal).Value = (object?)P_EMP_NO ?? DBNull.Value;
+            cmd.Parameters.Add("P_CODE_NO", OracleDbType.Decimal).Value = (object?)P_CODE_NO ?? DBNull.Value;
+            cmd.Parameters.Add("P_DCMNT_TYP_NO", OracleDbType.Decimal).Value = (object?)P_DCMNT_TYP_NO ?? DBNull.Value;
+            cmd.Parameters.Add("P_DOC_NO", OracleDbType.Varchar2).Value = (object?)P_DOC_NO ?? DBNull.Value;
+            cmd.Parameters.Add("P_SUB_CODE_NO", OracleDbType.Decimal).Value = (object?)P_SUB_CODE_NO ?? DBNull.Value;
+            cmd.Parameters.Add("P_ONLY_ACTIVE", OracleDbType.Decimal).Value = (object?)P_ONLY_ACTIVE ?? DBNull.Value;
+
+            cmd.Parameters.Add("P_RNWL_DOC_TYP", OracleDbType.Decimal).Value = (object?)P_RNWL_DOC_TYP ?? DBNull.Value;
+            cmd.Parameters.Add("P_RNWL_DOC_NO", OracleDbType.Decimal).Value = (object?)P_RNWL_DOC_NO ?? DBNull.Value;
+            cmd.Parameters.Add("P_RNWL_DOC_SRL", OracleDbType.Decimal).Value = (object?)P_RNWL_DOC_SRL ?? DBNull.Value;
+
+            try
+            {
+                await _con.OpenAsync().ConfigureAwait(false);
+                await cmd.ExecuteNonQueryAsync().ConfigureAwait(false);
+
+                using var clob = p0.Value as OracleClob;
+                return (clob == null || clob.IsNull) ? string.Empty : clob.Value;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "GET_DOCS_AND_RNWL_JSON failed");
+                throw;
+            }
+        }
+
+
+
+
+
 
 
         public async Task<string> GetBranchJson(int? P_USR_NO = 1, int P_LNG_NO = 1)
@@ -214,7 +277,7 @@ namespace Ultimate.IntegrationSystem.Api.Services
                 // استعلام PL/SQL لاستدعاء دالة GET_Branch_JSON
                 string plsqlQuery = @"
         Begin 
-            :p0 := Inv_Api_Sync_Pkg.GET_Branch_JSON(
+            :p0 := HRS_INTEGRATE_PLATFORMS.GET_Branch_JSON(
                         P_USR_NO => :P_USR_NO
                     );
         end;";
@@ -319,43 +382,7 @@ namespace Ultimate.IntegrationSystem.Api.Services
 
 
 
-        public async Task<string> GetCurrencyAsXml(int? P_USR_NO = 1, int? P_LNG_NO = 1)
-        {
-
-            _con = new OracleConnection(string.Format(connectionString, _currentSchema));
-            OracleCommand oracleCommand = new(
-                            @"Begin 
-                    :p0 := Inv_Api_Sync_Pkg.GET_CUR_XML(
-                                                            P_LANG_NO          =>:P_LNG_NO        
-                                                          );
-                end;", _con);
-            OracleCommand command = oracleCommand;
-
-
-
-            var p = command.Parameters.Add(new OracleParameter("p0", OracleDbType.Clob, direction: ParameterDirection.ReturnValue));
-
-
-
-            command.Parameters.Add(new OracleParameter("P_LANG_NO", OracleDbType.Int64, direction: ParameterDirection.Input)).Value = P_LNG_NO;
-
-            try
-            {
-                _con.Open();
-                await command?.ExecuteNonQueryAsync();
-                var returnValue = p?.Value as Oracle.ManagedDataAccess.Types.OracleClob;
-                var str = returnValue.IsNull ? "" : returnValue.Value.ToString();
-                _con.Close();
-                //_logger.LogInformation("xml request : {value1}", str);
-                return str;
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, "");
-                throw;
-
-            }
-        }
+      
      
 
        

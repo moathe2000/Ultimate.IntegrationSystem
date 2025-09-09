@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 using Ultimate.IntegrationSystem.Api.Dto;
+using Ultimate.IntegrationSystem.Api.Dto.Muqeem.Responses;
 using Ultimate.IntegrationSystem.Api.Interface;
 using Ultimate.IntegrationSystem.Api.Models;
 
@@ -158,8 +159,8 @@ namespace Ultimate.IntegrationSystem.Api.Controllers
         //    }
 
 
-        [HttpPost("GetEmpDocs")]
-        public async Task<ApiResultModel> GetEmpDocs([FromBody] EmpDocPara para)
+        [HttpPost("GetEmpDocs2")]
+        public async Task<ApiResultModel> GetEmpDocs1([FromBody] EmpDocPara para)
         {
             try
             {
@@ -229,6 +230,171 @@ namespace Ultimate.IntegrationSystem.Api.Controllers
                 };
             }
         }
+
+
+
+        [HttpPost("GetEmpDocs")]
+        public async Task<ActionResult<ApiResultModel>> GetEmpDocs(
+    [FromBody] EmpDocPara para,
+    CancellationToken ct)
+        {
+            try
+            {
+                // 0) قيم افتراضية آمنة
+                para.P_ONLY_ACTIVE ??= 1;       // 1 = نشط فقط
+                para.P_RNWL_DOC_TYP ??= 810;    // حسب منطقك
+
+                // 1) استدعاء خدمة أوراكل
+                var json = await _dataAccessSerivce.GetDocsAndRnwlAsJson(
+                    P_EMP_NO: para.P_EMP_NO,
+                    P_CODE_NO: para.P_CODE_NO,
+                    P_DCMNT_TYP_NO: para.P_DCMNT_TYP_NO,
+                    P_DOC_NO: para.P_DOC_NO,
+                    P_SUB_CODE_NO: para.P_SUB_CODE_NO,
+                    P_ONLY_ACTIVE: para.P_ONLY_ACTIVE,
+                    P_RNWL_DOC_TYP: para.P_RNWL_DOC_TYP,
+                    P_RNWL_DOC_NO: para.P_RNWL_DOC_NO,
+                    P_RNWL_DOC_SRL: para.P_RNWL_DOC_SRL
+                );
+
+                // 2) لا توجد بيانات خام
+                if (string.IsNullOrWhiteSpace(json))
+                    return NoContent(); // ✅ يعالج CS8625
+
+                // 3) تحليل الاستجابة العامة
+                var response = _dbModelMapping.GetDbResultModelFromJson(json);
+                if (response?.Result?.MsgNo != "004")
+                {
+                    return StatusCode(500, new ApiResultModel
+                    {
+                        Code = 500,
+                        Message = response?.Result?.MsgTxt ?? "حدث خطأ غير معروف من الدالة GET_DOCS_AND_RNWL_JSON.",
+                        Content = null
+                    });
+                }
+
+                // 4) تحويل القسم DTL إلى الموديل الداخلي
+                var documents = _dbModelMapping.MapJson<EmployeeDocument>(response)
+                                 ?? new List<EmployeeDocument>();
+
+                if (documents.Count == 0)
+                    return NoContent(); // ✅
+
+                // (اختياري) ترتيب
+                documents = documents
+                    .OrderByDescending(d => d.ExpiryDate ?? DateTime.MinValue)
+                    .ToList();
+
+                // 5) مابّينغ إلى DTO للـ Front-End
+                var dtoList = _mapper.Map<List<EmployeeDocumentDto>>(documents);
+
+                // 6) نجاح
+                return Ok(new ApiResultModel
+                {
+                    Code = 0,
+                    Message = "Success",
+                    Content = dtoList
+                });
+            }
+            catch (OperationCanceledException)
+            {
+                return StatusCode(499, new ApiResultModel
+                {
+                    Code = 499,
+                    Message = "تم إلغاء الطلب",
+                    Content = null
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "GetEmpDocs failed. EmpNo={EmpNo}", para?.P_EMP_NO);
+                return StatusCode(500, new ApiResultModel
+                {
+                    Code = 500,
+                    Message = $"حدث خطأ: {ex.Message}",
+                    Content = null
+                });
+            }
+        }
+
+      //  [HttpPost("GetEmpDocs")]
+        //public async Task<ApiResultModel> GetEmpDocs([FromBody] EmpDocPara para)
+        //{
+        //    try
+        //    {
+        //        // 1) استدعاء الدالة التي تُرجع JSON من أوراكل (docs + rnwl)
+        //        var json = await _dataAccessSerivce.GetDocsAndRnwlAsJson(
+        //            // فلاتر DTL
+        //            P_EMP_NO: para.P_EMP_NO,
+        //            P_CODE_NO: para.P_CODE_NO,
+        //            P_DCMNT_TYP_NO: para.P_DCMNT_TYP_NO,
+        //            P_DOC_NO: para.P_DOC_NO,        // اختياري (VARCHAR2)
+        //            P_SUB_CODE_NO: para.P_SUB_CODE_NO,   // اختياري
+        //            P_ONLY_ACTIVE: para.P_ONLY_ACTIVE,   // 1=نشط فقط (افتراضي), 0=الكل
+        //                                                 // فلاتر RNWL
+        //            P_RNWL_DOC_TYP: para.P_RNWL_DOC_TYP,  // افتراضيًا 810
+        //            P_RNWL_DOC_NO: para.P_RNWL_DOC_NO,
+        //            P_RNWL_DOC_SRL: para.P_RNWL_DOC_SRL
+        //        );
+
+        //        // 2) التحقق من الاستجابة
+        //        if (string.IsNullOrWhiteSpace(json))
+        //        {
+        //            return new ApiResultModel
+        //            {
+        //                Code = 204, // No Content
+        //                Message = "لا توجد بيانات متاحة",
+        //                Content = null
+        //            };
+        //        }
+
+        //        // 3) تحليل JSON إلى نموذج وسيط عام
+        //        var response = _dbModelMapping.GetDbResultModelFromJson(json);
+        //        if (response?.Result?.MsgNo != "004")
+        //        {
+        //            return new ApiResultModel
+        //            {
+        //                Code = 500,
+        //                Message = response?.Result?.MsgTxt ?? "حدث خطأ غير معروف من الدالة GET_DOCS_AND_RNWL_JSON.",
+        //                Content = null
+        //            };
+        //        }
+
+        //        // 4) تحويل القسمين إلى موديلاتك النهائية
+        //        //    يفترض أن الـ mapper يعرف أن Data.dtl تُحوّل إلى EmpDocRecordModel
+        //        //    و Data.rnwl تُحوّل إلى EmpDocRnwlRecordModel
+
+        //      //  ت إلى الموديل النهائي(عدّل النوع حسب موديلك الفعلي)
+        //        var payload = _dbModelMapping.MapJson<EmployeeDocument>(response) ?? new List<EmployeeDocument>();
+
+        //        //var dtl2 = _dbModelMapping.MapJson<EmployeeDocument[]>(response)
+        //               //   ?? new List<EmpDocRecordModel>();
+        //      //  var rnwl = _dbModelMapping.MapJsonSection<EmpDocRnwlRecordModel>(response, "rnwl")
+        //                  // ?? new List<EmpDocRnwlRecordModel>();
+
+               
+
+        //        // 5) نجاح — نرجع كلا القائمتين + الميتاداتا إن أردت
+              
+
+        //        return new ApiResultModel
+        //        {
+        //            Code = 0,
+        //            Message = "Success",
+        //            Content = payload
+        //        };
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "GetEmpDocs failed");
+        //        return new ApiResultModel
+        //        {
+        //            Code = 500,
+        //            Message = $"حدث خطأ: {ex.Message}",
+        //            Content = null
+        //        };
+        //    }
+        //}
 
     }
 

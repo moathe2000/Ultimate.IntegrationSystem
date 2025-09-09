@@ -63,7 +63,44 @@ namespace Ultimate.IntegrationSystem.Api.AutoMapper
 
                 .ForMember(dest => dest.OrganizationMOINumber, opt => opt.MapFrom(src => src.organizationMOINumber))
                 .ForMember(dest => dest.OrganizationName, opt => opt.MapFrom(src => src.organizationName));
-        }
 
+
+
+            CreateMap<EmployeeDocument, EmployeeDocumentDto>()
+                // حقول مباشرة
+                .ForMember(d => d.EmployeeNo, opt => opt.MapFrom(s => s.EmployeeNumber))
+                .ForMember(d => d.DocNo, opt => opt.MapFrom(s => s.DocumentNumber))
+                .ForMember(d => d.IssueDate, opt => opt.MapFrom(s => s.IssueDate))
+                .ForMember(d => d.ExpiryDate, opt => opt.MapFrom(s => s.ExpiryDate))
+                .ForMember(d => d.RenewalDate, opt => opt.MapFrom(s => s.RenewalDate))
+                .ForMember(d => d.IssuePlace, opt => opt.MapFrom(s => s.IssuePlace))
+                .ForMember(d => d.IsDefault, opt => opt.MapFrom(s => s.IsDefault))
+                .ForMember(d => d.IsInactive, opt => opt.MapFrom(s => s.IsInactive))
+
+                // نوع الوثيقة المقروء من رقم النوع
+                .ForMember(d => d.DocType, opt => opt.ConvertUsing(new DocTypeNameConverter(), src => src.DocumentTypeNumber))
+
+                // subtype (عربي -> إنجليزي -> Fallback)
+                .ForMember(d => d.SubType, opt => opt.MapFrom<SubTypeResolver>())
+
+                // توحيد شكل التاريخ الهجري
+                .ForMember(d => d.IssueDateHijri, opt => opt.ConvertUsing(new HijriSlashConverter(), src => src.IssueDateHijri))
+                .ForMember(d => d.ExpiryDateHijri, opt => opt.ConvertUsing(new HijriSlashConverter(), src => src.ExpiryDateHijri))
+                .ForMember(d => d.RenewalDateHijri, opt => opt.ConvertUsing(new HijriSlashConverter(), src => src.RenewalDateHijri))
+
+                // اشتقاقات العرض
+                .ForMember(d => d.IsExpired, opt => opt.MapFrom(s =>
+                    s.ExpiryDate.HasValue && s.ExpiryDate.Value.Date < DateTime.Today))
+
+                .ForMember(d => d.DaysToExpire, opt => opt.MapFrom(s =>
+                    s.ExpiryDate.HasValue
+                        ? (int?)(s.ExpiryDate.Value.Date - DateTime.Today).TotalDays
+                        : null
+                ));
+
+
+
+
+        }
     }
 }

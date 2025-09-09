@@ -1,4 +1,4 @@
-﻿@page "/MuqeemEmployees"
+﻿ @page "/MuqeemEmployees"
 
 @using MudBlazor
 @using Newtonsoft.Json
@@ -15,12 +15,92 @@
 @inject SelectedEmployeeState SelectedState
 @inject NavigationManager Navigation
 
-<MudContainer MaxWidth="MaxWidth.False" Class="pa-0">
+<style>
+    /* نفس خلفية employees */
+    body, .page-root {
+        background: #f5f5f9;
+    }
+
+    :root {
+        --soft-bg: rgba(0,0,0,.035);
+        --soft-brd: rgba(0,0,0,.10);
+        --radius: 12px;
+    }
+
+    /* رأس الموظف */
+    .emp-header {
+        border: 1px solid var(--soft-brd);
+        border-radius: var(--radius);
+        background: #fff;
+        padding: 16px;
+    }
+
+    .emp-header-grid {
+        row-gap: 12px;
+    }
+
+    .emp-avatar {
+        width: 44px;
+        height: 44px;
+        font-weight: 700;
+    }
+
+    .emp-chips .mud-chip {
+        border-radius: 10px;
+    }
+
+    /* كروت/جداول ناعمة مثل employees */
+    .card-soft {
+        border: 1px solid var(--soft-brd);
+        border-radius: var(--radius);
+        background: #fff;
+    }
+
+    /* كرت تفاعلي عام (لو احتجته) */
+    .card-click {
+        cursor: pointer;
+        transition: background .2s, box-shadow .2s, transform .08s;
+    }
+
+        .card-click:hover {
+            background: #f7f9ff;
+            box-shadow: 0 6px 16px rgba(0,0,0,.08);
+            border-color: #cfe0ff;
+        }
+
+        .card-click:active {
+            transform: translateY(1px);
+        }
+
+    /* تبويبات من اليمين */
+    .tabs-rtl .mud-tabs-toolbar {
+        justify-content: flex-end; /* يلصق التبويبات باليمين */
+        flex-direction: row-reverse; /* يعكس ترتيب الألسنة */
+        border-bottom: 1px solid var(--soft-brd);
+    }
+
+    .tabs-rtl .mud-tab {
+        direction: rtl;
+        text-align: right;
+    }
+
+    /* توحيد محاذاة خلايا الجداول يمين */
+    .mud-table-cell {
+        text-align: right;
+    }
+
+    /* شريط أدوات ضيق */
+    .tight-toolbar .mud-button {
+        height: 36px;
+    }
+</style>
+
+<MudContainer MaxWidth="MaxWidth.False" Class="pa-0 page-root">
 
     <!-- ===== Header ===== -->
-    <MudPaper Class="emp-header" Elevation="2">
+    <MudPaper Class="emp-header card-soft" Elevation="0">
         <MudGrid Class="emp-header-grid" AlignItems="Center">
-            <MudItem xs="12" md="4" Class="emp-id-col">
+            <MudItem xs="12" md="4">
                 <MudStack AlignItems="AlignItems.Center" Spacing="1">
                     <MudAvatar Class="emp-avatar" Color="Color.Primary">
                         @GetInitials(Employee.FullName)
@@ -32,10 +112,10 @@
 
             <MudItem xs="12" md="8">
                 <MudStack Direction="Row" Wrap="Wrap.NoWrap" Class="emp-chips" Spacing="2">
-                    <MudChip T="string" Variant="Variant.Outlined" Icon="@Icons.Material.Filled.AddToHomeScreen">
+                    <MudChip T="string" Variant="Variant.Outlined" Icon="@Icons.Material.Filled.Task">
                         المسمى الوظيفي : @Employee.JobTitle
                     </MudChip>
-                    <MudChip T="string" Variant="Variant.Outlined" Icon="@Icons.Material.Filled.BorderBottom">
+                    <MudChip T="string" Variant="Variant.Outlined" Icon="@Icons.Material.Filled.Badge">
                         الحدود : @Employee.BorderId
                     </MudChip>
                     <MudChip T="string" Variant="Variant.Outlined" Icon="@Icons.Material.Filled.Smartphone">
@@ -53,29 +133,27 @@
     </MudPaper>
 
     <!-- ===== Tabs ===== -->
-    <MudTabs Rounded="true" Dense="true" Elevation="2" Centered="true"
-             Class="tabs-pills mt-4" @bind-ActivePanelIndex="_activeTab">
+    <MudTabs @bind-ActivePanelIndex="_activeTab"
+             Rounded="true" Dense="true" Elevation="0"
+             Class="tabs-rtl mt-4 card-soft">
 
-        <!-- الإقامات -->
-        <!-- ================== تبويب الإقامات ================== -->
+        <!-- ================== الإقامات ================== -->
         <MudTabPanel Icon="@Icons.Material.Filled.Assignment" Text="الإقامات">
-            <MudPaper Class="pa-3 mb-3" Elevation="1">
-                <MudGrid Class="tight-toolbar"  Spacing="2" Justify="Justify.FlexStart">
-                    <MudItem xs="12" md="6" Class="d-flex justify-end">
-                        <MudButton Variant="Variant.Outlined" Color="Color.Primary"
-                                   StartIcon="@Icons.Material.Filled.Task" OnClick="IssueResidence" Class="ml-2">
+
+            <MudPaper Class="pa-3 mb-3 card-soft" Elevation="0">
+                <MudGrid>
+                    <MudItem xs="12" class="d-flex justify-content-lg-start">
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                                   StartIcon="@Icons.Material.Filled.Task"
+                                   OnClick="IssueResidence">
                             إصدار إقامة
                         </MudButton>
-
-                      @*   <MudButton Variant="Variant.Outlined" Color="Color.Secondary"
-                                   StartIcon="@Icons.Material.Filled.Refresh" OnClick="RenewResidence">
-                            تجديد إقامة
-                        </MudButton> *@
                     </MudItem>
                 </MudGrid>
             </MudPaper>
+        
 
-            <MudPaper Elevation="1">
+            <MudPaper Elevation="0" Class="card-soft">
                 <MudTable Items="@FilteredResidencies" Dense="true" Hover="true"
                           RightToLeft="RightToLeft.Yes"
                           RowsPerPage="@_residencyRowsPerPage"
@@ -107,12 +185,6 @@
                         <MudTd>@context.IssueDate?.ToString("yyyy-MM-dd")</MudTd>
                         <MudTd>@context.IqamaExpiryDateG?.ToString("yyyy-MM-dd")</MudTd>
                         <MudTd>@context.IqamaExpiryDateH</MudTd>
-                        @* <MudTd>
-                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"
-                                           OnClick="@(() => EditResidency(context))" />
-                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
-                                           OnClick="@(() => DeleteResidency(context))" />
-                        </MudTd> *@
                         <MudTd>
                             <MudIconButton Icon="@Icons.Material.Filled.Refresh"
                                            Size="Size.Small"
@@ -120,9 +192,7 @@
                                            Variant="Variant.Filled"
                                            Title="تجديد الإقامة"
                                            OnClick="@(() => RenewResidencyRow(context))" />
-                          
                         </MudTd>
-
                     </RowTemplate>
 
                     <PagerContent>
@@ -132,18 +202,20 @@
             </MudPaper>
         </MudTabPanel>
 
-        <!-- جواز السفر -->
+        <!-- ================== جواز السفر ================== -->
         <MudTabPanel Icon="@Icons.Material.Filled.Badge" Text="جواز السفر">
-            <MudPaper Elevation="1">
+            <MudPaper Elevation="0" Class="card-soft">
                 <MudTable Items="@FilteredPassports" Dense="true" Hover="true"
                           RightToLeft="RightToLeft.Yes"
                           RowsPerPage="@_passportRowsPerPage"
                           Breakpoint="Breakpoint.None">
+
                     <ToolBarContent>
                         <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Print">
                             طباعة
                         </MudButton>
                     </ToolBarContent>
+
                     <HeaderContent>
                         <MudTh>رقم الجواز</MudTh>
                         <MudTh>اسم الموظف</MudTh>
@@ -204,9 +276,9 @@
             </MudPaper>
         </MudTabPanel>
 
-        <!-- الخروج والعودة -->
+        <!-- ================== الخروج والعودة ================== -->
         <MudTabPanel Icon="@Icons.Material.Filled.FlightTakeoff" Text="الخروج والعودة">
-            <MudPaper Elevation="1">
+            <MudPaper Elevation="0" Class="card-soft">
                 <MudTable Items="@FilteredExitReentry" Dense="true" Hover="true"
                           RightToLeft="RightToLeft.Yes"
                           RowsPerPage="@_visaRowsPerPage"
@@ -266,9 +338,9 @@
             </MudPaper>
         </MudTabPanel>
 
-        <!-- الخروج النهائي -->
+        <!-- ================== الخروج النهائي ================== -->
         <MudTabPanel Icon="@Icons.Material.Filled.ExitToApp" Text="الخروج النهائي">
-            <MudPaper Elevation="1">
+            <MudPaper Elevation="0" Class="card-soft">
                 <MudTable Items="@FilteredFinalExit" Dense="true" Hover="true"
                           RightToLeft="RightToLeft.Yes"
                           RowsPerPage="@_finalExitRowsPerPage"
@@ -337,20 +409,14 @@
 </MudContainer>
 
 @code {
-
     [CascadingParameter] public IMudDialogInstance MudDialog { get; set; } = default!;
-
     [Parameter] public EmployeeDto Employee { get; set; } = new();
     [Parameter] public bool IsRenew { get; set; } = false;
-
-    // ✅ الجديد: رقم الإقامة القادم من الصف
     [Parameter] public string? IqamaNumberFromRow { get; set; }
 
     private IqamaModel Model { get; set; } = new();
 
-   
     private int _activeTab = 0;
-    
 
     // الإقامات
     private int _residencyRowsPerPage = 10;
@@ -382,31 +448,27 @@
         }
         Employee = SelectedState.Current;
 
-
-        // قيم افتراضية للتجربة
+        // بيانات تجريبية
         _residencies = new() {
             new ResidencyRow { IqamaNumber="1234567890", EmployeeNumber="01", EmployeeName="أحمد محمد", ActionType="إصدار", IqamaProfession="مهندس", IssueNumber="1001", Nationality="مصري", Religion="مسلم", IssueDate=DateTime.Now, IqamaExpiryDateG=DateTime.Now.AddYears(1), IqamaExpiryDateH="1448-01-01" }
         };
-
         _passports = new() {
             new PassportRow { PassportNumber="P123456", EmployeeName="خالد علي", OldExpiry=DateTime.Now.AddYears(-5), NewExpiry=DateTime.Now.AddYears(5), RequestType="تجديد", ActionBy="موظف النظام", ActionTime=DateTime.Now, Status="بانتظار الرد" }
         };
-
         _exitReentry = new() {
             new ExitReentryRow { PassportExpiry=DateTime.Now.AddYears(5), IqamaExpiry=DateTime.Now.AddYears(1), ActionBy="موظف النظام", ActionTime=DateTime.Now, MuqeemStatus="تم إتمامها" }
         };
-
         _finalExitList = new() {
             new FinalExitRow { IqamaNumber="9876543210", EmployeeNumber="02", EmployeeName="سارة علي", PassportExpiry=DateTime.Now.AddYears(5), IqamaExpiry=DateTime.Now.AddYears(1), ActionBy="موظف النظام", ActionTime=DateTime.Now, Status="تم رفضها" }
         };
     }
+
     protected override void OnParametersSet()
     {
         if (IsRenew && !string.IsNullOrWhiteSpace(IqamaNumberFromRow))
-        {
-            Model.IqamaNumber = IqamaNumberFromRow;   // يملأ الحقل مباشرة
-        }
+            Model.IqamaNumber = IqamaNumberFromRow;
     }
+
     private string GetInitials(string? name)
     {
         if (string.IsNullOrWhiteSpace(name)) return "؟";
@@ -414,76 +476,31 @@
         return p.Length == 1 ? p[0][0].ToString() : $"{p[0][0]}{p[^1][0]}";
     }
 
-    // دوال الإقامات
-    // ===== تجديد إقامة =====
-    // private async Task RenewResidence()
-    // {
-    //     var prms = new DialogParameters
-    //     {
-    //         ["Employee"] = Employee,
-    //         ["IsRenew"] = true
-    //     };
-
-    //     var opts = new DialogOptions
-    //     {
-    //         CloseOnEscapeKey = true,
-    //         NoHeader = true,
-    //         CloseButton = false,
-    //         MaxWidth = MaxWidth.False,
-    //         FullWidth = false,
-    //         Position = DialogPosition.CenterRight,
-    //         BackgroundClass = "side-sheet-overlay",
-    //     };
-
-    //     var dialogRef = DialogService.Show<IssueIqamaDialog>(string.Empty, prms, opts);
-    //     var result = await dialogRef.Result;
-
-    //     if (result.Canceled) return;
-
-    //     if (result.Data is ApiResultModel api && api.Content is IqamaInfoDto info)
-    //     {
-    //         _residencies.Add(new ResidencyRow
-    //         {
-    //             IqamaNumber = info.IqamaNumber,
-    //             EmployeeNumber = Employee.Id.ToString() ?? "-",
-    //             EmployeeName = Employee.FullName ?? "-",
-    //             ActionType = "تجديد",
-    //             IqamaProfession = info.Occupation?.Ar ?? "-",
-    //             IssueNumber = info.OrganizationMOINumber ?? "-",
-    //             IssueDate = DateTime.Now,
-    //             IqamaExpiryDateG = info.IqamaExpiryDateG,
-    //             IqamaExpiryDateH = info.IqamaExpiryDateH,
-    //             Nationality = info.Nationality?.Ar ?? "-",
-    //             Religion = info.Religion?.Ar ?? "-"
-    //         });
-    //         Snackbar.Add("✅ تم تجديد الإقامة بنجاح.", Severity.Success);
-    //     }
-    // }
+    // ===== تجديد إقامة من صف الجدول =====
     private async Task RenewResidencyRow(ResidencyRow r)
     {
         var prms = new DialogParameters
         {
             ["Employee"] = Employee,
             ["IsRenew"] = true,
-            // ["IqamaNumber"] = r.IqamaNumber   // سنلتقطه داخل الدialog لعمل prefill
             ["IqamaNumberFromRow"] = r.IqamaNumber
         };
 
         var opts = new DialogOptions
         {
             CloseOnEscapeKey = true,
-                    NoHeader = true,
-                    CloseButton = false,
-                    MaxWidth = MaxWidth.False,
-                    FullWidth = false,
-                    Position = DialogPosition.CenterRight,
-                    BackgroundClass = "side-sheet-overlay",
-           
+            NoHeader = true,
+            CloseButton = false,
+            MaxWidth = MaxWidth.False,
+            FullWidth = false,
+            Position = DialogPosition.CenterRight,
+            BackgroundClass = "side-sheet-overlay",
         };
 
         var dialogRef = DialogService.Show<IssueIqamaDialog>(string.Empty, prms, opts);
         var result = await dialogRef.Result;
         if (result.Canceled) return;
+
         if (result.Data is ApiResultModel api)
         {
             var info = JsonConvert.DeserializeObject<IqamaInfoDto>(api.Content?.ToString() ?? "");
@@ -492,7 +509,7 @@
                 _residencies.Add(new ResidencyRow
                 {
                     IqamaNumber = info.IqamaNumber,
-                    EmployeeNumber = Employee.Id.ToString() ?? "-",
+                    EmployeeNumber = Employee.Id?.ToString() ?? "-",
                     EmployeeName = Employee.FullName ?? "-",
                     ActionType = "تجديد",
                     IqamaProfession = info.Occupation?.Ar ?? "-",
@@ -506,7 +523,6 @@
                 Snackbar.Add("✅ تم تجديد الإقامة بنجاح.", Severity.Success);
             }
         }
-       
     }
 
     // ===== إصدار إقامة =====
@@ -531,44 +547,44 @@
 
         var dialogRef = DialogService.Show<IssueIqamaDialog>(string.Empty, prms, opts);
         var result = await dialogRef.Result;
-
         if (result.Canceled) return;
-        var x = result.Data as ApiResultModel;
-        var info = JsonConvert.DeserializeObject<IqamaInfoDto>(x.Content.ToString());
 
-        if (info != null)
+        if (result.Data is ApiResultModel api)
         {
-            _residencies.Add(new ResidencyRow
+            var info = JsonConvert.DeserializeObject<IqamaInfoDto>(api.Content?.ToString() ?? "");
+            if (info != null)
             {
-                IqamaNumber = info.IqamaNumber,
-                EmployeeNumber = Employee.Id.ToString() ?? "-",
-                EmployeeName = Employee.FullName ?? "-",
-                ActionType = "إصدار",
-                IqamaProfession = info.Occupation?.Ar ?? "-",
-                IssueNumber = info.OrganizationMOINumber ?? "-",
-                IssueDate = DateTime.Now,
-                IqamaExpiryDateG = info.IqamaExpiryDateG,
-                IqamaExpiryDateH = info.IqamaExpiryDateH,
-                Nationality = info.Nationality?.Ar ?? "-",
-                Religion = info.Religion?.Ar ?? "-"
-            });
-            Snackbar.Add("✅ تم إصدار الإقامة بنجاح.", Severity.Success);
+                _residencies.Add(new ResidencyRow
+                {
+                    IqamaNumber = info.IqamaNumber,
+                    EmployeeNumber = Employee.Id?.ToString() ?? "-",
+                    EmployeeName = Employee.FullName ?? "-",
+                    ActionType = "إصدار",
+                    IqamaProfession = info.Occupation?.Ar ?? "-",
+                    IssueNumber = info.OrganizationMOINumber ?? "-",
+                    IssueDate = DateTime.Now,
+                    IqamaExpiryDateG = info.IqamaExpiryDateG,
+                    IqamaExpiryDateH = info.IqamaExpiryDateH,
+                    Nationality = info.Nationality?.Ar ?? "-",
+                    Religion = info.Religion?.Ar ?? "-"
+                });
+                Snackbar.Add("✅ تم إصدار الإقامة بنجاح.", Severity.Success);
+            }
         }
     }
-  
 
-    // دوال الجواز
+    // جواز السفر
     private void ExtendPassport(PassportRow r) => Snackbar.Add($"تمديد جواز {r.PassportNumber}", Severity.Info);
     private void RenewPassport(PassportRow r) => Snackbar.Add($"تجديد جواز {r.PassportNumber}", Severity.Success);
     private void ReprintPassport(PassportRow r) => Snackbar.Add($"إعادة طباعة جواز {r.PassportNumber}", Severity.Info);
 
-    // دوال خروج وعودة
+    // خروج وعودة
     private void IssueExitReentry(ExitReentryRow r) => Snackbar.Add("إصدار خروج وعودة", Severity.Success);
     private void CancelExitReentry(ExitReentryRow r) => Snackbar.Add("إلغاء خروج وعودة", Severity.Warning);
     private void ExtendExitReentry(ExitReentryRow r) => Snackbar.Add("تمديد خروج وعودة", Severity.Info);
     private void ReprintExitReentry(ExitReentryRow r) => Snackbar.Add("إعادة طباعة خروج وعودة", Severity.Info);
 
-    // دوال خروج نهائي
+    // خروج نهائي
     private void IssueFinalExit(FinalExitRow r) => Snackbar.Add($"إصدار خروج نهائي {r.EmployeeName}", Severity.Success);
     private void CancelFinalExit(FinalExitRow r) => Snackbar.Add($"إلغاء خروج نهائي {r.EmployeeName}", Severity.Warning);
     private void ReprintFinalExit(FinalExitRow r) => Snackbar.Add("إعادة طباعة خروج نهائي", Severity.Info);
